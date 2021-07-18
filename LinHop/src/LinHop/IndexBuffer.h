@@ -1,4 +1,6 @@
-#pragma once
+#ifndef INDEX_BUFFER_H
+#define INDEX_BUFFER_H
+
 class IndexBuffer
 {
 public:
@@ -13,3 +15,4 @@ private:
 	unsigned int m_Count;
 };
 
+#endif

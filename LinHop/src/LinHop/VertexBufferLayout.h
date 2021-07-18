@@ -1,6 +1,8 @@
-#pragma once
+#ifndef VERTEX_BUFFER_LAYOUT_H
+#define VERTEX_BUFFER_LAYOUT_H
+
+#include <gl/glew.h>
 #include <vector>
-#include "Renderer.h"
 
 struct VertexBufferElement
 {
@@ -48,3 +50,4 @@ private:
 	unsigned int m_Stride;
 };
 
+#endif

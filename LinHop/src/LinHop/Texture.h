@@ -1,5 +1,7 @@
-#pragma once
-#include "Renderer.h"
+#ifndef TEXTURE_H
+#define TEXTURE_H
+
+#include <string>
 
 class Texture
 {
@@ -17,9 +19,10 @@ public:
 	inline int GetBPP() const			{ return m_BPP; }
 
 private:
-	unsigned int m_RendererID;
-	std::string m_FilePath;
-	unsigned char* m_LocalBuffer;
-	int m_Width, m_Height, m_BPP;
+	unsigned int	m_RendererID = 0;
+	std::string		m_FilePath;
+	unsigned char*	m_LocalBuffer = nullptr;
+	int				m_Width = 0, m_Height = 0, m_BPP = 0;
 };
 
+#endif

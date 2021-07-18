@@ -1,4 +1,6 @@
-#pragma once
+#ifndef VERTEX_BUFFER_H
+#define VERTEX_BUFFER_H
+
 class VertexBuffer
 {
 public:
@@ -13,3 +15,4 @@ private:
 	unsigned int m_Count;
 };
 
+#endif

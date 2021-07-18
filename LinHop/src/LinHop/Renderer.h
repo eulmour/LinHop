@@ -1,23 +1,41 @@
 #pragma once
+
+#ifndef RENDERER_H
+#define RENDERER_H
+
 #include <GL/glew.h>
+#include "VertexBuffer.h"
+#include "VertexBufferLayout.h"
 #include "VertexArray.h"
 #include "IndexBuffer.h"
+
 #include "Shader.h"
-
-#define ASSERT(x) if (!(x)) __debugbreak();
-#define GLCall(x) GLClearError();\
-	x;\
-	ASSERT(GLLogCall(#x, __FILE__, __LINE__))
-
-void GLClearError();
-bool GLLogCall(const char* function, const char* file, int line);
-void GLAPIENTRY errorOccurredGL(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam);
+#include "Texture.h"
 
 class Renderer
 {
 public:
+	Renderer();
+	~Renderer();
+	void Use(Shader* shader);
 	void Clear() const;
-	void Draw(const VertexArray& va, const IndexBuffer& ib, Shader& shader);
-	void DrawArrays(const VertexArray& va, const VertexBuffer& vb, Shader& shader);
+	void Draw();
+	void DrawTexture(
+		Texture			texture,
+		glm::vec2		position,
+		glm::vec2		size = glm::vec2(10.0f, 10.0f),
+		float			rotate = 0.0f,
+		glm::vec3		color = glm::vec3(1.0f));
+
 private:
+	VertexBuffer*		_vb = nullptr;
+	VertexBufferLayout* _layout = nullptr;
+	VertexArray*		_va = nullptr;
+	IndexBuffer*		_ib = nullptr;
+	Shader*				_shaderPtr = nullptr;
+
+	void _drawElements(const VertexArray& va, const IndexBuffer& ib, Shader& shader);
+	void _drawArrays(const VertexArray& va, const VertexBuffer& vb, Shader& shader);
 };
+
+#endif

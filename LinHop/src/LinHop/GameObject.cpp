@@ -10,3 +10,20 @@ void GameObject::Draw()
 {
     // TODO nothing
 }
+
+CircleObject::CircleObject()
+{
+}
+
+CircleObject::CircleObject(glm::vec2 pos, float radius, glm::vec2 velocity, Texture sprite)
+{
+}
+
+glm::vec2 CircleObject::Move(float dt, unsigned int window_width)
+{
+    return glm::vec2();
+}
+
+void CircleObject::Reset(glm::vec2 position, glm::vec2 velocity)
+{
+}

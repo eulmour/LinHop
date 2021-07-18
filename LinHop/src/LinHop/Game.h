@@ -4,24 +4,25 @@
 #include <GLFW/glfw3.h>
 
 #include "Renderer.h"
+#include "GameObject.h"
 
-enum LinPopState
+enum LinHopState
 {
     GAME_ACTIVE,
     GAME_MENU,
     GAME_WIN
 };
 
-class LinPop
+class LinHop
 {
 public:
-    LinPopState             State;
+    LinHopState             State;
     unsigned int            Width, Height;
     unsigned int            Level;
     unsigned int            Lives;
 
-    LinPop(unsigned int width, unsigned int height);
-    ~LinPop();
+    LinHop(unsigned int width, unsigned int height);
+    ~LinHop();
     void Init();
     void ProcessInput(float dt);
     void Update(float dt);
@@ -30,4 +31,8 @@ public:
     void ResetLevel();
     void ResetPlayer();
     void Quit();
+
+private:
+    Renderer* renderer;
+    CircleObject* player;
 };

@@ -1,4 +1,5 @@
 #include "Resources.h"
+#include <gl/glew.h>
 
 // Instantiate static variables
 std::map<std::string, Texture>  Resources::Textures;

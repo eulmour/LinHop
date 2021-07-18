@@ -4,10 +4,10 @@
 #include "LinHop.h"
 #include "Game.h"
 
-#define GAME_WIDTH 600
-#define GAME_HEIGHT 800
+#define GAME_WIDTH 480
+#define GAME_HEIGHT 720
 
-LinPop linpop(GAME_WIDTH, GAME_HEIGHT);
+LinHop linpop(GAME_WIDTH, GAME_HEIGHT);
 
 void sizeCallback(GLFWwindow* window, int width, int height)
 {
@@ -54,10 +54,10 @@ int main(int argc, char* argv[])
 		return -1;
 
 	/* Set view parameters */
-	glClearColor(0.1f, 0.4f, 0.5f, 1.0f);
-	glViewport(0, 0, GAME_WIDTH, GAME_HEIGHT);
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	glEnable(GL_DEPTH_TEST);
+	GLCall(glClearColor(0.1f, 0.4f, 0.5f, 1.0f));
+	GLCall(glViewport(0, 0, GAME_WIDTH, GAME_HEIGHT));
+	GLCall(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
+	GLCall(glEnable(GL_DEPTH_TEST));
 
 	/* Set texturing parameters */
 	GLCall(glEnable(GL_BLEND));
@@ -91,6 +91,8 @@ int main(int argc, char* argv[])
 		linpop.Update(deltaTime);
 
 		/* Rendering */
+		glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		linpop.Render();
 
 		/* Swap front and back buffers */

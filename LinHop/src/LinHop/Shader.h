@@ -1,4 +1,6 @@
-#pragma once
+#ifndef SHADER_H
+#define SHADER_H
+
 #include <string>
 #include <unordered_map>
 #include "../glm/glm.hpp"
@@ -7,7 +9,7 @@ struct ShaderProgramSource
 {
 	std::string VertexSource;
 	std::string FragmentSource;
-	std::string GeometrySource;
+	//std::string GeometrySource;
 };
 
 class Shader
@@ -23,6 +25,8 @@ public:
 	//Set uniforms
 	void SetUniform1i(const std::string& name, const int value);
 	void SetUniform1f(const std::string& name, float value);
+	void SetUniform3f(const std::string& name, float v0, float v1, float v2);
+	void SetUniformMat3f(const std::string& name, glm::mat3& matrix);
 	void SetUniform4f(const std::string& name, float v0, float v1, float v2, float v3);
 	void SetUniformMat4f(const std::string& name, glm::mat4& matrix);
 
@@ -38,3 +42,4 @@ private:
 	//caching for uniforms
 };
 
+#endif
