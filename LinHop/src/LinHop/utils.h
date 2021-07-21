@@ -61,6 +61,11 @@ public:
     }
 };
 
+float radians(float degree);
+float degrees(float radian);
+float mirror_angle(float original, float base);
+float dis_func(float x, float y);
+float normalize(float num, float amt);
 bool onSegment(glm::vec2 p, glm::vec2 q, glm::vec2 r);
 int orientation(glm::vec2 p, glm::vec2 q, glm::vec2 r);
 bool intersect(glm::vec2 a1_pos, glm::vec2 a2_pos, glm::vec2 b1_pos, glm::vec2 b2_pos);

@@ -1,4 +1,45 @@
-#include "utils.h"
+#include "Utils.h"
+
+float radians(float degree)
+{
+	return (degree * (3.14159265359f / 180));
+}
+
+float degrees(float radian)
+{
+	return radian * (180 / 3.14159265359f);
+}
+
+float mirror_angle(float original, float base)
+{
+	float dif = 180 - base;
+	dif = 180 - std::fmod(original + dif, 360);
+
+	return original + dif * 2;
+}
+
+float dis_func(float x, float y)
+{
+	return std::sqrt(std::powf(x, 2) + std::powf(y, 2));
+}
+
+float normalize(float num, float amt)
+{
+	if (num > amt)
+	{
+		num -= amt;
+	}
+	else if (num < -amt)
+	{
+		num += amt;
+	}
+	else
+	{
+		num = 0;
+	}
+
+	return num;
+}
 
 bool onSegment(glm::vec2 p, glm::vec2 q, glm::vec2 r)
 {

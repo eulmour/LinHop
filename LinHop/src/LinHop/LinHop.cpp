@@ -7,7 +7,7 @@
 #define GAME_WIDTH 480 /*3*/
 #define GAME_HEIGHT 720 /*4*/
 
-LinHop linpop(GAME_WIDTH, GAME_HEIGHT);
+LinHop linhop(GAME_WIDTH, GAME_HEIGHT);
 extern glm::vec2 mousePos;
 
 void sizeCallback(GLFWwindow* window, int width, int height)
@@ -15,6 +15,7 @@ void sizeCallback(GLFWwindow* window, int width, int height)
 	Info.width = width;
 	Info.height = height;
 	glViewport(0, 0, width, height);
+	linhop.ResetPlayer();
 }
 void cursorCallback(GLFWwindow* window, double xpos, double ypos)
 {
@@ -24,7 +25,7 @@ void cursorCallback(GLFWwindow* window, double xpos, double ypos)
 void inputCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
 	if (action == GLFW_PRESS)
-		linpop.Message(key);
+		linhop.Message(key);
 
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
@@ -33,7 +34,7 @@ void inputCallback(GLFWwindow* window, int key, int scancode, int action, int mo
 void mouseCallback(GLFWwindow* window, int button, int action, int mods)
 {
 	if (action == GLFW_PRESS)
-		linpop.Message(button);
+		linhop.Message(button);
 }
 
 int main(int argc, char* argv[])
@@ -83,7 +84,7 @@ int main(int argc, char* argv[])
 	glDebugMessageCallback(errorOccurredGL, NULL);
 
 	/* Init */
-	linpop.Init();
+	linhop.Init();
 
 	/* deltaTime variables */
 	float deltaTime = 0.0f;
@@ -100,17 +101,17 @@ int main(int argc, char* argv[])
 		glfwPollEvents();
 
 		/* Update game state */
-		linpop.Update(deltaTime);
+		linhop.Update(deltaTime);
 
 		/* Rendering */
-		linpop.ClearScreen(deltaTime);
-		linpop.Render(deltaTime);
+		linhop.ClearScreen(deltaTime);
+		linhop.Render(deltaTime);
 
 		/* Swap front and back buffers */
 		glfwSwapBuffers(window);
 	}
 
-	linpop.Quit();
+	linhop.Quit();
 	glfwTerminate();
 	return 0;
 }

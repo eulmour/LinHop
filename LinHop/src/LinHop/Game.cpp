@@ -14,16 +14,25 @@
 #include "../glm/gtc/matrix_transform.hpp"
 #include "../glm/gtc/type_ptr.hpp"
 
-#include "utils.h"
+#include "Utils.h"
 
-Renderer* renderer;
-RectangleObject* rect;
-LineObject* line;
-TextObject* text;
+static Renderer* renderer;
+static RectangleObject* rect;
+static LineObject* line;
+static TextObject* text;
 
 glm::vec2 mousePos(240.0f, 720.0f);
-glm::vec2 lastClick;
-float scroll = 0.0f;
+
+static glm::vec2 lastClick;
+static float scroll = 0.0f;
+static long gameScore = 0L;
+static float bounceStrength = 1;
+static int bounceCooldown = 0;
+static float terminalVelocity = 300 + gameScore / 3000;
+static bool endGame = false;
+
+static float cx() { return static_cast<float>(Info.width) / 2; }
+static float cy() { return static_cast<float>(Info.height) / 2; }
 
 class Lines
 {
@@ -52,6 +61,17 @@ public:
 		{
 			line.Draw();
 		}
+	}
+
+	void Reset()
+	{
+		lines.clear();
+
+		lines.push_back(Lines::Line( /* First line */
+			{ 0.0f, static_cast<float>(Info.height) },
+			{ static_cast<float>(Info.width), static_cast<float>(Info.height) },
+			{ 1.0f, 1.0f, 1.0f }
+		));
 	}
 
 	struct Circle
@@ -106,20 +126,23 @@ class Ball
 {
 public:
 
-	float radius = 20.0f;
+	float radius = 14.0f;
 	float diameter = radius / 2;
-	float gravity = 9.8f / 1.5f;
-	glm::vec2 pos{}, vel{ 0.0f, 1.0f };
+	float gravity = 9.8f;
+	glm::vec2 pos{}, vel{ 0.0f, 0.0f };
 
-	Ball() : pos({240.0f - diameter, 360.0f - diameter }) {}
+	Ball() : pos({240.0f - diameter, 360.0f }) {}
 
 	void Move(float dt)
 	{
 		glm::vec2 prev_pos = pos;
 
 		/* Update position */
-		vel.y += gravity;
+		vel.y = std::min(terminalVelocity, vel.y + gravity);
 		pos += vel * dt;
+
+		if (bounceCooldown > 0)
+			--bounceCooldown;
 
 		/* check line collisions */
 		if (pos.x < 0.0f || pos.x > static_cast<float>(Info.width))
@@ -129,13 +152,22 @@ public:
 
 		for (const auto& line : lines.lines)
 		{
-			int side = checkLineSides(line.a_pos, line.b_pos, { pos.x, pos.y + radius });
+			int side = checkLineSides(line.a_pos, line.b_pos, pos);
 
 			if (sign(side) == 1)
 			{
-				if (intersect(prev_pos, { pos.x, pos.y + radius }, line.a_pos, line.b_pos))
+				if (intersect(prev_pos, pos, line.a_pos, line.b_pos) && bounceCooldown == 0)
 				{
-					vel.y = -400.0f;
+					float angle = std::atan2(line.b_pos.y - line.a_pos.y, line.b_pos.x - line.a_pos.x);
+					float normal = angle - 3.1415926f * 0.5f;
+					float mirrored = mirror_angle(degrees(std::atan2(-vel.y, -vel.x)), degrees(normal));
+					float bounce_angle = radians(std::fmod(mirrored, 360));
+
+					vel.x = std::cos(bounce_angle) * (dis_func(vel.x, vel.y) + 100);
+					vel.y = std::sin(bounce_angle) * (dis_func(vel.x, vel.y) + 1);
+					vel.y -= 300 * bounceStrength;
+
+					bounceCooldown = 3;
 				}	
 			}
 		}
@@ -143,7 +175,13 @@ public:
 
 	void Draw() const
 	{
-		renderer->DrawRect(*rect, { pos.x, pos.y - scroll }, { radius, radius });
+		renderer->DrawRect(*rect, { pos.x - diameter, pos.y - scroll - radius }, { radius, radius });
+	}
+
+	void Reset()
+	{
+		pos = { cx() - diameter, cy() };
+		vel = { 0.0f, 0.0f };
 	}
 
 } ball;
@@ -192,14 +230,10 @@ void LinHop::Init()
 		{ 1.0f, 1.0f, 1.0f },
 		&Resources::GetTexture("pixel"));
 
-	lines.lines.push_back(Lines::Line( /* First line */
-		{ 0.0f, static_cast<float>(Info.height) },
-		{ static_cast<float>(Info.width), static_cast<float>(Info.height) },
-		{ 1.0f, 1.0f, 1.0f }
-	));
+	lines.Reset();
 
 	text = new TextObject(
-		"hijk",
+		"dummy",
 		"../res/fonts/OCRAEXT.TTF",
 		textShader,
 		glm::vec2(0.0f, 0.0f),
@@ -216,22 +250,40 @@ void LinHop::Message(int id)
 	switch (id)
 	{
 	case GLFW_MOUSE_BUTTON_LEFT:
-		lines.Push({ mousePos.x, mousePos.y + scroll });
-		lastClick = { mousePos.x, mousePos.y + scroll };
+		if (!endGame)
+		{
+			lines.Push({ mousePos.x, mousePos.y + scroll });
+			lastClick = { mousePos.x, mousePos.y + scroll };
+		}
 		break;
 	case GLFW_KEY_R:
-		ResetPlayer();
+		if (endGame)
+			ResetPlayer();
 		break;
 	}
 }
 
 void LinHop::Update(float dt)
 {
+	gameScore = std::max(gameScore, -static_cast<long>((ball.pos.y - Info.height / 2)));
+	bounceStrength = 1 + static_cast<float>(gameScore) / 8000;
+	ball.gravity = 9.8f + static_cast<float>(gameScore) / 2000;
+
 	ball.Move(dt);
 
-	if (ball.pos.y - (Info.height / 2) < scroll)
+	if (ball.pos.y - (Info.height / 2 - 10) < scroll)
 	{
-		scroll += (ball.pos.y - (Info.height / 2) - scroll) / 10;
+		scroll += (ball.pos.y - (Info.height / 2 - 10) - scroll) / 10;
+	}
+
+	if (endGame)
+	{
+		scroll += (-scroll) / 100;
+	}
+
+	if (ball.pos.x < 0 || ball.pos.x > Info.width || ball.pos.y - scroll > Info.height + ball.radius)
+	{
+		endGame = true;
 	}
 }
 
@@ -255,41 +307,66 @@ void LinHop::Render(float dt)
 {
 	lines.Draw();
 
-	renderer->DrawLine(
-		*line,
-		{ lastClick.x, lastClick.y - scroll },
-		mousePos,
-		{ 0.5f, 0.5f, 0.5f });
+	if (!endGame)
+	{
+		renderer->DrawLine(
+			*line,
+			{ lastClick.x, lastClick.y - scroll },
+			mousePos,
+			{ 0.5f, 0.5f, 0.5f });
+
+		renderer->DrawText(
+			std::to_string(static_cast<int>(1 / dt)) + std::string(" fps"),
+			*text,
+			glm::vec2(Info.width - 70.0f, 5.0f),
+			glm::vec3(0.6f, 0.8f, 1.0f),
+			1
+		);
+
+		renderer->DrawText(
+			"Score: " + std::to_string(gameScore),
+			*text,
+			glm::vec2(0.0f, 5.0f),
+			glm::vec3(0.6f, 0.9f, 1.0f),
+			1
+		);
+	}
+	else
+	{
+		renderer->DrawText(
+			"Score: " + std::to_string(gameScore),
+			*text,
+			glm::vec2(cx() - 55, Info.height / 2 - 20),
+			glm::vec3(0.6f, 0.9f, 1.0f),
+			1
+		);
+
+		renderer->DrawText(
+			"Press R",
+			*text,
+			glm::vec2(cx() - 40, Info.height / 2),
+			glm::vec3(1.0f, 0.8f, 0.6f),
+			1
+		);
+	}
 
 	ball.Draw();
 
-	renderer->DrawText(
-		std::to_string(static_cast<int>(1 / dt)) + std::string(" fps"),
-		*text,
-		glm::vec2(0.0f, 0.0f),
-		glm::vec3(0.6f, 0.8f, 1.0f),
-		1
-	); 
-
-	renderer->DrawText(
-		"scroll: " + std::to_string(scroll),
-		*text,
-		glm::vec2(0.0f, 20.0f),
-		glm::vec3(0.6f, 0.9f, 1.0f),
-		1
-	);
-
-	renderer->DrawText(
-		"what: " + std::to_string(ball.pos.y),
-		*text,
-		glm::vec2(0.0f, 40.0f),
-		glm::vec3(0.6f, 0.9f, 1.0f),
-		1
-	);
 }
 
 void LinHop::ResetPlayer()
 {
+	mousePos = { Info.width / 2, Info.height };
+	lastClick = { Info.width / 2, Info.height };
+	scroll = 0.0f;
+	gameScore = 0L;
+	bounceStrength = 1;
+	bounceCooldown = 0;
+	terminalVelocity = 300 + gameScore / 3000;
+	endGame = false;
+
+	ball.Reset();
+	lines.Reset();
 }
 
 void LinHop::Quit()
