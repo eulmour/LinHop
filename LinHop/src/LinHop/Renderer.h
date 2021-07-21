@@ -4,38 +4,32 @@
 #define RENDERER_H
 
 #include <GL/glew.h>
-#include "VertexBuffer.h"
-#include "VertexBufferLayout.h"
-#include "VertexArray.h"
-#include "IndexBuffer.h"
-
-#include "Shader.h"
 #include "Texture.h"
+#include "GameObject.h"
 
 class Renderer
 {
 public:
-	Renderer();
-	~Renderer();
-	void Use(Shader* shader);
-	void Clear() const;
-	void Draw();
-	void DrawTexture(
-		Texture			texture,
-		glm::vec2		position,
-		glm::vec2		size = glm::vec2(10.0f, 10.0f),
-		float			rotate = 0.0f,
-		glm::vec3		color = glm::vec3(1.0f));
+	void DrawRect(
+		const RectangleObject&	rect,
+		glm::vec2				position,
+		glm::vec2				size = glm::vec2(10.0f, 10.0f),
+		float					rotate = 0.0f,
+		glm::vec4				color = glm::vec4(1.0f));
 
-private:
-	VertexBuffer*		_vb = nullptr;
-	VertexBufferLayout* _layout = nullptr;
-	VertexArray*		_va = nullptr;
-	IndexBuffer*		_ib = nullptr;
-	Shader*				_shaderPtr = nullptr;
+	void DrawLine(
+		const LineObject& line,
+		glm::vec2		a_pos,
+		glm::vec2		b_pos,
+		glm::vec3		color);
 
-	void _drawElements(const VertexArray& va, const IndexBuffer& ib, Shader& shader);
-	void _drawArrays(const VertexArray& va, const VertexBuffer& vb, Shader& shader);
+	void DrawText(
+		std::string			text,
+		TextObject&	obj,
+		glm::vec2			pos,
+		glm::vec3			color,
+		unsigned int		scale
+	);
 };
 
 #endif

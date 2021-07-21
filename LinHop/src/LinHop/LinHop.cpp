@@ -4,23 +4,36 @@
 #include "LinHop.h"
 #include "Game.h"
 
-#define GAME_WIDTH 480
-#define GAME_HEIGHT 720
+#define GAME_WIDTH 480 /*3*/
+#define GAME_HEIGHT 720 /*4*/
 
 LinHop linpop(GAME_WIDTH, GAME_HEIGHT);
+extern glm::vec2 mousePos;
 
 void sizeCallback(GLFWwindow* window, int width, int height)
 {
+	Info.width = width;
+	Info.height = height;
 	glViewport(0, 0, width, height);
 }
 void cursorCallback(GLFWwindow* window, double xpos, double ypos)
 {
-	return;
+	mousePos.x = xpos;
+	mousePos.y = ypos;
 }
-void inputCallback(GLFWwindow* window)
+void inputCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+	if (action == GLFW_PRESS)
+		linpop.Message(key);
+
+	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
+}
+
+void mouseCallback(GLFWwindow* window, int button, int action, int mods)
+{
+	if (action == GLFW_PRESS)
+		linpop.Message(button);
 }
 
 int main(int argc, char* argv[])
@@ -49,6 +62,8 @@ int main(int argc, char* argv[])
 	glfwSetFramebufferSizeCallback(window, sizeCallback);
 	glfwSwapInterval(1);
 	glfwSetCursorPosCallback(window, cursorCallback);
+	glfwSetKeyCallback(window, inputCallback);
+	glfwSetMouseButtonCallback(window, mouseCallback);
 	
 	if (glewInit() != GLEW_OK)
 		return -1;
@@ -84,22 +99,16 @@ int main(int argc, char* argv[])
 		/* Poll for and process events */
 		glfwPollEvents();
 
-		/* Control handling */
-		linpop.ProcessInput(deltaTime);
-
 		/* Update game state */
 		linpop.Update(deltaTime);
 
 		/* Rendering */
-		glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		linpop.Render();
+		linpop.ClearScreen(deltaTime);
+		linpop.Render(deltaTime);
 
 		/* Swap front and back buffers */
 		glfwSwapBuffers(window);
 	}
-
-	//glDeleteProgram(shader);
 
 	linpop.Quit();
 	glfwTerminate();

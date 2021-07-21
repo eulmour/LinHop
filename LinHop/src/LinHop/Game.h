@@ -17,22 +17,16 @@ class LinHop
 {
 public:
     LinHopState             State;
-    unsigned int            Width, Height;
     unsigned int            Level;
     unsigned int            Lives;
 
     LinHop(unsigned int width, unsigned int height);
     ~LinHop();
     void Init();
-    void ProcessInput(float dt);
+    void Message(int id);
     void Update(float dt);
-    void Render();
-    void DoCollisions();
-    void ResetLevel();
+    void ClearScreen(float dt);
+    void Render(float dt);
     void ResetPlayer();
     void Quit();
-
-private:
-    Renderer* renderer;
-    CircleObject* player;
 };

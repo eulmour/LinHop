@@ -1,12 +1,12 @@
 #include "VertexBuffer.h"
 #include "Renderer.h"
 
-VertexBuffer::VertexBuffer(const void* data, unsigned int size)
+VertexBuffer::VertexBuffer(const void* data, unsigned int size, bool bDynamic)
 	: m_Count(size)
 {
 	glGenBuffers(1, &m_RendererID);
 	glBindBuffer(GL_ARRAY_BUFFER, m_RendererID);
-	glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, size, data, bDynamic ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW);
 }
 
 VertexBuffer::~VertexBuffer()

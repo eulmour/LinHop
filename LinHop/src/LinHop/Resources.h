@@ -13,7 +13,7 @@ public:
     static std::map<std::string, Shader>    Shaders;
     static std::map<std::string, Texture>   Textures;
 
-    static void         LoadShader(const char* filePath, std::string name);
+    static Shader&      LoadShader(const char* filePath, std::string name);
     static Shader&      GetShader(std::string name);
     static void         LoadTexture(const char* file, std::string name, bool alpha = true);
     static Texture&     GetTexture(const std::string name);

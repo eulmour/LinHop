@@ -5,9 +5,10 @@
 std::map<std::string, Texture>  Resources::Textures;
 std::map<std::string, Shader>   Resources::Shaders;
 
-void Resources::LoadShader(const char* filePath, std::string name)
+Shader& Resources::LoadShader(const char* filePath, std::string name)
 {
     Shaders[name] = Shader(filePath);
+    return Shaders[name];
 }
 
 Shader& Resources::GetShader(std::string name)

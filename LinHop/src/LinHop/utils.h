@@ -1,4 +1,7 @@
 #pragma once
+#include "../glm/glm.hpp"
+#include "../glm/gtc/matrix_transform.hpp"
+#include "../glm/gtc/type_ptr.hpp"
 
 namespace unused
 {
@@ -58,20 +61,8 @@ public:
     }
 };
 
-class waveforms
-{
-private:
-    static float _density;
-public:
-    static void set_density(float density)
-    {
-        _density = density;
-    }
-    static void tri(float& value, float range_min = -1.0f, float range_max = 1.0f)
-    {
-        if (value < range_min || value > range_max)
-            _density = -_density;
-        value += _density;
-    }
-};
-
+bool onSegment(glm::vec2 p, glm::vec2 q, glm::vec2 r);
+int orientation(glm::vec2 p, glm::vec2 q, glm::vec2 r);
+bool intersect(glm::vec2 a1_pos, glm::vec2 a2_pos, glm::vec2 b1_pos, glm::vec2 b2_pos);
+int sign(float value);
+int checkLineSides(glm::vec2 a_pos, glm::vec2 b_pos, glm::vec2 ball);

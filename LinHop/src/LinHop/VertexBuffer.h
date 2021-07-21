@@ -4,7 +4,7 @@
 class VertexBuffer
 {
 public:
-	VertexBuffer(const void* data, unsigned int size);
+	VertexBuffer(const void* data, unsigned int size, bool bDynamic = false);
 	~VertexBuffer();
 
 	void Bind() const;

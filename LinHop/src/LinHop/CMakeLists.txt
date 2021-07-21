@@ -19,4 +19,5 @@ target_link_libraries(${TARGET_NAME}
 	Shell32
 	glm
 	stb_image
+	freetype
 )
