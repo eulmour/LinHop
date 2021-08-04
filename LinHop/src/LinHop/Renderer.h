@@ -21,7 +21,7 @@ public:
 		const LineObject& line,
 		glm::vec2		a_pos,
 		glm::vec2		b_pos,
-		glm::vec3		color);
+		glm::vec4		color);
 
 	void DrawText(
 		std::string			text,

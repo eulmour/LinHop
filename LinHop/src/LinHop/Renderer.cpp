@@ -60,7 +60,7 @@ void Renderer::DrawText(
     obj.Draw(text, pos, scale);
 }
 
-void Renderer::DrawLine(const LineObject& line, glm::vec2 a_pos, glm::vec2 b_pos, glm::vec3 color)
+void Renderer::DrawLine(const LineObject& line, glm::vec2 a_pos, glm::vec2 b_pos, glm::vec4 color)
 {
     glm::mat4 projection = glm::ortho(
         0.0f,
@@ -72,7 +72,7 @@ void Renderer::DrawLine(const LineObject& line, glm::vec2 a_pos, glm::vec2 b_pos
 
     line.pShader->Bind();
     line.pShader->SetUniformMat4f("projection", projection);
-    line.pShader->SetUniform4f("uColor", color.x, color.y, color.z, 1.0f);
+    line.pShader->SetUniform4f("uColor", color.x, color.y, color.z, color.w);
 
     line.Draw(a_pos, b_pos);
 }

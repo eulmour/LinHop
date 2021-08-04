@@ -3,6 +3,9 @@
 #include "../glm/gtc/matrix_transform.hpp"
 #include "../glm/gtc/type_ptr.hpp"
 
+#define FRAND(min, max) (((float)rand() / (float)(RAND_MAX / (max - min)) + min))
+#define FNRAND(ceil) ((float)rand() / (float)(RAND_MAX / (ceil)) - (ceil / 2))
+
 namespace unused
 {
     template <typename T>
@@ -60,6 +63,18 @@ public:
         return value;
     }
 };
+
+template <typename T>
+struct reversion_wrapper { T& iterable; };
+
+template <typename T>
+auto begin (reversion_wrapper<T> w) { return std::rbegin(w.iterable); }
+
+template <typename T>
+auto end (reversion_wrapper<T> w) { return std::rend(w.iterable); }
+
+template <typename T>
+reversion_wrapper<T> reverse (T&& iterable) { return { iterable }; }
 
 float radians(float degree);
 float degrees(float radian);

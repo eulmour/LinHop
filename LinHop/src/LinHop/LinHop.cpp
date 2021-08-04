@@ -21,6 +21,7 @@ void cursorCallback(GLFWwindow* window, double xpos, double ypos)
 {
 	mousePos.x = xpos;
 	mousePos.y = ypos;
+	linhop.Message(666);
 }
 void inputCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {

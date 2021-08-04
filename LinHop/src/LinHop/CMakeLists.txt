@@ -10,6 +10,12 @@ set(CMAKE_BINARY_DIR "${CMAKE_SOURCE_DIR}/${TARGET_NAME}/bin")
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 
 add_executable(${TARGET_NAME} ${LinHop_SRC})
+
+add_custom_target(copy_assets
+	COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/${TARGET_NAME}/res ${CMAKE_SOURCE_DIR}/${TARGET_NAME}/bin/res
+)
+add_dependencies(${TARGET_NAME} copy_assets)
+
 target_link_libraries(${TARGET_NAME}
 	glew32s
 	glfw3

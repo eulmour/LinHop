@@ -4,6 +4,8 @@
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
 # Custom
+.vscode
+build
 LinHop/bin
 LinHop/resources
 LinHop/src/Demo
