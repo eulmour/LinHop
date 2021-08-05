@@ -70,7 +70,7 @@ public:
     glm::vec2 a_pos{}, b_pos{};
     LineObject() {}
     LineObject(Shader& shader, glm::vec2 a_pos, glm::vec2 b_pos, glm::vec3 color, Texture* texture = nullptr);
-    virtual void Draw() const override;
+    virtual void Draw() const override {}
     virtual void Draw(glm::vec2 a_pos, glm::vec2 b_pos) const;
 private:
     virtual void Init() override;
@@ -89,10 +89,11 @@ class TextObject : public GameObject
 public:
     unsigned int vbo = 0, vao = 0;
     std::map<char, Character> characters;
+    std::vector<Texture*> textures;
 
     TextObject() {}
     TextObject(std::string text, std::string font, Shader& shader, glm::vec2 pos, glm::vec3 color, unsigned int size);
-    virtual void Draw() const override;
+    virtual void Draw() const override {}
     virtual void Draw(std::string& text, glm::vec2 pos, unsigned int scale);
 private:
     virtual void Init() override;

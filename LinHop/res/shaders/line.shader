@@ -26,7 +26,8 @@ void main()
     //float dy = 10.0 * (1.0 / Pixels);
     //vec2 newUV = vec2(dx * floor(vertexPos.x / dx), dy * floor(vertexPos.y / dy));
 
-    vec2 newUV = floor(vertexPos * 160.0) / 160.0;
+    //vec2 newUV = floor(vertexPos * 160.0) / 160.0;
 
-	gl_FragColor = uColor * texture2D(uTexture, vertexPos);
+	//gl_FragColor = uColor * texture2D(uTexture, vertexPos);
+	gl_FragColor = uColor;
 }

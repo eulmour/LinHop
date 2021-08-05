@@ -54,13 +54,13 @@ void RectangleObject::Draw() const
     _va->Bind();
     pSprite->Bind();
 
-    GLCall(glDrawArrays(GL_TRIANGLES, 0, _vb->GetCount()));
+    GLCall(glDrawArrays(GL_TRIANGLES, 0, 6));
 }
 
 void RectangleObject::Init()
 {
     _va = new VertexArray();
-    _layout = new VertexBufferLayout();
+    _va->Bind();
 
     float vertices[] = {
         /*pos*/     /*tex*/
@@ -74,12 +74,14 @@ void RectangleObject::Init()
     };
 
     _vb = new VertexBuffer(vertices, sizeof(vertices));		/* Init buffer */
+    
+    _layout = new VertexBufferLayout();
     _layout->Push<float>(2);								/* push vertex layout (2 bytes position) */
     _layout->Push<float>(2);								/* push vertex layout (2 bytes texture_coord) */
     _va->AddBuffer(*_vb, *_layout);							/* Set vertex data */
 
-    _va->Unbind();
     _vb->Unbind();
+    _va->Unbind();
 }
 
 LineObject::LineObject(Shader& shader, glm::vec2 a_pos, glm::vec2 b_pos, glm::vec3 color, Texture* texture)
@@ -95,41 +97,39 @@ LineObject::LineObject(Shader& shader, glm::vec2 a_pos, glm::vec2 b_pos, glm::ve
     Init();
 }
 
-void LineObject::Draw() const
+void LineObject::Draw(glm::vec2 a, glm::vec2 b) const
 {
-    _vb->Bind();
-    _va->Bind();
-    pSprite->Bind();
-
-    GLCall(glDrawArrays(GL_LINES, 0, _vb->GetCount()));
-}
-
-void LineObject::Draw(glm::vec2 a_pos, glm::vec2 b_pos) const
-{
-    float vertices[4] = {
-        a_pos.x, a_pos.y,
-        b_pos.x, b_pos.y,
+    float vertices[4] =
+    {
+        a.x, a.y,
+        b.x, b.y
     };
 
+    pSprite->Bind();
     _vb->Bind();
     glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
-    _va->Bind();
-    pSprite->Bind();
+    _vb->Unbind();
 
-    GLCall(glDrawArrays(GL_LINES, 0, _vb->GetCount()));
+    _va->Bind();
+    GLCall(glDrawArrays(GL_LINES, 0, 2));
+    _va->Unbind();
+
+    pSprite->Unbind();
 }
 
 void LineObject::Init()
 {
     _va = new VertexArray();
-    _layout = new VertexBufferLayout();
+    _va->Bind();
 
     _vb = new VertexBuffer(nullptr, 4 * sizeof(float), true);	/* Init buffer */
+
+    _layout = new VertexBufferLayout();
     _layout->Push<float>(2);								    /* push vertex layout (2 bytes position) */
     _va->AddBuffer(*_vb, *_layout);							    /* Set vertex data */
 
-    _va->Unbind();
     _vb->Unbind();
+    _va->Unbind();
 }
 
 TextObject::TextObject(std::string text, std::string font, Shader& shader, glm::vec2 pos, glm::vec3 color, unsigned int size)
@@ -140,7 +140,7 @@ TextObject::TextObject(std::string text, std::string font, Shader& shader, glm::
     this->pSprite = nullptr;
     this->bSolid = false;
     this->bDestroyed = false;
-
+    
     Init();
 
     // then initialize and load the FreeType library
@@ -196,25 +196,17 @@ TextObject::TextObject(std::string text, std::string font, Shader& shader, glm::
         };
         characters.insert(std::pair<char, Character>(c, character));
     }
+
     glBindTexture(GL_TEXTURE_2D, 0);
     // destroy FreeType once we're finished
     FT_Done_Face(face);
     FT_Done_FreeType(ft);
 }
 
-void TextObject::Draw() const
-{
-}
-
 void TextObject::Draw(std::string& text, glm::vec2 pos, unsigned int scale)
 {
-    //_vb->Bind();
-    //_va->Bind();
-
-    // activate corresponding render state	
-
     glActiveTexture(GL_TEXTURE0);
-    glBindVertexArray(this->vao);
+    _va->Bind();
 
     // iterate through all characters
     std::string::const_iterator c;
@@ -237,34 +229,37 @@ void TextObject::Draw(std::string& text, glm::vec2 pos, unsigned int scale)
             { xpos + w, ypos + h,   1.0f, 1.0f },
             { xpos + w, ypos,       1.0f, 0.0f }
         };
-        // render glyph texture over quad
+        
         glBindTexture(GL_TEXTURE_2D, ch.TextureID);
-        // update content of VBO memory
-        glBindBuffer(GL_ARRAY_BUFFER, this->vbo);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices); // be sure to use glBufferSubData and not glBufferData
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        
+        _vb->Bind();
+        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
+        _vb->Unbind();
+
         // render quad
         glDrawArrays(GL_TRIANGLES, 0, 6);
+
         // now advance cursors for next glyph
         pos.x += (ch.Advance >> 6) * scale; // bitshift by 6 to get value in pixels (1/64th times 2^6 = 64)
     }
 
-    glBindVertexArray(0);
+    _va->Unbind();
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 void TextObject::Init()
 {
-    // configure VAO/VBO for texture quads
-    glGenVertexArrays(1, &this->vao);
-    glGenBuffers(1, &this->vbo);
-    glBindVertexArray(this->vao);
-    glBindBuffer(GL_ARRAY_BUFFER, this->vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 4, NULL, GL_DYNAMIC_DRAW);
+    _va = new VertexArray();
+    _va->Bind();
 
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
-    
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
+    _vb = new VertexBuffer(nullptr, sizeof(float) * 6 * 4, true);
+
+    _layout = new VertexBufferLayout();
+
+    _layout->Push<float>(2); /* vertex */
+    _layout->Push<float>(2); /* texture */
+    _va->AddBuffer(*_vb, *_layout);
+
+    _vb->Unbind();
+    _va->Unbind();
 }

@@ -1,5 +1,5 @@
 #shader vertex
-#version 420 core
+#version 330 core
 
 layout(location = 0) in vec2 position;
 layout(location = 1) in vec2 texture_coord;
@@ -16,7 +16,7 @@ void main()
 }
 
 #shader fragment
-#version 420 core
+#version 330 core
 
 layout(location = 0) out vec4 color;
 
