@@ -94,7 +94,7 @@ public:
     TextObject() {}
     TextObject(std::string text, std::string font, Shader& shader, glm::vec2 pos, glm::vec3 color, unsigned int size);
     virtual void Draw() const override {}
-    virtual void Draw(std::string& text, glm::vec2 pos, unsigned int scale);
+    virtual void Draw(std::string& text, glm::vec2 pos, float scale);
 private:
     virtual void Init() override;
 };

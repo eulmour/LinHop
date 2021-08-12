@@ -1,14 +1,19 @@
 ﻿// LinHop.cpp : Defines the entry point for the application.
-//
-
+// Project uses some of C++17 features
+#include "Windows.h"
 #include "LinHop.h"
 #include "Game.h"
 
-#define GAME_WIDTH 480 /*3*/
-#define GAME_HEIGHT 720 /*4*/
+#include "FileManager.h"
+#include "../glm/glm.hpp"
+
+constexpr int GAME_WIDTH = 480; /*3*/
+constexpr int GAME_HEIGHT = 720; /*4*/
 
 LinHop linhop(GAME_WIDTH, GAME_HEIGHT);
+GLFWwindow* window;
 extern glm::vec2 mousePos;
+extern GameData gameData;
 
 void sizeCallback(GLFWwindow* window, int width, int height)
 {
@@ -27,9 +32,6 @@ void inputCallback(GLFWwindow* window, int key, int scancode, int action, int mo
 {
 	if (action == GLFW_PRESS)
 		linhop.Message(key);
-
-	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-		glfwSetWindowShouldClose(window, true);
 }
 
 void mouseCallback(GLFWwindow* window, int button, int action, int mods)
@@ -38,10 +40,12 @@ void mouseCallback(GLFWwindow* window, int button, int action, int mods)
 		linhop.Message(button);
 }
 
-int main(int argc, char* argv[])
+// int main(int argc, char* argv[])
+int APIENTRY WinMain(_In_ HINSTANCE hInstance,
+                     _In_opt_ HINSTANCE hPrevInstance,
+                     _In_ LPTSTR    lpCmdLine,
+                     _In_ int       nCmdShow)
 {
-	GLFWwindow* window;
-
 	/* Initialize the library */
 	if (!glfwInit())
 		return -1;
@@ -50,6 +54,7 @@ int main(int argc, char* argv[])
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
 	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
+	glfwWindowHint(GLFW_RESIZABLE, static_cast<int>(gameData.unlockResizing));
 
 	/* Create a windowed mode window and its OpenGL context */
 	window = glfwCreateWindow(GAME_WIDTH, GAME_HEIGHT, "LinHop", nullptr, nullptr);

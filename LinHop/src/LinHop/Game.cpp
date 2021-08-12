@@ -3,7 +3,6 @@
 #include <list>
 #include <string>
 #include <cmath>
-#include <time.h>
 
 #include "GLCall.h"
 #include "Resources.h"
@@ -12,359 +11,123 @@
 #include "../glm/gtc/matrix_transform.hpp"
 #include "../glm/gtc/type_ptr.hpp"
 
-#include "Utils.h"
+#include "GameData.h"
+#include "Entities.h"
+#include "FileManager.h"
 
-#define TAIL_LENGTH 50
-#define TAIL_FUZZ 10.0f
-#define SPARK_LIFE 50
-#define SPARK_GRAVITY 2.5f
-#define SPARK_AMOUNT 6
-#define RAND_LINES_DENSITY 200.0f /* Lower = higher */
+#define LAZERS_LIVE 240
+#define LAZERS_WIDTH Info.width / 3
 
-#define SCROLL(point) { point.x, point.y - scroll}
-#define CX (static_cast<float>(Info.width) / 2) /* Center x */
-#define CY (static_cast<float>(Info.height) / 2) /* Center y */
+int audioFileInit = (InitAudioPlayer(), 0); /* before any AudioFile is created */
+GameData gameData = LoadGameData();
 
-glm::vec2		mousePos(240.0f, 720.0f); /* extern value */
+static float last_place = RAND_LINES_DENSITY;
 
-namespace
+AudioFile musicFiles[] =
 {
-	Renderer*	renderer;
-	RectangleObject* ballRect;
-	RectangleObject* sparkRect;
-	LineObject* line;
-	TextObject* text;
+    AudioFile("../res/audio/a.wav")
+};
 
-	glm::vec2	prevMousePos(240.0f, 720.0f);
-	glm::vec2	lastClick;
-	float		scroll = 0.0f;
-	long		gameScore = 0L;
-	float		bounceStrength = 1;
-	int			bounceCooldown = 0;
-	float		terminalVelocity = 300 + gameScore / 3000;
-	bool		endGame = false;
+AudioFile soundFiles[4] =
+{
+    AudioFile("../res/audio/bounce.wav"),
+    AudioFile("../res/audio/warning.wav"),
+    AudioFile("../res/audio/fail.wav"),
+    AudioFile("../res/audio/fail2.wav"),
+};
 
-	glm::vec4 randColor(float alpha, float factor = 0.5f)
-	{
-		float red = static_cast<float>(rand() % 255) / 255 + factor;
-		float green = static_cast<float>(rand() % 255) / 255 + factor;
-		float blue = static_cast<float>(rand() % 255) / 255 + factor;
-
-		return { std::min(red, 1.0f), std::min(green, 1.0f), std::min(blue, 1.0f), alpha };
-	}
-} /* end of anonimous namespace */
-
-class Sparks
+class Lazers
 {
 public:
-	Sparks() {}
+	Lazers() {}
 
-	struct Spark
+	void Trigger(float position)
 	{
-		glm::vec2 pos, vel, size;
-		glm::vec4 color{};
-		unsigned int life = SPARK_LIFE;
-
-		Spark(glm::vec2 pos) :
-			pos(pos),
-			color(1.0f),
-			size{ FRAND(1.0f, 8.0f), FRAND(1.0f, 8.0f) },
-			vel{FRAND(-20.0f, 20.0f), FRAND(-30.0f, -10.0f) } {}
-
-		void Update()
+		if (liveTime == 0)
 		{
-			vel.x -= vel.x / 5;
-			vel.y = std::min(1.0f, vel.y + SPARK_GRAVITY);
-			pos += vel;
+			liveTime = LAZERS_LIVE;
+			soundFiles[1].playFile();
 
-			--life;
-		}
-
-		void Draw()
-		{
-			renderer->DrawRect(
-				*sparkRect,
-				SCROLL(pos),
-				size,
-				degrees(std::atan2(-vel.x, -vel.y)), /* rotation */
-				{color.r, color.g, color.b, (static_cast<float>(life) / SPARK_LIFE)});
-		}
-	};
-
-	void Push(glm::vec2 position)
-	{
-		for (unsigned int i = 0; i < SPARK_AMOUNT; ++i)
-		{
-			aSparks.push_front(Spark(position));
+			lazers.push_back(Lazer({ position, 0.0f }, { position, 720.0f }));
+			lazers.push_back(Lazer({ position + (LAZERS_WIDTH), 0.0f }, { position + (LAZERS_WIDTH), 720.0f }));
 		}
 	}
 
 	void Draw()
 	{
-		auto current = aSparks.begin();
-		auto end = aSparks.end();
-
-		while (current != end)
+		if ((liveTime > 0) && (lazers.size() > 0))
 		{
-			current->Update();
-			current->Draw();
-
-			if (current->life == 0)
+			for (const auto& lazer : lazers)
 			{
-				aSparks.erase(current++);
-				continue;
+				 lazer.Draw();
 			}
-			++current;
-		}
-	}
 
-	std::list<Spark> aSparks;
-
-} sparks;
-
-class Lines
-{
-public:
-
-	Lines()
-	{
-
-	}
-
-	void Push(glm::vec2 second, glm::vec2 first = lastClick, bool isCol = true)
-	{
-		lines.push_back(Line(first, second, randColor(1.0f), isCol));
-	}
-
-	void Draw()
-	{
-		for (const auto& line : lines)
-		{
-			line.Draw();
-		}
-	}
-
-	void Reset()
-	{
-		lines.clear();
-
-		lines.push_back(Lines::Line( /* First line */
-			{ 0.0f, static_cast<float>(Info.height) },
-			{ static_cast<float>(Info.width), static_cast<float>(Info.height) },
-			{ 1.0f, 1.0f, 1.0f, 1.0f },
-			false
-		));
-	}
-
-	struct Circle
-	{
-		glm::vec2 pos;
-		glm::vec4 color;
-		unsigned int steps = 3 + rand() % 7;
-		float angle = 3.1415926 * 2.0f / steps;
-		float radius = 10.0f;
-
-		Circle() : pos(0.0f, 0.0f) {}
-		Circle(glm::vec2 pos, glm::vec4 color) :
-			pos(pos), color(color) {}
-
-		void Draw() const
-		{
-			float old_x = pos.x;
-			float old_y = pos.y - radius;
-
-			// if (rand() % 500 == 0)
-			// 	sparks.Push(pos);
-
-			for (size_t i = 0; i <= steps; ++i)
+			if (liveTime < 60)
 			{
-				float new_x = pos.x + radius * sinf(angle * i);
-				float new_y = pos.y + -radius * cosf(angle * i);
+				if (liveTime == 59)
+					soundFiles[1].playFile();
 
-				renderer->DrawLine(*line, { old_x, old_y - scroll }, { new_x, new_y - scroll }, color);
-				old_x = new_x;
-				old_y = new_y;
+				renderer->DrawRect(
+					*redRect,
+					{ lazers.back().a.x, lazers.back().a.y },
+					{ lazers.front().a.x - lazers.back().a.x, Info.height },
+					0.0f, { 1.0f, 0.0f, 0.0f, 0.5f }
+				);
+
 			}
-		}
-	};
-
-	struct Line
-	{
-		bool bCollinear;
-		glm::vec2 a_pos;
-		glm::vec2 b_pos;
-		glm::vec4 color;
-		Circle circle[2];
-
-		Line(glm::vec2 a_pos, glm::vec2 b_pos, glm::vec4 color, bool isCol = true) :
-			bCollinear(isCol),
-			color(color),
-			circle{ { a_pos, color }, { b_pos, color } }
-		{
-			this->a_pos = a_pos.x < b_pos.x ? a_pos : b_pos;
-			this->b_pos = a_pos.x < b_pos.x ? b_pos : a_pos;
-		}
-
-		void Draw() const
-		{
-			/* No off-screen rendering */
-			if (a_pos.y - scroll > Info.height && b_pos.y - scroll > Info.height)
-				return;
-
-			renderer->DrawLine(*line, { a_pos.x, a_pos.y - scroll }, { b_pos.x, b_pos.y - scroll }, color);
-
-			if (!bCollinear)
-				circle[0].Draw();
 			
-			circle[1].Draw();
+			--liveTime;
 		}
-	};
 
-	std::vector<Line> lines;
-} lines, rand_lines; /* end of class lines */
-
-class Ball
-{
-public:
-
-	float radius = 14.0f;
-	float diameter = radius / 2;
-	float gravity = 9.8f;
-	glm::vec2 pos{}, prev_pos{}, vel{ 0.0f, 0.0f };
-
-	Ball() : pos({240.0f, 360.0f }) {}
-
-	void Collision(Lines& line_array, glm::vec2& prev_position)
-	{
-		for (const auto& line : reverse(line_array.lines))
+		if ((liveTime == 0) && (lazers.size() > 0))
 		{
-			int side = checkLineSides(line.a_pos, line.b_pos, pos);
+			// lazer will destroy ball
 
-			if (sign(side) == 1)
+			if (ball.pos.x > lazers.front().a.x && ball.pos.x < lazers.back().a.x)
 			{
-				if (intersect(prev_position, pos, line.a_pos, line.b_pos) && bounceCooldown == 0)
-				{
-					float angle = std::atan2(line.b_pos.y - line.a_pos.y, line.b_pos.x - line.a_pos.x);
-					float normal = angle - 3.1415926f * 0.5f;
-					float mirrored = mirror_angle(degrees(std::atan2(-vel.y, -vel.x)), degrees(normal));
-					float bounce_angle = radians(std::fmod(mirrored, 360));
+				if (gameState == GameState::INGAME)
+					gameState = GameState::ENDGAME;
 
-					vel.x = std::cos(bounce_angle) * (dis_func(vel.x, vel.y) + 100);
-					vel.y = std::sin(bounce_angle) * (dis_func(vel.x, vel.y) + 1);
-					vel.y -= 300 * bounceStrength;
-
-					sparks.Push(pos);
-					bounceCooldown = 3;
-					break;
-				}	
+				soundFiles[t_rand(2, 3)].playFile();
 			}
+
+			sparks.Push({ 0.0f, 0.0f });
+			
+			for (size_t i = 0; i < Info.height; i += Info.height / 10)
+			{
+				sparks.Push({ lazers.back().a.x, i });
+				sparks.Push({ lazers.front().a.x, i });
+			}
+
+			lazers.clear();
 		}
 	}
 
-	void Move(float dt)
+	class Lazer
 	{
-		prev_pos = pos;
+	public:
+		glm::vec2 a, b;
+		glm::vec4 color;
 
-		/* Update position */
-		vel.y = std::min(terminalVelocity, vel.y + gravity);
-		pos += vel * dt;
+		Lazer(glm::vec2 a, glm::vec2 b) : a(a), b(b), color({ 1.0f, 0.0f, 0.0f, 1.0f }) {}
 
-		if (bounceCooldown > 0)
-			--bounceCooldown;
-
-		Collision(lines, prev_pos);
-		Collision(rand_lines, prev_pos);
-	}
-
-	void Draw() const
-	{
-		renderer->DrawRect(*ballRect, { pos.x - diameter, pos.y - scroll - radius }, { radius, radius });
-	}
-
-	void Reset()
-	{
-		pos = { CX, CY };
-		vel = { 0.0f, 0.0f };
-	}
-
-} ball;
-
-class Tail
-{
-
-public:
-
-	Tail(const float alpha) : alpha(alpha) {}
-	struct Line
-	{
-		glm::vec2 a_pos;
-		glm::vec2 b_pos;
-		unsigned int lifeTime = TAIL_LENGTH;
-
-		Line(glm::vec2 a, glm::vec2 b) : a_pos(a), b_pos(b) {}
-
-		void Update()
-		{
-			float amount = (((TAIL_LENGTH - static_cast<float>(lifeTime)) * TAIL_FUZZ) / TAIL_LENGTH) / 2;
-
-			a_pos.x += FRAND(-amount, amount);
-			a_pos.y += FRAND(-amount, amount);
-			b_pos.x += FRAND(-amount, amount);
-			b_pos.y += FRAND(-amount, amount);
-
-			--lifeTime;
-		}
-
-		void Draw(const Tail& tail_ref) const
+		void Draw() const
 		{
 			renderer->DrawLine(
 				*line,
-				{ a_pos.x, a_pos.y - scroll },
-				{ b_pos.x, b_pos.y - scroll },
-				randColor((static_cast<float>(lifeTime) / TAIL_LENGTH) * tail_ref.alpha, 0.15f));
+				a, b,
+				color
+			);
 		}
 	};
 
-	void Push(glm::vec2& a, glm::vec2 b)
-	{
-		aTail.push_front(Line(a, b));
-	}
+	unsigned int liveTime = 0U;
+	float pos;
 
-	void Draw()
-	{
-		auto current = aTail.begin();
-		auto end = aTail.end();
-
-		while (current != end)
-		{
-			current->Draw(*this);
-			current->Update();
-
-			if (current->lifeTime == 0)
-			{
-				aTail.erase(current++);
-				continue;
-			}
-
-			++current;
-		}
-	}
-
-	void Reset()
-	{
-		aTail.clear();
-	}
-
-private:
-	std::list<Line> aTail;
-	float alpha = 1.0f;
-
-} ball_tail{ 0.7f }, cursor_tail{ 0.15f };
+	std::list<Lazer> lazers;
+} lazers;
 
 LinHop::LinHop(unsigned int width, unsigned int height)
-	: Lives(3),
-	Level(1),
-	State(LinHopState::GAME_MENU)
 {
 	Info.width = width;
 	Info.height = height;
@@ -375,6 +138,8 @@ LinHop::~LinHop()
 	delete renderer;
 	delete ballRect;
 	delete line;
+
+	DestroyAudioPlayer();
 }
 
 void LinHop::Init()
@@ -404,6 +169,12 @@ void LinHop::Init()
 		{ Info.width, Info.height },
 		Resources::GetTexture("sparkle"));
 
+	redRect = new RectangleObject(
+		spriteShader,
+		{ 0.0f, 0.0f },
+		{ Info.width, Info.height },
+		Resources::GetTexture("pixel"));
+
 	line = new LineObject(
 		lineShader,
 		{ 0.0f, 0.0f },
@@ -413,19 +184,40 @@ void LinHop::Init()
 
 	lines.Reset();
 
-	text = new TextObject(
+	small_text = new TextObject(
 		"dummy",
 		"../res/fonts/OCRAEXT.TTF",
 		textShader,
 		glm::vec2(0.0f, 0.0f),
 		glm::vec3(1.0f, 1.0f, 1.0f),
-		18
-	);
+		14);
 
+	medium_text = new TextObject(
+		"dummy",
+		"../res/fonts/OCRAEXT.TTF",
+		textShader,
+		glm::vec2(0.0f, 0.0f),
+		glm::vec3(1.0f, 1.0f, 1.0f),
+		22);
+
+	large_text = new TextObject(
+		"dummy",
+		"../res/fonts/OCRAEXT.TTF",
+		textShader,
+		glm::vec2(0.0f, 0.0f),
+		glm::vec3(1.0f, 1.0f, 1.0f),
+		48);
+
+	/* volume settings */
+	for (auto& sf : soundFiles)
+		sf.volume = 1.0;
+
+	for (auto& mf : musicFiles)
+		mf.volume = gameData.musicVolumeFloat;
+
+	/* init clicks */
 	lastClick.x = static_cast<float>(Info.width / 2);
 	lastClick.y = static_cast<float>(Info.height);
-
-	srand(static_cast<unsigned int>(time(NULL)));
 }
 
 void LinHop::Message(int id)
@@ -434,18 +226,179 @@ void LinHop::Message(int id)
 	{
 	case GLFW_MOUSE_BUTTON_LEFT:
 
-		if (!endGame)
+		if (gameState == GameState::INGAME)
 		{
-			lines.Push(mousePos);
+			lines.Push(mousePos, lastClick);
 			lastClick = mousePos;
 		}
 
 		break;
 
+	case GLFW_KEY_ENTER:
+
+		switch (gameState)
+		{
+		case GameState::SETTINGS:
+
+			switch (settingsSelected)
+			{
+			case SettingsSelected::FX_ENABLED:
+
+				gameData.fxEnabled = gameData.fxEnabled ? false : true;
+
+				break; /* end of FX_ENABLED */
+
+			case SettingsSelected::UNLOCK_RESIZE:
+			{
+				if (gameData.unlockResizing == 1L)
+				{
+					/* little evil */
+					gameData.maxScoreClassic = 0L;
+					gameData.maxScoreHidden = 0L;
+				}
+
+				gameData.unlockResizing = gameData.unlockResizing == 0L ? 1L : 0L;
+				SaveGameData(gameData);
+
+				extern GLFWwindow* window;
+				glfwSetWindowShouldClose(window, true);
+
+				break; /* end of UNLOCK_RESIZE */
+			}
+
+			case SettingsSelected::RESET_STATISTICS:
+
+				// TODO empty stats
+				gameData.maxScoreClassic = 0L;
+				gameData.maxScoreHidden = 0L;
+				SaveGameData(gameData);
+
+				break; /* end of RESET_STATISTICS */
+
+			case SettingsSelected::BACK:
+
+				gameState = GameState::PAUSED;
+
+				break; /* end of BACK */
+			}
+
+			break;
+
+		case GameState::PAUSED:
+		case GameState::MENU:
+
+			switch (menuSelected)
+			{
+			case MenuSelected::START:
+				gameState = GameState::INGAME;
+				ResetPlayer();
+				break;
+
+			case MenuSelected::CONTINUE:
+				if (gameState == GameState::PAUSED)
+					gameState = GameState::INGAME;
+				break;
+
+			case MenuSelected::SETTINGS:
+				gameState = GameState::SETTINGS;
+				break;
+
+			case MenuSelected::EXIT:
+			{
+				extern GLFWwindow* window;
+				glfwSetWindowShouldClose(window, true);
+				break;
+			}
+			}
+
+			break;
+		}
+
 	case GLFW_KEY_R:
 
-		if (endGame)
+		if (gameState == GameState::ENDGAME)
 			ResetPlayer();
+
+		break;
+
+	case GLFW_KEY_ESCAPE:
+
+		switch (gameState)
+		{
+		case GameState::SETTINGS:
+			gameState = GameState::PAUSED;
+			break;
+
+		case GameState::INGAME:
+			menuSelected = MenuSelected::CONTINUE;
+			gameState = GameState::PAUSED;
+			break;
+
+		case GameState::PAUSED:
+			gameState = GameState::INGAME;
+			break;
+
+		case GameState::ENDGAME:
+			gameState = GameState::MENU;
+			break;
+
+		}
+		break;
+
+	case GLFW_KEY_UP:
+
+		if (gameState == GameState::MENU)
+			--menuSelected;
+		if (gameState == GameState::PAUSED)
+			--menuSelected;
+		if (gameState == GameState::SETTINGS)
+			--settingsSelected;
+
+		break;
+
+	case GLFW_KEY_DOWN:
+
+		if (gameState == GameState::MENU)
+			++menuSelected;
+		if (gameState == GameState::PAUSED)
+			++menuSelected;
+		if (gameState == GameState::SETTINGS)
+			++settingsSelected;
+
+		break;
+
+	case GLFW_KEY_LEFT:
+
+		if (gameState == GameState::MENU)
+		{
+			--gameMode;
+			cursor_tail.alpha = cursor_tail.alpha == 0.15f ? 0.4f : 0.15f;
+		}
+
+		if (gameState == GameState::SETTINGS)
+			if (settingsSelected == SettingsSelected::MUSIC_VOLUME)
+				if (gameData.musicVolumeFloat > 0.0f)
+				{
+					gameData.musicVolumeFloat -= 0.05f;
+					UpdateVolume(musicFiles, gameData.musicVolumeFloat);
+				}
+
+		break;
+	case GLFW_KEY_RIGHT:
+
+		if (gameState == GameState::MENU)
+		{
+			++gameMode;
+			cursor_tail.alpha = cursor_tail.alpha == 0.08f ? 0.4f : 0.08f;
+		}
+
+		if (gameState == GameState::SETTINGS)
+			if(settingsSelected == SettingsSelected::MUSIC_VOLUME)
+				if (gameData.musicVolumeFloat <= 1.0f)
+				{
+					gameData.musicVolumeFloat += 0.05f;
+					UpdateVolume(musicFiles, gameData.musicVolumeFloat);
+				}
 
 		break;
 
@@ -458,60 +411,92 @@ void LinHop::Message(int id)
 
 void LinHop::Update(float dt)
 {
-
-	gameScore = std::max(gameScore, -static_cast<long>((ball.pos.y - Info.height / 2)));
-	bounceStrength = 1 + static_cast<float>(gameScore) / 8000;
-	ball.gravity = 9.8f + static_cast<float>(gameScore) / 2000;
-
-	ball.Move(dt);
-
-	/* If ball reaches half of the screen then update scroll */
-	if (ball.pos.y - (Info.height / 2 - 10) < scroll)
+	switch (gameState)
 	{
-		scroll += (ball.pos.y - (Info.height / 2 - 10) - scroll) / 10;
-	}
+	case GameState::MENU:
+	case GameState::ENDGAME:
+	case GameState::INGAME:
 
-	/* If game was over turn global scroll back */
-	if (endGame)
-	{
-		scroll += (-scroll) / 100;
-	}
+		gameScore = std::max(gameScore, -static_cast<long>((ball.pos.y - Info.height / 2)));
+		bounceStrength = 1 + static_cast<float>(gameScore) / BALL_STRENGTH_MOD;
+		ball.gravity = 9.8f + static_cast<float>(gameScore) / BALL_GRAVITY_MOD;
 
-	/* If the ball is out of screen then stop the game */
-	if (ball.pos.x < 0 || ball.pos.x > Info.width || ball.pos.y - scroll > Info.height + ball.radius)
-	{
-		endGame = true;
-	}
+		ball.Move(dt);
 
-	/* Random platforms */
-	static float last_place = RAND_LINES_DENSITY;
-
-	if ((-scroll) - last_place > RAND_LINES_DENSITY)
-	{
-		if (rand() % 2 <= 1)
+		/* If ball reaches half of the screen then update scroll */
+		if (ball.pos.y - (Info.height / 2 - 10) < scroll)
 		{
-			float base_y = scroll - 80.0f;
-			float base_x = static_cast<float>(rand() % Info.width);
+			scroll += (ball.pos.y - (Info.height / 2 - 10) - scroll) / 10;
+		}
 
-			struct line { glm::vec2 first; glm::vec2 second; }  new_line;
-			new_line.first = { base_x, base_y };
-			new_line.second = { base_x + ((rand() % Info.width) / 2) - CX / 4, base_y + ((rand() % Info.height) / 5) };
+		/* If game was over turn global scroll back */
+		if (gameState == GameState::ENDGAME)
+		{
+			scroll += (-scroll) / 100;
+		}
 
-			if (dis_func(new_line.second.x - new_line.first.x, new_line.second.y - new_line.first.y) > 30.0f)
+		/* If the ball is out of screen then stop the game */
+		if (ball.pos.x < 0 || ball.pos.x > Info.width || ball.pos.y - scroll > Info.height + ball.radius)
+		{
+			if (gameState == GameState::INGAME)
 			{
-				rand_lines.Push(new_line.second, new_line.first, false);
+				soundFiles[t_rand(2, 3)].playFile();
+				gameState = GameState::ENDGAME;
 			}
 		}
 
-		last_place += RAND_LINES_DENSITY;
+		/* Random platforms */
+
+		if ((-scroll) - last_place > RAND_LINES_DENSITY)
+		{
+			if (t_rand(0, 1) <= 1)
+			{
+				float base_y = scroll - 80.0f;
+				float base_x = static_cast<float>(t_rand(0, Info.width));
+
+				struct line { glm::vec2 first; glm::vec2 second; }  new_line;
+				new_line.first = { base_x, base_y };
+				new_line.second = { base_x + (t_rand(0, Info.width) / 2) - CX / 4, base_y + (t_rand(0, Info.height) / 5) };
+
+				if (dis_func(new_line.second.x - new_line.first.x, new_line.second.y - new_line.first.y) > 30.0f)
+				{
+					rand_lines.Push(new_line.second, new_line.first, false);
+				}
+			}
+
+			last_place += RAND_LINES_DENSITY;
+		}
+
+		/* Push for tail */
+
+		if (gameData.fxEnabled)
+		{
+			ball_tail.Push(ball.pos, ball.prev_pos);
+			cursor_tail.Push(mousePos, prevMousePos);
+		}
+
+		/* lazers */
+
+		if (gameScore > 1000L)
+		{
+			if (t_rand(0, 600) == 1)
+			{
+				lazers.Trigger(t_rand(0.0f, static_cast<float>(Info.width - LAZERS_WIDTH)));
+			}
+		}
+
+		break;
 	}
 
-	/* When player hits the line sparks will be created */
+	/* dont put any code below */
+	for (AudioFile& file : musicFiles)
+	{
+		if (file.isPlaying == true)
+			return;
+	}
 
-
-	/* Push for tail */
-	ball_tail.Push(ball.pos, ball.prev_pos);
-	cursor_tail.Push(mousePos, prevMousePos);
+	/* play random music */
+	musicFiles[t_rand(0, COUNT(musicFiles) - 1)].playFile();
 }
 
 void LinHop::ClearScreen(float dt)
@@ -532,57 +517,182 @@ void LinHop::ClearScreen(float dt)
 
 void LinHop::Render(float dt)
 {
-	ball.Draw();
-	ball_tail.Draw();
-	sparks.Draw();
-
-	if (!endGame)
+	switch (gameState)
 	{
-		renderer->DrawLine(
-			*line,
-			{ lastClick.x, lastClick.y - scroll },
-			{ mousePos.x, mousePos.y - scroll },
-			{ 0.5f, 0.5f, 0.5f, 1.0f });
+	case GameState::PAUSED:
+	case GameState::MENU:
 
+		renderer->DrawText(
+			"LinHop", *large_text,
+			{ CX - 85, Info.height / 2 - 180 },
+			{ 0.6f, 0.8f, 1.0f }, 1.0f);
 
+		renderer->DrawText(
+			"Continue", *medium_text,
+			{ CX - 54, Info.height / 2 - 60 },
+			menuSelected == MenuSelected::CONTINUE ? COLOR_SELECTED : COLOR_IDLE,
+			1.0f);
+
+		renderer->DrawText(
+			"Start", *medium_text,
+			{ CX - 34, Info.height / 2 - 20 },
+			menuSelected == MenuSelected::START ? COLOR_SELECTED : COLOR_IDLE,
+			1.0f);
+
+		renderer->DrawText(
+			"Settings", *medium_text,
+			{ CX - 53, Info.height / 2 + 20 },
+			menuSelected == MenuSelected::SETTINGS ? COLOR_SELECTED : COLOR_IDLE,
+			1.0f);
+
+		renderer->DrawText(
+			"Exit", *medium_text,
+			{ CX - 26, Info.height / 2 + 60 },
+			menuSelected == MenuSelected::EXIT ? COLOR_SELECTED : COLOR_IDLE,
+			1.0f);
+
+		renderer->DrawText(
+			"To change game mode press left or right arrow", *small_text,
+			{ CX - 180, Info.height - 20 },
+			{ 0.4f, 0.55f, 0.6f }, 1.0f);
+
+		switch (gameMode)
+		{
+		case GameMode::CLASSIC:
+
+			renderer->DrawText(
+			"High score: " + std::to_string(gameData.maxScoreClassic),
+			*medium_text,
+			{ 0.0f, 5.0f },
+			COLOR_IDLE, 1.0f);
+
+			renderer->DrawText(
+				"Classic", *small_text,
+				{ CX - 29, Info.height / 2 - 130 },
+				COLOR_IDLE,
+				1.0f);
+
+			break;
+
+		case GameMode::HIDDEN:
+
+			renderer->DrawText(
+			"High score: " + std::to_string(gameData.maxScoreHidden),
+			*medium_text,
+			{ 0.0f, 5.0f },
+			COLOR_IDLE, 1.0f);
+
+			renderer->DrawText(
+				"Hidden", *small_text,
+				{ CX - 25, Info.height / 2 - 130 },
+				COLOR_IDLE,
+				1.0f);
+
+			break;
+		}
+
+		break;
+
+	case GameState::SETTINGS:
+
+		renderer->DrawText(
+			"Settings", *large_text,
+			{ CX - 110, Info.height / 2 - 180 },
+			{ 0.6f, 0.9f, 1.0f }, 1.0f);
+
+		renderer->DrawText(
+			CCAT("FX: ", gameData.fxEnabled, "enabled", "disabled"), *medium_text,
+			{ CX - 75, Info.height / 2 - 60 },
+			settingsSelected == SettingsSelected::FX_ENABLED ? COLOR_SELECTED : COLOR_IDLE,
+			1.0f);
+
+		renderer->DrawText(
+			"Music volume: " + std::to_string(static_cast<int>(gameData.musicVolumeFloat * 100)), *medium_text,
+			{ CX - 100, Info.height / 2 - 20 },
+			settingsSelected == SettingsSelected::MUSIC_VOLUME ? COLOR_SELECTED : COLOR_IDLE,
+			1.0f);
+
+		renderer->DrawText(
+			CCAT("Unlock resizing: ", gameData.unlockResizing, "yes", "no"), *medium_text,
+			{ CX - 120, Info.height / 2 + 20 },
+			settingsSelected == SettingsSelected::UNLOCK_RESIZE ? COLOR_SELECTED : COLOR_IDLE,
+			1.0f);
+
+		renderer->DrawText(
+			"Reset game statistics", *medium_text,
+			{ CX - 140, Info.height / 2 + 60 },
+			settingsSelected == SettingsSelected::RESET_STATISTICS ? COLOR_SELECTED : COLOR_IDLE,
+			1.0f);
+
+		renderer->DrawText(
+			"Back", *medium_text,
+			{ CX - 27, Info.height / 2 + 100 },
+			settingsSelected == SettingsSelected::BACK ? COLOR_SELECTED : COLOR_IDLE,
+			1.0f);
+
+		break;
+
+	case GameState::INGAME:
+
+		if (gameMode == GameMode::CLASSIC)
+		{
+			renderer->DrawLine(
+				*line,
+				{ lastClick.x, lastClick.y - scroll },
+				{ mousePos.x, mousePos.y - scroll },
+				{ 0.5f, 0.5f, 0.5f, 1.0f });
+		}
+
+#ifdef DEBUG
 		renderer->DrawText(
 			std::to_string(static_cast<int>(1 / dt)) + std::string(" fps"),
-			*text,
-			glm::vec2(Info.width - 70.0f, 5.0f),
-			glm::vec3(0.6f, 0.8f, 1.0f),
-			1
+			*medium_text,
+			{ Info.width - 80.0f, 5.0f },
+			gameMode == GameMode::CLASSIC ? COLOR_SELECTED : COLOR_HIDDEN,
+			1.0f
 		);
+#endif
+		renderer->DrawText(
+			"Score: " + std::to_string(gameScore),
+			*medium_text,
+			{ 0.0f, 5.0f },
+			gameMode == GameMode::CLASSIC ? COLOR_SELECTED : COLOR_HIDDEN,
+			1.0f);
+
+		break;
+
+	case GameState::ENDGAME:
 
 		renderer->DrawText(
 			"Score: " + std::to_string(gameScore),
-			*text,
-			glm::vec2(0.0f, 5.0f),
-			glm::vec3(0.6f, 0.9f, 1.0f),
-			1
-		);
-	}
-	else
-	{
-		renderer->DrawText(
-			"Score: " + std::to_string(gameScore),
-			*text,
-			glm::vec2(CX - 55, Info.height / 2 - 20),
-			glm::vec3(0.6f, 0.9f, 1.0f),
-			1
-		);
+			*large_text,
+			{ CX - 158, Info.height / 2 - 60 },
+			gameMode == GameMode::CLASSIC ? COLOR_SELECTED : COLOR_HIDDEN,
+			1.0f);
 
 		renderer->DrawText(
 			"Press R",
-			*text,
-			glm::vec2(CX - 40, Info.height / 2),
-			glm::vec3(1.0f, 0.8f, 0.6f),
-			1
-		);
+			*medium_text,
+			{ CX - 44, Info.height / 2 + 200 },
+			{ 1.0f, 0.8f, 0.6f }, 1.0f );
+
+		break;
 	}
 
-	lines.Draw();
+	lazers.Draw();
+	ball.Draw();
+
+	if (gameMode == GameMode::CLASSIC)
+		lines.Draw();
+
+	if (gameData.fxEnabled)
+	{
+		cursor_tail.Draw();
+		sparks.Draw();
+		ball_tail.Draw();
+	}
+
 	rand_lines.Draw();
-	cursor_tail.Draw();
 
 	prevMousePos = mousePos;
 }
@@ -594,19 +704,31 @@ void LinHop::ResetPlayer()
 	mousePos = { Info.width / 2, Info.height };
 	prevMousePos = lastClick = mousePos;
 	scroll = 0.0f;
+
+	if (gameMode == GameMode::CLASSIC)
+		if (gameScore > gameData.maxScoreClassic)
+			gameData.maxScoreClassic = gameScore;
+
+	if (gameMode == GameMode::HIDDEN)
+		if (gameScore > gameData.maxScoreHidden)
+			gameData.maxScoreHidden = gameScore;
+
 	gameScore = 0L;
 	bounceStrength = 1;
 	bounceCooldown = 0;
-	terminalVelocity = 300 + gameScore / 3000;
-	endGame = false;
+	terminalVelocity = 300 + gameScore / TERMINAL_VEL_MOD;
+	gameState = GameState::INGAME;
+	last_place = RAND_LINES_DENSITY;
 
 	ball.Reset();
 	lines.Reset();
-
-	srand(static_cast<unsigned int>(time(NULL)));
+	rand_lines.Reset();
 }
 
 void LinHop::Quit()
 {
+	if (gameData.unlockResizing == 0L)
+		SaveGameData(gameData);
+
 	Resources::Clear();
 }

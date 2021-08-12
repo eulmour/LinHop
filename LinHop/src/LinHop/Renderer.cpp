@@ -42,7 +42,7 @@ void Renderer::DrawText(
     TextObject&         obj,
     glm::vec2			pos,
     glm::vec3			color,
-    unsigned int		scale
+    float       		scale
 )
 {
     glm::mat4 projection = glm::ortho(

@@ -125,7 +125,7 @@ void LineObject::Init()
     _vb = new VertexBuffer(nullptr, 4 * sizeof(float), true);	/* Init buffer */
 
     _layout = new VertexBufferLayout();
-    _layout->Push<float>(2);								    /* push vertex layout (2 bytes position) */
+    _layout->Push<float>(2);								    /* push vertex layout */
     _va->AddBuffer(*_vb, *_layout);							    /* Set vertex data */
 
     _vb->Unbind();
@@ -203,7 +203,7 @@ TextObject::TextObject(std::string text, std::string font, Shader& shader, glm::
     FT_Done_FreeType(ft);
 }
 
-void TextObject::Draw(std::string& text, glm::vec2 pos, unsigned int scale)
+void TextObject::Draw(std::string& text, glm::vec2 pos, float scale)
 {
     glActiveTexture(GL_TEXTURE0);
     _va->Bind();

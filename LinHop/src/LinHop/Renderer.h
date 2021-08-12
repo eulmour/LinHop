@@ -28,7 +28,7 @@ public:
 		TextObject&	obj,
 		glm::vec2			pos,
 		glm::vec3			color,
-		unsigned int		scale
+		float				scale
 	);
 };
 

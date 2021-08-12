@@ -3,8 +3,11 @@
 #include "../glm/gtc/matrix_transform.hpp"
 #include "../glm/gtc/type_ptr.hpp"
 
-#define FRAND(min, max) (((float)rand() / (float)(RAND_MAX / (max - min)) + min))
-#define FNRAND(ceil) ((float)rand() / (float)(RAND_MAX / (ceil)) - (ceil / 2))
+#include <random>
+#include <type_traits>
+
+#define CCAT(src, condition, a, b) ((condition) ? (src a) : (src b))
+#define COUNT(array) (sizeof(array) / sizeof(array[0]))
 
 namespace unused
 {
@@ -76,6 +79,14 @@ auto end (reversion_wrapper<T> w) { return std::rend(w.iterable); }
 template <typename T>
 reversion_wrapper<T> reverse (T&& iterable) { return { iterable }; }
 
+float t_rand(float min, float max);
+int t_rand(int min, int max);
+
+// #define IRAND(min, max) ((rand() % (max - min)) + min)
+// #define FRAND(min, max) (((float)rand() / (float)(RAND_MAX / (max - min)) + min))
+#define FNRAND(ceil) ((float)rand() / (float)(RAND_MAX / (ceil)) - (ceil / 2))
+
+int mod(int a, int b);
 float radians(float degree);
 float degrees(float radian);
 float mirror_angle(float original, float base);
@@ -84,5 +95,6 @@ float normalize(float num, float amt);
 bool onSegment(glm::vec2 p, glm::vec2 q, glm::vec2 r);
 int orientation(glm::vec2 p, glm::vec2 q, glm::vec2 r);
 bool intersect(glm::vec2 a1_pos, glm::vec2 a2_pos, glm::vec2 b1_pos, glm::vec2 b2_pos);
-int sign(float value);
+int sign(int value);
 int checkLineSides(glm::vec2 a_pos, glm::vec2 b_pos, glm::vec2 ball);
+glm::vec4 randColor(float alpha, float factor = 0.5f);

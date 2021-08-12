@@ -16,6 +16,8 @@ add_custom_target(copy_assets
 )
 add_dependencies(${TARGET_NAME} copy_assets)
 
+target_link_options(${TARGET_NAME} PRIVATE /SUBSYSTEM:WINDOWS)
+
 target_link_libraries(${TARGET_NAME}
 	glew32s
 	glfw3
@@ -26,4 +28,6 @@ target_link_libraries(${TARGET_NAME}
 	glm
 	stb_image
 	freetype
+	sndfile
+	portaudio
 )
