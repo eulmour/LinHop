@@ -1,0 +1,8 @@
+[submodule "app/src/main/cpp/spige/vendor/cglm"]
+	path = app/src/main/cpp/spige/vendor/cglm
+	url = git@github.com:recp/cglm.git
+	ignore = dirty
+[submodule "app/src/main/cpp/spige/vendor/freetype"]
+	path = app/src/main/cpp/spige/vendor/freetype
+	url = git@github.com:freetype/freetype.git
+	ignore = dirty
