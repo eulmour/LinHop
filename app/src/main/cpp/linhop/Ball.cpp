@@ -5,7 +5,7 @@ extern float scroll;
 extern "C" spige* spige_instance;
 
 Ball::Ball() : rectDrawable{} {
-    glm_vec2_copy((vec2) {
+    glm_vec2_copy(vec2 {
         static_cast<float>(spige_instance->width) / 2.f, static_cast<float>(spige_instance->height) / 2.f
     }, this->pos);
 }
@@ -18,8 +18,8 @@ Ball::~Ball() {
 void Ball::activate() {
     rect_load(&this->rectDrawable);
     rect_use_texture(&this->rectDrawable, texture_load("textures/circle.png"));
-    std::memcpy(&this->rectDrawable.color, (vec4){ 1.f, 1.f, 1.f, 1.f }, sizeof(vec4));
-    std::memcpy(&this->rectDrawable.scale, (vec2){ radius*2, radius*2 }, sizeof(vec2));
+    std::memcpy(&this->rectDrawable.color, vec4{ 1.f, 1.f, 1.f, 1.f }, sizeof(vec4));
+    std::memcpy(&this->rectDrawable.scale, vec2{ radius*2, radius*2 }, sizeof(vec2));
 }
 
 void Ball::deactivate() {
@@ -60,23 +60,23 @@ void Ball::Move(float dt) {
 
     /* Update position */
     vel[1] = std::min(500 + terminalVelocity / terminalVelocityMod, vel[1] + gravity);
-    glm_vec2_add(pos, (vec2){vel[0]*dt, vel[1]*dt}, pos);
+    glm_vec2_add(pos, vec2{vel[0]*dt, vel[1]*dt}, pos);
 
     if (bounceCooldown > 0)
         --bounceCooldown;
 }
 
 void Ball::Draw() const {
-    rect_draw(&this->rectDrawable, (vec2){ pos[0] - diameter, pos[1] - scroll - radius });
+    rect_draw(&this->rectDrawable, vec2{ pos[0] - diameter, pos[1] - scroll - radius });
 }
 
 void Ball::Reset() {
-    glm_vec2_copy((vec2){
+    glm_vec2_copy(vec2{
         static_cast<float>(spige_instance->width) / 2.f,
         static_cast<float>(spige_instance->height) / 2.f + 30.f
     },pos);
 
-    glm_vec2_copy((vec2){ 0.f, 0.f}, vel);
+    glm_vec2_copy(vec2{ 0.f, 0.f}, vel);
 
     bounceStrength = 1;
     bounceCooldown = 0;

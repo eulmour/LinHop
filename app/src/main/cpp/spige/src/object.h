@@ -5,43 +5,43 @@
 
 struct line {
     enum state state;
-    GLuint shader;
-    GLuint vbo[1];
-    GLuint vao;
-    GLuint ebo;
-    GLsizei vbc;
-    GLfloat width;
+    unsigned shader;
+    unsigned vbo[1];
+    unsigned vao;
+    unsigned ebo;
+    int vbc;
+    float width;
     vec4 color;
 };
 
 struct tri {
     enum state state;
-    GLuint shader;
-    GLuint vbo[1];
-    GLuint vao;
-    GLuint ebo;
-    GLsizei vbc;
-    GLfloat rot;
+    unsigned shader;
+    unsigned vbo[1];
+    unsigned vao;
+    unsigned ebo;
+    int vbc;
+    float rot;
     vec2 scale;
     vec4 color;
 };
 
 struct rect {
     enum state state;
-    GLuint shader;
-    GLuint texture;
-    GLuint vbo[1];
-    GLuint vao;
-    GLuint ebo;
-    GLsizei vbc;
-    GLfloat rot;
+    unsigned shader;
+    unsigned texture;
+    unsigned vbo[1];
+    unsigned vao;
+    unsigned ebo;
+    int vbc;
+    float rot;
     vec2 scale;
     vec4 color;
 };
 
 struct character {
-    GLuint texture; // ID handle of the glyph texture
-    GLuint advance; // horizontal offset to advance to next glyph
+    unsigned texture; // ID handle of the glyph texture
+    unsigned advance; // horizontal offset to advance to next glyph
     ivec2 size;     // size of glyph
     ivec2 bearing;  // offset from baseline to left/top of glyph
 };
@@ -50,14 +50,14 @@ struct character {
 
 struct text {
     enum state state;
-    GLuint shader;
-    GLuint vbo[1];
-    GLuint vao;
-    GLuint ebo;
-    GLsizei vbc;
-    GLfloat scale;
-    GLfloat size;
-    GLfloat width;
+    unsigned shader;
+    unsigned vbo[1];
+    unsigned vao;
+    unsigned ebo;
+    int vbc;
+    float scale;
+    float size;
+    float width;
     vec4 color;
     struct character* characters;
 };
@@ -77,7 +77,7 @@ void tri_unload(struct tri* tri);
 void rect_load(struct rect* rect);
 void rect_draw(const struct rect *rect, vec2 pos);
 void rect_unload(struct rect* rect);
-void rect_use_texture(struct rect* rect, GLuint texture);
+void rect_use_texture(struct rect* rect, unsigned int texture);
 
 void text_load(struct text* text, const char* font, float size);
 float text_draw(const struct text *text, const char* str, const vec2 pos);

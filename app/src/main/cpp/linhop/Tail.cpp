@@ -18,7 +18,7 @@ void Tail::Draw()
     while (current != end)
     {
         randColor(this->line->color, (static_cast<float>(current->lifeTime) / tailLength) * alpha, 0.15f);
-        line_draw(this->line, (vec4){ current->a_pos[0], current->a_pos[1] - scroll, current->b_pos[0], current->b_pos[1] - scroll });
+        line_draw(this->line, vec4{ current->a_pos[0], current->a_pos[1] - scroll, current->b_pos[0], current->b_pos[1] - scroll });
 
         current->Update();
 

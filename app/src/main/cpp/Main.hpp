@@ -1,10 +1,17 @@
 #ifndef LINHOP_MAIN_HPP
 #define LINHOP_MAIN_HPP
 
-#include <android/sensor.h>
-#include "spige.h"
+#include <memory>
 
-#include "MainScene.hpp"
+#include "spige.h"
+#include "linhop/MainScene.hpp"
+
+#if defined(__ANDROID__) || defined(ANDROID)
+#include <android/sensor.h>
+#else
+#include "GL/glew.h"
+#include "GLFW/glfw3.h"
+#endif
 
 class Main {
 public:
@@ -49,12 +56,25 @@ private:
         static ASensorManager* acquireASensorManagerInstance(android_app* app);
 #else
 public:
-    Main(Application& app, int argc, char* argv[]);
+    Main(int argc, char* argv[]);
+
+    static Main* instance;
+
+    GLFWwindow* window;
+    int screen_width = 480;
+    int screen_height = 800;
 
     struct CmdArgs {
         int argc;
-        char** argv
+        char** argv;
     } data;
+
+    private:
+        static void _glfwSizeCallback(GLFWwindow* window, int width, int height);
+        static void _glfwCursorCallback(GLFWwindow* window, double xpos, double ypos);
+        static void _glfwInputCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
+        static void _glfwMouseCallback(GLFWwindow* window, int button, int action, int mods);
+
 #endif
 
 };

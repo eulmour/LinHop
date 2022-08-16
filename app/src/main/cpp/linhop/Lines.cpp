@@ -30,7 +30,7 @@ void Lines::Draw()
             float new_y = circle.pos[1] + -circle.radius * cosf(circle.angle * i);
 
             memcpy(lineDrawable->color, circle.color, sizeof(circle.color));
-            line_draw(lineDrawable, (vec4){ old_x, old_y - scroll, new_x, new_y - scroll });
+            line_draw(lineDrawable, vec4{ old_x, old_y - scroll, new_x, new_y - scroll });
 
             old_x = new_x;
             old_y = new_y;
@@ -44,7 +44,7 @@ void Lines::Draw()
             continue;
 
         memcpy(lineDrawable->color, line.color, sizeof(line.color));
-        line_draw(lineDrawable, (vec4){ line.a_pos[0], line.a_pos[1] - scroll, line.b_pos[0], line.b_pos[1] - scroll });
+        line_draw(lineDrawable, vec4{ line.a_pos[0], line.a_pos[1] - scroll, line.b_pos[0], line.b_pos[1] - scroll });
 
         if (!line.bCollinear)
             drawCircle(line.circle[0]);
@@ -58,9 +58,9 @@ void Lines::Reset()
     lines.clear();
 
     lines.emplace_back( /* First line */
-        (vec2){ 0.f, static_cast<float>(spige_instance->height) },
-        (vec2){ static_cast<float>(spige_instance->width), static_cast<float>(spige_instance->height) },
-        (vec4){ 1.0f, 1.0f, 1.0f, 1.0f },
+        vec2{ 0.f, static_cast<float>(spige_instance->height) },
+        vec2{ static_cast<float>(spige_instance->width), static_cast<float>(spige_instance->height) },
+        vec4{ 1.0f, 1.0f, 1.0f, 1.0f },
         false
     );
 }
@@ -81,7 +81,7 @@ Lines::Line::Line(vec2 a_pos, vec2 b_pos, vec4 color, bool isCol /* = true */) :
 }
 
 Lines::Circle::Circle() {
-    glm_vec2_copy(pos, (vec2){0.f, 0.f});
+    glm_vec2_copy(pos, vec2{0.f, 0.f});
 }
 
 Lines::Circle::Circle(vec2 pos, vec4 color) {

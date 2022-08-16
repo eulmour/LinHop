@@ -2,7 +2,7 @@
 
 Label::Label(struct text* drawable, const std::string& text, vec2 pos) : text(text), drawable(drawable) {
     glm_vec2_copy(pos, this->pos);
-    glm_vec4_copy((vec4) { 1.f, 1.f, 1.f, 1.f }, this->color);
+    glm_vec4_copy(vec4 { 1.f, 1.f, 1.f, 1.f }, this->color);
 }
 
 void Label::draw() {

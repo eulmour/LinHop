@@ -1,6 +1,9 @@
 #include "object.h"
 #include "memory.h"
 
+#include "GL/glew.h"
+#include "GLFW/glfw3.h"
+
 extern struct spige* spige_instance;
 
 // line
@@ -288,7 +291,7 @@ void rect_unload(struct rect* rect) {
         texture_unload(rect->texture);
 }
 
-void rect_use_texture(struct rect* rect, GLuint texture) { rect->texture = texture; }
+void rect_use_texture(struct rect* rect, unsigned int texture) { rect->texture = texture; }
 
 // text
 #include <ft2build.h>

@@ -17,7 +17,7 @@ public:
         vec2 pos;
         vec4 color;
         unsigned int steps = 3 + rand() % 7;
-        float angle = 3.1415926 * 2.0f / steps;
+        float angle = 3.1415926f * 2.0f / steps;
         float radius = 20.0f;
 
         Circle();

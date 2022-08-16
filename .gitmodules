@@ -6,3 +6,6 @@
 	path = app/src/main/cpp/spige/vendor/freetype
 	url = git@github.com:freetype/freetype.git
 	ignore = dirty
+[submodule "app/src/main/cpp/spige/vendor/glfw"]
+	path = app/src/main/cpp/spige/vendor/glfw
+	url = git@github.com:glfw/glfw.git

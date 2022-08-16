@@ -1,5 +1,6 @@
 #include "audio.h"
-#include "memory.h"
+#include <memory.h>
+#include <string.h>
 
 #define AUDIO_NUM_CHANNELS 2
 #define AUDIO_BITS_PER_SAMPLE 16
@@ -14,6 +15,7 @@ inline float dsp_compressor_func(float x) {
     return ((DSP_CMPR_CONST_B * x) + (DSP_CMPR_CONST_A * x * x * x));
 }
 
+#if defined(__ANDROID__) || defined(ANDROID)
 //Callback for swapping audio buffers
 void sl_buffer_callback (SLBufferQueueItf snd_queue, void *c)
 {
@@ -313,6 +315,33 @@ void audio_destroy(struct audio* engine) {
     engine->state = STATE_OFF;
 }
 
+#else
+int  audio_init(struct audio* engine) {
+    return 1;
+}
+void audio_play(struct audio* engine, struct audio_source* source) {
+
+}
+void audio_pause(struct audio* engine, struct audio_source* source) {
+
+}
+void audio_stop(struct audio* engine, struct audio_source* source) {
+
+}
+void audio_play_all(struct audio* engine) {
+
+}
+void audio_pause_all(struct audio* engine) {
+
+}
+void audio_stop_all(struct audio* engine) {
+
+}
+void audio_destroy(struct audio* engine) {
+
+}
+#endif
+
 static void audio_wav_i16i_pcm_read(struct audio_source* source, const char* path) {
 
     if (source == NULL || !path)
@@ -338,6 +367,7 @@ static void audio_wav_i16i_pcm_read(struct audio_source* source, const char* pat
     } wav_hdr;
 
     file_load_asset(&source->wav_file, path);
+    assert(source->wav_file.size > 0);
 
     size_t current_byte = 0;
     memcpy(&wav_hdr, source->wav_file.data, current_byte += sizeof(wav_hdr));
@@ -348,7 +378,7 @@ static void audio_wav_i16i_pcm_read(struct audio_source* source, const char* pat
 
         current_byte += wav_hdr.Subchunk2Size + 4; // points to data size
 
-        source->size = *(uint32_t*)(source->wav_file.data + current_byte);
+        source->size = *(uint32_t*)((uint8_t*)source->wav_file.data + current_byte);
         current_byte += 4; // points to the data
     }
 
@@ -366,7 +396,7 @@ static void audio_wav_i16i_pcm_read(struct audio_source* source, const char* pat
         return;
     }
 
-    source->data = source->wav_file.data + current_byte;
+    source->data = (uint16_t*)((uint8_t*)source->wav_file.data + current_byte);
 }
 
 int audio_source_load(struct audio_source* source, const char* path, float vol) {

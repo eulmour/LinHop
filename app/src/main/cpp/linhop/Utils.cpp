@@ -142,5 +142,8 @@ void randColor(vec4 dest, float alpha, float factor /*= 0.5f*/)
 	float green = static_cast<float>(rand() % 255) / 255 + factor;
 	float blue = static_cast<float>(rand() % 255) / 255 + factor;
 
-	glm_vec4_copy((vec4){ std::min(red, 1.0f), std::min(green, 1.0f), std::min(blue, 1.0f), alpha, }, dest);
+	dest[0] = std::min(red, 1.0f);
+	dest[1] = std::min(green, 1.0f);
+	dest[2] = std::min(blue, 1.0f);
+	dest[3] = alpha;
 }

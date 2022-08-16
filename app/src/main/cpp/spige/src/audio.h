@@ -1,8 +1,6 @@
 #ifndef SPIGE_AUDIO_H
 #define SPIGE_AUDIO_H
 
-#include <SLES/OpenSLES.h>
-#include <SLES/OpenSLES_Android.h>
 #define AUDIO_MAX_SOURCES 10
 
 #include "framework.h"
@@ -22,6 +20,10 @@ struct audio_source {
     size_t bits;
 };
 
+#if defined(__ANDROID__) || defined(ANDROID)
+#include <SLES/OpenSLES.h>
+#include <SLES/OpenSLES_Android.h>
+
 struct audio {
     enum state state;
 
@@ -39,6 +41,17 @@ struct audio {
     SLBufferQueueItf sl_buffer_queue_interface;
     SLVolumeItf sl_volume_interface;
 };
+#else
+struct audio {
+    enum state state;
+
+    size_t free_slot;
+    struct audio_source sources[AUDIO_MAX_SOURCES];
+
+    float master_vol;
+    short buffer[512][2];
+};
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -55,8 +68,6 @@ void audio_destroy(struct audio* engine);
 
 int audio_source_load(struct audio_source* source, const char* path, float vol);
 void audio_source_unload(struct audio_source* source);
-
-//size_t audio_wav_i16i_pcm_read(void **dest, const void* source, size_t size);
 
 #ifdef __cplusplus
 }

@@ -2,8 +2,8 @@
 
 extern "C" spige* spige_instance;
 
-#define LAZERS_LINES_DEFAULT_COLOR (vec4){ 1.0f, 0.0f, 0.0f, 0.85f }
-#define LAZERS_INNER_DEFAULT_COLOR (vec4){ 1.0f, 0.0f, 0.0f, 0.5f }
+#define LAZERS_LINES_DEFAULT_COLOR vec4{ 1.0f, 0.0f, 0.0f, 0.85f }
+#define LAZERS_INNER_DEFAULT_COLOR vec4{ 1.0f, 0.0f, 0.0f, 0.5f }
 
 Lazers::Lazers(struct line* lineDrawable) : lineDrawable(lineDrawable) {}
 
@@ -20,12 +20,12 @@ void Lazers::Trigger(float position)
         auto lazersWidth = LAZERS_WIDTH;
 
         lazers.emplace_back(
-            (vec2){ position, 0.0f },
-            (vec2){ position, static_cast<float>(spige_instance->height) });
+            vec2{ position, 0.0f },
+            vec2{ position, static_cast<float>(spige_instance->height) });
 
         lazers.emplace_back(
-            (vec2){ position + lazersWidth, 0.0f },
-            (vec2){ position + lazersWidth, static_cast<float>(spige_instance->height) }
+            vec2{ position + lazersWidth, 0.0f },
+            vec2{ position + lazersWidth, static_cast<float>(spige_instance->height) }
         );
     }
 }
@@ -39,7 +39,7 @@ void Lazers::Draw()
 
             for (const Lazers::Lazer& lazer : lazers) {
                 glm_vec4_copy(LAZERS_LINES_DEFAULT_COLOR, this->lineDrawable->color);
-                line_draw(this->lineDrawable, (vec4){ lazer.a[0], lazer.a[1], lazer.b[0], lazer.b[1] });
+                line_draw(this->lineDrawable, vec4{ lazer.a[0], lazer.a[1], lazer.b[0], lazer.b[1] });
             }
 
             if (liveTime < 60) {
@@ -47,12 +47,12 @@ void Lazers::Draw()
                 this->rectDrawable.rot = 0.f;
                 glm_vec4_copy(LAZERS_INNER_DEFAULT_COLOR, this->rectDrawable.color);
 
-                glm_vec2_copy((vec2){
+                glm_vec2_copy(vec2{
                     lazers.back().a[0] - lazers.front().a[0],
                     static_cast<float>(spige_instance->height)
                 }, this->rectDrawable.scale);
 
-                rect_draw(&this->rectDrawable, (vec2){ lazers.front().a[0], lazers.front().a[1] });
+                rect_draw(&this->rectDrawable, vec2{ lazers.front().a[0], lazers.front().a[1] });
             }
 
             --liveTime;
@@ -63,8 +63,8 @@ void Lazers::Draw()
 void Lazers::activate() {
     rect_load(&this->rectDrawable);
     rect_use_texture(&this->rectDrawable, texture_load("textures/pixel.png"));
-    std::memcpy(&this->rectDrawable.color, (vec4){ 1.f, 1.f, 1.f, 1.f }, sizeof(vec4));
-    std::memcpy(&this->rectDrawable.scale, (vec2){ 50.f, 50.f }, sizeof(vec2));
+    std::memcpy(&this->rectDrawable.color, vec4{ 1.f, 1.f, 1.f, 1.f }, sizeof(vec4));
+    std::memcpy(&this->rectDrawable.scale, vec2{ 50.f, 50.f }, sizeof(vec2));
 }
 
 void Lazers::deactivate() {

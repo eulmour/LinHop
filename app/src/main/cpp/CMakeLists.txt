@@ -1,19 +1,3 @@
-#
-# Copyright (C) The Android Open Source Project
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
-
 cmake_minimum_required(VERSION 3.8)
 
 project("linhop" C CXX)
@@ -21,29 +5,54 @@ project("linhop" C CXX)
 add_definitions(-DDEBUG)
 add_subdirectory("spige")
 
+set (CMAKE_C_STANDARD 99)
+set (CMAKE_CXX_STANDARD 17)
+
+if (MSVC)
+    # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Wall")
+    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+else()
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++17 -Wall -Werror -Wno-unused-variable -Wno-deprecated-declarations")
+endif()
+
 # build native_app_glue as a static lib
-set(${CMAKE_C_FLAGS}, "${CMAKE_C_FLAGS}")
-add_library(native_app_glue STATIC
-    ${ANDROID_NDK}/sources/android/native_app_glue/android_native_app_glue.c)
+if (ANDROID)
+    set(${CMAKE_C_FLAGS}, "${CMAKE_C_FLAGS}")
+    add_library(native_app_glue STATIC
+        ${ANDROID_NDK}/sources/android/native_app_glue/android_native_app_glue.c)
+    
+    # Export ANativeActivity_onCreate(),
+    # Refer to: https://github.com/android-ndk/ndk/issues/381.
+    set(CMAKE_SHARED_LINKER_FLAGS
+        "${CMAKE_SHARED_LINKER_FLAGS} -u ANativeActivity_onCreate")
 
-# now build app's shared lib
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++17 -Wall -Werror -Wno-unused-variable -Wno-deprecated-declarations")
+endif()
 
-# Export ANativeActivity_onCreate(),
-# Refer to: https://github.com/android-ndk/ndk/issues/381.
-set(CMAKE_SHARED_LINKER_FLAGS
-    "${CMAKE_SHARED_LINKER_FLAGS} -u ANativeActivity_onCreate")
+file (GLOB linhop_src CONFIGURE_DEPENDS "linhop/*.hpp" "linhop/*.cpp")
 
-file (GLOB spige_demo_src CONFIGURE_DEPENDS "*.hpp" "*.cpp")
-add_library(linhop SHARED ${spige_demo_src})
+# Default target
+if (WIN32)
+	add_executable(linhop WIN32 Main.hpp Main.cpp ${linhop_src})
+else()
+	add_executable(linhop Main.hpp Main.cpp ${linhop_src})
+endif()
 
 target_include_directories(linhop PRIVATE
+    ${CMAKE_SOURCE_DIR}/spige
+    ${CMAKE_SOURCE_DIR}/spige/vendor/glew # TODO: remove include dependency
+)
+
+target_link_libraries(linhop spige)
+
+ # Android target
+add_library(linhop_android SHARED Main.hpp MainAndroid.cpp ${linhop_src})
+
+target_include_directories(linhop_android PRIVATE
     ${ANDROID_NDK}/sources/android/native_app_glue
     ${CMAKE_SOURCE_DIR}/spige
 )
 
-# add lib dependencies
-target_link_libraries(linhop
+target_link_libraries(linhop_android
     spige
     android
     native_app_glue

@@ -1,7 +1,11 @@
 #include "framework.h"
 #include <assert.h>
 #include <memory.h>
+#include <string.h>
 #include "stb_image.h"
+
+#include "GL/glew.h"
+#include "GLFW/glfw3.h"
 
 // global
 struct spige* spige_instance;
@@ -38,6 +42,7 @@ void spige_destroy(struct spige* app) {
 
 }
 
+
 void check_error() {
 
     GLenum error = glGetError();
@@ -73,7 +78,7 @@ void check_error() {
     }
 }
 
-GLuint create_shader(GLenum shader_type, const char* src) {
+unsigned int create_shader(unsigned int shader_type, const char* src) {
 
     GLuint shader = glCreateShader(shader_type);
     check_error();
@@ -103,7 +108,7 @@ GLuint create_shader(GLenum shader_type, const char* src) {
     return shader;
 }
 
-GLuint create_program(const char* vertex_src, const char* fragment_src) {
+unsigned int create_program(const char* vertex_src, const char* fragment_src) {
 
     // link shaders
     GLuint program = glCreateProgram();
@@ -130,7 +135,7 @@ GLuint create_program(const char* vertex_src, const char* fragment_src) {
     return program;
 }
 
-GLuint texture_load(const char* path) {
+unsigned int texture_load(const char* path) {
 
 #ifdef SPIGE_FLIP_VERTICALLY
     stbi_set_flip_vertically_on_load(1);
@@ -165,11 +170,11 @@ GLuint texture_load(const char* path) {
     return texture;
 }
 
-void texture_unload(GLuint id) {
+void texture_unload(unsigned int id) {
     glDeleteTextures(1, &id);
 }
 
-void set_uniform_mat4(GLuint program, const char* name, GLfloat* value) {
+void set_uniform_mat4(unsigned int program, const char* name, float* value) {
 
     GLint location = glGetUniformLocation(program, name);
 
@@ -180,7 +185,7 @@ void set_uniform_mat4(GLuint program, const char* name, GLfloat* value) {
     glUniformMatrix4fv(location, 1, GL_FALSE, value);
 }
 
-void set_uniform4f(GLuint program, const char* name, const vec4 value) {
+void set_uniform4f(unsigned int program, const char* name, const vec4 value) {
 
     GLint location = glGetUniformLocation(program, name);
 
@@ -189,6 +194,113 @@ void set_uniform4f(GLuint program, const char* name, const vec4 value) {
     }
 
     glUniform4f(location, value[0], value[1], value[2], value[3]);
+}
+
+int file_load(struct file *file, const char *path) {
+
+    if (!path)
+        return 0;
+
+#if defined(ANDROID)
+
+    size_t parameter_path_length = strlen(path);
+    file->path_size = parameter_path_length + sizeof(ABSOLUTE_WD_PATH);
+    file->path = (char*)malloc(file->path_size);
+
+    memcpy(file->path, ABSOLUTE_WD_PATH, sizeof(ABSOLUTE_WD_PATH));
+    memcpy(file->path + sizeof(ABSOLUTE_WD_PATH) - sizeof(char), path, parameter_path_length + 1);
+
+#else
+
+    file->path_size = strlen(path) + sizeof(path[0]);
+    if (!(file->path = (char*)malloc(file->path_size * sizeof(char)))) {
+        LOGE("Unable to allocate memory.\n");
+        return 0;
+    }
+
+    memcpy(file->path, path, file->path_size * sizeof(char));
+
+#endif
+
+    FILE* f = fopen(file->path, "r"); if(!f) {
+        LOGE("Error: opening file \"%s\" for read failed.\n", file->path);
+        free(file->path);
+        return 0;
+    }
+
+#ifdef DEBUG
+    LOGI("reading file \"%s\".\n", file->path);
+#endif
+
+    fseek(f, 0, SEEK_END);
+    file->size = ftell(f);
+    fseek(f, 0, SEEK_SET);
+
+    if ((file->data = malloc(file->size)) == NULL) {
+        LOGE("Unable to allocate memory.\n");
+		fclose(f);
+        return 0;
+    }
+
+    fread(file->data, file->size, 1, f);
+    fclose(f);
+
+    return 1;
+}
+
+int file_save(const char* path, void* data, size_t size) {
+
+    if (!path)
+        return 0;
+
+    char* new_path = NULL;
+    size_t new_length = 0;
+
+#if defined(ANDROID)
+
+    size_t parameter_path_length = strlen(path);
+    new_length = parameter_path_length + sizeof(ABSOLUTE_WD_PATH);
+    new_path = (char*)malloc(new_length);
+
+    memcpy(new_path, ABSOLUTE_WD_PATH, sizeof(ABSOLUTE_WD_PATH));
+    memcpy(new_path + sizeof(ABSOLUTE_WD_PATH) - sizeof(char), path, parameter_path_length + 1);
+
+#else
+
+    new_length = strlen(path) + sizeof(path[0]);
+    if ((new_path = (char*)malloc(new_length * sizeof(char))) == NULL) {
+		LOGE("Unable to allocate memory.\n");
+        return 0;
+    }
+
+    memcpy(new_path, path, new_length * sizeof(char));
+
+#endif
+
+    FILE* f = fopen(new_path, "wb"); if(!f) {
+        LOGE("Error: opening file \"%s\" for write failed.\n", new_path);
+        return 0;
+    }
+
+#ifdef DEBUG
+    LOGI("writing to file \"%s\".\n", path);
+#endif
+
+    fwrite(data, size, 1, f);
+    fclose(f);
+    free(new_path);
+
+    return 1;
+}
+
+int file_remove(const char* path) {
+    return remove(path) == 0;
+}
+
+void file_unload(struct file* file) {
+    free(file->data);
+    free((void*)file->path);
+    memset((void*)file, 0, sizeof(struct file));
 }
 
 #if defined(__ANDROID__) || defined(ANDROID)
@@ -222,105 +334,47 @@ int file_load_asset(struct file* file, const char* path) {
     }
 }
 
-#elif
+#elif defined (WIN32) || defined (_WIN32)
+#include <Windows.h>
 
-//#define ABSOLUTE_WD_PATH ""
+void spige_show_message(const char* fmt, ...) {
+
+    size_t size;
+    va_list args, tmp_args;
+    char* data = 0;
+
+    va_start(args, fmt);
+    va_copy(tmp_args, args);
+    size = _vscprintf(fmt, tmp_args) + 1;
+    va_end(tmp_args);
+
+    if (size > 0) {
+
+        if ((data = (char*)malloc(size)) == NULL) {
+			MessageBoxA(NULL, data, "Unable to allocate memory.", MB_ICONERROR | MB_OK);
+            return;
+        }
+
+        if (vsnprintf_s(data, size, _TRUNCATE, fmt, args) < 0) {
+            data[size - 1] = 0;
+        }
+
+        MessageBoxA(NULL, data, "Message", MB_OK);
+        free(data);
+    }
+
+    va_end(args);
+}
 
 int file_load_asset(struct file* file, const char* path) {
-    file_load(file, path);
+    return file_load(file, path);
+}
+
+#else
+
+int file_load_asset(struct file* file, const char* path) {
+    return file_load(file, path);
 }
 
 #endif
 
-int file_load(struct file *file, const char *path) {
-
-    if (!path)
-        return 0;
-
-#if defined(ANDROID)
-
-    size_t parameter_path_length = strlen(path);
-    file->path_size = parameter_path_length + sizeof(ABSOLUTE_WD_PATH);
-    file->path = (char*)malloc(file->path_size);
-
-    memcpy(file->path, ABSOLUTE_WD_PATH, sizeof(ABSOLUTE_WD_PATH));
-    memcpy(file->path + sizeof(ABSOLUTE_WD_PATH) - sizeof(char), path, parameter_path_length + 1);
-
-#elif
-
-    file->path_size = strlen(path) + sizeof(path[0]);
-    file->path = (char*)malloc(file->path_size * sizeof(char));
-    memcpy(file->path, path, file->path_size * sizeof(char));
-
-#endif
-
-    FILE* f = fopen(file->path, "r"); if(!f) {
-        LOGE("Error: opening file \"%s\" for read failed.\n", file->path);
-        return 0;
-    }
-
-#ifdef DEBUG
-    LOGI("reading file \"%s\".\n", file->path);
-#endif
-
-    fseek(f, 0, SEEK_END);
-    file->size = ftell(f);
-    fseek(f, 0, SEEK_SET);
-
-    file->data = malloc(file->size);
-    fread(file->data, file->size, 1, f);
-    fclose(f);
-
-    return 1;
-}
-
-int file_save(const char* path, void* data, size_t size) {
-
-    if (!path)
-        return 0;
-
-    char* new_path = NULL;
-    size_t new_length = 0;
-
-#if defined(ANDROID)
-
-    size_t parameter_path_length = strlen(path);
-    new_length = parameter_path_length + sizeof(ABSOLUTE_WD_PATH);
-    new_path = (char*)malloc(new_length);
-
-    memcpy(new_path, ABSOLUTE_WD_PATH, sizeof(ABSOLUTE_WD_PATH));
-    memcpy(new_path + sizeof(ABSOLUTE_WD_PATH) - sizeof(char), path, parameter_path_length + 1);
-
-#elif
-
-    new_length = strlen(path) + sizeof(path[0]);
-    new_path = (char*)malloc(new_length * sizeof(char));
-    memcpy(new_path, path, new_length * sizeof(char));
-
-#endif
-
-    FILE* f = fopen(new_path, "wb"); if(!f) {
-        LOGE("Error: opening file \"%s\" for write failed.\n", new_path);
-        return 0;
-    }
-
-#ifdef DEBUG
-    LOGI("writing to file \"%s\".\n", path);
-#endif
-
-    fwrite(data, size, 1, f);
-    fclose(f);
-    free(new_path);
-
-    return 1;
-}
-
-int file_remove(const char* path) {
-    return remove(path) == 0;
-}
-
-void file_unload(struct file* file) {
-    free(file->data);
-    free((void*)file->path);
-    memset((void*)file, 0, sizeof(struct file));
-}

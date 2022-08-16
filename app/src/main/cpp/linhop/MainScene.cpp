@@ -34,7 +34,7 @@ MainScene::MainScene() {
         file_unload(&saveDataFile);
     }
 
-    glm_vec2_copy((vec2) {
+    glm_vec2_copy(vec2 {
         static_cast<float>(spige_instance->width) / 2.f,
         static_cast<float>(spige_instance->height)
     }, ::spige_instance->cursor[0]);
@@ -53,57 +53,57 @@ MainScene::MainScene() {
     lines->Reset();
 
     // labels
-    this->labelMenuTitle = std::make_unique<Label>(&this->large_text, "LinHop", (vec2) {
+    this->labelMenuTitle = std::make_unique<Label>(&this->large_text, "LinHop", vec2 {
         CX - 118, static_cast<float>(spige_instance->height) / 2.f - 180.f
     });
-    this->labelMenuTitle->setColor((vec4) {0.6f, 0.8f, 1.0f, 1.f});
+    this->labelMenuTitle->setColor(vec4 {0.6f, 0.8f, 1.0f, 1.f});
 
-    this->labelMenuContinue = std::make_unique<Label>(&this->medium_text, "Continue", (vec2) {
+    this->labelMenuContinue = std::make_unique<Label>(&this->medium_text, "Continue", vec2 {
         CX - 134, static_cast<float>(spige_instance->height) / 2.f - 40.f
     });
 
-    this->labelMenuStart = std::make_unique<Label>(&this->medium_text, "Start", (vec2) {
+    this->labelMenuStart = std::make_unique<Label>(&this->medium_text, "Start", vec2 {
         CX - 80, static_cast<float>(spige_instance->height) / 2.f + 20.f
     });
 
-    this->labelMenuSettings = std::make_unique<Label>(&this->medium_text, "Settings", (vec2) {
+    this->labelMenuSettings = std::make_unique<Label>(&this->medium_text, "Settings", vec2 {
         CX - 134, static_cast<float>(spige_instance->height) / 2.f + 80.f
     });
 
-    this->labelMenuExit = std::make_unique<Label>(&this->medium_text, "Exit", (vec2) {
+    this->labelMenuExit = std::make_unique<Label>(&this->medium_text, "Exit", vec2 {
         CX - 68, static_cast<float>(spige_instance->height) / 2.f + 140.f
     });
 
-    this->labelMenuHint = std::make_unique<Label>(&this->small_text, "Left or right to change mode", (vec2) {
+    this->labelMenuHint = std::make_unique<Label>(&this->small_text, "Left or right to change mode", vec2 {
         CX - 300, static_cast<float>(spige_instance->height - 40)
     });
-    this->labelMenuHint->setColor((vec4) {0.4f, 0.55f, 0.6f, 1.f});
+    this->labelMenuHint->setColor(vec4 {0.4f, 0.55f, 0.6f, 1.f});
 
-    this->labelMenuMode = std::make_unique<Label>(&this->small_text, "Classic", (vec2) {
+    this->labelMenuMode = std::make_unique<Label>(&this->small_text, "Classic", vec2 {
         CX - 74, static_cast<float>(spige_instance->height) / 2.f - 110.f
     });
 
-    this->labelEndgameRestart = std::make_unique<Label>(&this->medium_text, "Press R", (vec2) {
+    this->labelEndgameRestart = std::make_unique<Label>(&this->medium_text, "Press R", vec2 {
         CX + 29, static_cast<float>(spige_instance->height) / 2.f
     });
 
-    this->labelEndgameScore = std::make_unique<Label>(&this->medium_text, "Score: ", (vec2) {
+    this->labelEndgameScore = std::make_unique<Label>(&this->medium_text, "Score: ", vec2 {
         CX - 273, static_cast<float>(spige_instance->height) / 2.f - 60.f
     });
 
-    this->labelSettingsTitle = std::make_unique<Label>(&this->large_text, "Settings", (vec2) {
+    this->labelSettingsTitle = std::make_unique<Label>(&this->large_text, "Settings", vec2 {
         CX - 165, static_cast<float>(spige_instance->height) / 2.f - 180.f
     });
 
-    this->labelSettingsFx = std::make_unique<Label>(&this->medium_text, "FX: ", (vec2) {
+    this->labelSettingsFx = std::make_unique<Label>(&this->medium_text, "FX: ", vec2 {
         CX - 190, static_cast<float>(spige_instance->height) / 2.f - 60.f
     });
 
-    this->labelSettingsMusicVolume = std::make_unique<Label>(&this->medium_text, "Music volume: ", (vec2) {
+    this->labelSettingsMusicVolume = std::make_unique<Label>(&this->medium_text, "Music volume: ", vec2 {
         CX - 280, static_cast<float>(spige_instance->height) / 2.f
     });
 
-    this->labelSettingsUnlockResizing = std::make_unique<Label>(&this->medium_text, "Unlock resizing: ", (vec2) {
+    this->labelSettingsUnlockResizing = std::make_unique<Label>(&this->medium_text, "Unlock resizing: ", vec2 {
         CX - 332, static_cast<float>(spige_instance->height) / 2.f + 60.f
     });
 
@@ -111,19 +111,19 @@ MainScene::MainScene() {
     this->labelSettingsUnlockResizing->setColor(COLOR_DISABLED);
 #endif
 
-    this->labelSettingsResetStatistics = std::make_unique<Label>(&this->medium_text, "Reset statistics", (vec2) {
+    this->labelSettingsResetStatistics = std::make_unique<Label>(&this->medium_text, "Reset statistics", vec2 {
         CX - 270, static_cast<float>(spige_instance->height) / 2.f + 120.f
     });
 
-    this->labelSettingsBack = std::make_unique<Label>(&this->medium_text, "Back", (vec2) {
+    this->labelSettingsBack = std::make_unique<Label>(&this->medium_text, "Back", vec2 {
         CX - 62, static_cast<float>(spige_instance->height) / 2.f + 180.f
     });
 
-    this->labelGameScore = std::make_unique<Label>(&this->medium_text, "Score: ", (vec2) {
+    this->labelGameScore = std::make_unique<Label>(&this->medium_text, "Score: ", vec2 {
         0.0f, MainScene::mediumTextSize
     });
 
-    this->labelGameFps = std::make_unique<Label>(&this->medium_text, " fps", (vec2) {
+    this->labelGameFps = std::make_unique<Label>(&this->medium_text, " fps", vec2 {
         static_cast<float>(spige_instance->width) - 80.0f, MainScene::mediumTextSize
     });
 
@@ -238,9 +238,9 @@ void MainScene::update(float dt) {
                         vec2 first;
                         vec2 second;
                     } new_line {
-                        .first = {base_x, base_y},
-                        .second = {base_x + (static_cast<float>(t_rand(0, spige_instance->width)) / 2.f) - CX / 4,
-                                   base_y + static_cast<float>(t_rand(0, spige_instance->height)) / 6.f}
+                        {base_x, base_y},
+                        {base_x + (static_cast<float>(t_rand(0, spige_instance->width)) / 2.f) - CX / 4,
+							base_y + static_cast<float>(t_rand(0, spige_instance->height)) / 6.f}
                     };
 
                     if (dis_func(new_line.second[0] - new_line.first[0],
@@ -255,10 +255,10 @@ void MainScene::update(float dt) {
             /* Push for tail */
             if (this->saveData.fxEnabled) {
 
-                ballTail->Push((vec2) {
+                ballTail->Push(vec2 {
                         ball->pos[0] + ball->diameter,
                         ball->pos[1] + ball->diameter
-                    }, (vec2){
+                    }, vec2{
                         ball->prev_pos[0] + ball->diameter,
                         ball->prev_pos[1] + ball->diameter
                     }
@@ -266,7 +266,7 @@ void MainScene::update(float dt) {
 
                 if (pressed) {
                     cursorTail->Push(
-                        (vec2) {::spige_instance->cursor[0][0],
+                        vec2 {::spige_instance->cursor[0][0],
                                 ::spige_instance->cursor[0][1] + scroll},
                         prevMousePos);
                 }
@@ -325,7 +325,7 @@ void MainScene::update(float dt) {
 
             if (this->labelMenuHint->isCollide(::spige_instance->cursor[0])) {
                 if (this->tapped) {
-                    this->labelMenuHint->setColor((vec4) {
+                    this->labelMenuHint->setColor(vec4 {
                         t_rand(.0f, 1.f), t_rand(.0f, 1.f), t_rand(.0f, 1.f), 1.f
                     });
                 }
@@ -452,7 +452,7 @@ bool MainScene::draw() {
 
                     this->labelMenuMode
                         ->setText("Classic")
-                        .setPos((vec2){ CX - 74, static_cast<float>(spige_instance->height) / 2.f - 110.f })
+                        .setPos(vec2{ CX - 74, static_cast<float>(spige_instance->height) / 2.f - 110.f })
                         .setColor(COLOR_IDLE)
                         .draw();
 
@@ -467,7 +467,7 @@ bool MainScene::draw() {
 
                     this->labelMenuMode
                         ->setText("Hidden")
-                        .setPos((vec2){ CX - 70, static_cast<float>(spige_instance->height) / 2.f - 110.f })
+                        .setPos(vec2{ CX - 70, static_cast<float>(spige_instance->height) / 2.f - 110.f })
                         .setColor(COLOR_IDLE)
                         .draw();
 
@@ -511,8 +511,8 @@ bool MainScene::draw() {
         case GameState::INGAME:
 
             if (pressed && gameMode == GameMode::CLASSIC) {
-                glm_vec4_copy((vec4) {0.5f, 0.5f, 0.5f, 1.0f}, this->line.color);
-                line_draw(&this->line, (vec4) {lastClick[0], lastClick[1] - scroll,
+                glm_vec4_copy(vec4 {0.5f, 0.5f, 0.5f, 1.0f}, this->line.color);
+                line_draw(&this->line, vec4 {lastClick[0], lastClick[1] - scroll,
                                                ::spige_instance->cursor[0][0],
                                                ::spige_instance->cursor[0][1]});
             }
@@ -564,11 +564,11 @@ bool MainScene::draw() {
                 audio_play(&this->audio_engine, &this->audio_fail_b);
         }
 
-        sparks->Push((vec2) {0.0f, 0.0f});
+        sparks->Push(vec2 {0.0f, 0.0f});
 
         for (size_t i = 0; i < spige_instance->height; i += spige_instance->height / 10) {
-            sparks->Push((vec2) {lazers->lazers.back().a[0], static_cast<float>(i)});
-            sparks->Push((vec2) {lazers->lazers.front().a[0], static_cast<float>(i)});
+            sparks->Push(vec2 {lazers->lazers.back().a[0], static_cast<float>(i)});
+            sparks->Push(vec2 {lazers->lazers.front().a[0], static_cast<float>(i)});
         }
     }
 
@@ -585,7 +585,7 @@ bool MainScene::draw() {
 
     rand_lines->Draw();
 
-    glm_vec2_copy((vec2) {
+    glm_vec2_copy(vec2 {
         ::spige_instance->cursor[0][0],
         ::spige_instance->cursor[0][1] + scroll,
     }, prevMousePos);
@@ -598,7 +598,7 @@ void MainScene::reset() {
 
     cursorTail->Reset();
 
-    glm_vec2_copy((vec2) {
+    glm_vec2_copy(vec2 {
                       static_cast<float>(spige_instance->width) / 2.f, static_cast<float>(spige_instance->height)},
                   this->prevMousePos);
 
@@ -632,7 +632,7 @@ void MainScene::onEventPointerUp() {
 
     if (gameState == GameState::INGAME) {
         vec2 newPos;
-        glm_vec2_copy((vec2) {
+        glm_vec2_copy(vec2 {
             ::spige_instance->cursor[0][0], ::spige_instance->cursor[0][1] + scroll
         }, newPos);
 

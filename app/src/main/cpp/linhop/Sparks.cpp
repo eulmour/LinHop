@@ -28,7 +28,7 @@ void Sparks::Draw()
 
 //        rect_draw(&this->rectDrawable, (vec2){ SCROLL(current->pos), current->size });
         glm_vec2_copy(current->size, this->rectDrawable.scale);
-        rect_draw(&this->rectDrawable, (vec2){ current->pos[0], current->pos[1] - scroll });
+        rect_draw(&this->rectDrawable, vec2{ current->pos[0], current->pos[1] - scroll });
 //        rectDrawable->draw(SCROLL(current->pos), current->size);
 
         if (current->life == 0)
@@ -51,8 +51,8 @@ void Sparks::Push(vec2 position)
 void Sparks::activate() {
     rect_load(&this->rectDrawable);
     rect_use_texture(&this->rectDrawable, texture_load("textures/sparkle.png"));
-    std::memcpy(&this->rectDrawable.color, (vec4){ 1.f, 1.f, 1.f, 1.f }, sizeof(vec4));
-    std::memcpy(&this->rectDrawable.scale, (vec2){ 50.f, 50.f }, sizeof(vec2));
+    std::memcpy(&this->rectDrawable.color, vec4{ 1.f, 1.f, 1.f, 1.f }, sizeof(vec4));
+    std::memcpy(&this->rectDrawable.scale, vec2{ 50.f, 50.f }, sizeof(vec2));
 }
 
 void Sparks::deactivate() {
@@ -62,9 +62,9 @@ void Sparks::deactivate() {
 Sparks::Spark::Spark(vec2 pos) {
 
     glm_vec2_copy(pos, this->pos);
-    glm_vec2_copy((vec2){ t_rand(1.0f, 5.0f), t_rand(1.0f, 5.0f) }, this->size);
-    glm_vec2_copy((vec2){ t_rand(-20.0f, 20.0f), t_rand(-30.0f, -10.0f) }, this->vel);
-    glm_vec4_copy((vec4){
+    glm_vec2_copy(vec2{ t_rand(1.0f, 5.0f), t_rand(1.0f, 5.0f) }, this->size);
+    glm_vec2_copy(vec2{ t_rand(-20.0f, 20.0f), t_rand(-30.0f, -10.0f) }, this->vel);
+    glm_vec4_copy(vec4{
         t_rand(0.0f, 1.0f),
         t_rand(0.0f, 1.0f),
         t_rand(0.0f, 1.0f),

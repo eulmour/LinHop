@@ -106,13 +106,7 @@ public:
 private:
     void update(float dt);
 
-    SaveData saveData{
-        .maxScoreClassic = 0,
-        .maxScoreHidden = 0,
-        .fxEnabled = 1,
-        .unlockResizing = 0,
-        .musicVolumeFloat = .8f
-    };
+    SaveData saveData { 0, 0, 1, 0, .8f };
 
     static constexpr int ballStrengthMod = 25000;
     static constexpr int ballGravityMod = 8000;
