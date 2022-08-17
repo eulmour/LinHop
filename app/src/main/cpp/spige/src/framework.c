@@ -42,8 +42,7 @@ void spige_destroy(struct spige* app) {
 
 }
 
-
-void check_error() {
+void spige_check_error() {
 
     GLenum error = glGetError();
 
@@ -60,14 +59,8 @@ void check_error() {
                 LOGE("%s GL_INVALID_VALUE", prefix); break;
             case GL_INVALID_OPERATION:
                 LOGE("%s GL_INVALID_OPERATION", prefix); break;
-//            case GL_STACK_OVERFLOW:
-//                LOGE("%s GL_STACK_OVERFLOW", prefix);
-//            case GL_STACK_UNDERFLOW:
-//                LOGE("%s GL_STACK_UNDERFLOW", prefix);
             case GL_OUT_OF_MEMORY:
                 LOGE("%s GL_OUT_OF_MEMORY", prefix); break;
-//            case GL_TABLE_TOO_LARGE:
-//                LOGE("%s GL_TABLE_TOO_LARGE", prefix);
             case GL_INVALID_FRAMEBUFFER_OPERATION:
                 LOGE("%s GL_INVALID_FRAMEBUFFER_OPERATION", prefix); break;
             default:
@@ -81,7 +74,7 @@ void check_error() {
 unsigned int create_shader(unsigned int shader_type, const char* src) {
 
     GLuint shader = glCreateShader(shader_type);
-    check_error();
+    spige_check_error();
     glShaderSource(shader, 1, &src, NULL);
     glCompileShader(shader);
 

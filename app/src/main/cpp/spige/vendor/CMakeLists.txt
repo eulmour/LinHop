@@ -1,3 +1,7 @@
+macro(SET_OPTION option value)
+  set(${option} ${value} CACHE INTERNAL "" FORCE)
+endmacro()
+
 add_subdirectory ("freetype")
 add_subdirectory ("stb_image")
 
@@ -8,4 +12,24 @@ add_subdirectory ("cglm")
 if (NOT ANDROID)
     add_subdirectory ("glew")
     add_subdirectory ("glfw")
+
+	SET_OPTION(BUILD_STATIC_LIBS ON)
+	SET_OPTION(BUILD_DYNAMIC_LIBS OFF)
+	SET_OPTION(BUILD_EXAMPLE_PROGRAMS OFF)
+	SET_OPTION(BUILD_TESTS OFF)
+	SET_OPTION(ENABLE_JACK OFF)
+	SET_OPTION(ENABLE_PULSEAUDIO OFF)
+	SET_OPTION(ENABLE_ALSA OFF)
+	SET_OPTION(ENABLE_COREAUDIO OFF)
+
+	if (WIN32)
+		SET_OPTION(ENABLE_WASAPI ON)
+	elseif(UNIX)
+		SET_OPTION(ENABLE_JACK OFF)
+		SET_OPTION(ENABLE_PULSEAUDIO OFF)
+		SET_OPTION(ENABLE_ALSA OFF)
+		SET_OPTION(ENABLE_COREAUDIO OFF)
+	endif()
+
+    add_subdirectory ("soundio")
 endif()

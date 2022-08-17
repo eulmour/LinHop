@@ -109,7 +109,6 @@ void tri_load(struct tri* tri) {
         "uniform mat4 model;\n"
         "uniform mat4 projection;\n"
         "void main(){\n"
-//        "   gl_Position = vec4(pos, 0.0, 1.0);\n"
         "   gl_Position = projection * model * vec4(pos, 0.0, 1.0);\n"
         "   vColor = color;\n"
         "}\0";
@@ -458,16 +457,6 @@ float text_draw(const struct text *text, const char* str, const vec2 pos) {
         float h = (float)ch.size[1] * text->scale;
 
         // update VBO for each character
-
-//        float vertices[6][4] = {
-//            { xpos,     ypos + h,   0.0f, 0.0f },
-//            { xpos + w, ypos,       1.0f, 1.0f },
-//            { xpos,     ypos,       0.0f, 1.0f },
-//
-//            { xpos,     ypos + h,   0.0f, 0.0f },
-//            { xpos + w, ypos + h,   1.0f, 0.0f },
-//            { xpos + w, ypos,       1.0f, 1.0f },
-//        };
 
         float vertices[6][4] = {
             { xpos,     ypos + h,   0.0f, 1.0f },

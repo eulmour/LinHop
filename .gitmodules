@@ -9,3 +9,6 @@
 [submodule "app/src/main/cpp/spige/vendor/glfw"]
 	path = app/src/main/cpp/spige/vendor/glfw
 	url = git@github.com:glfw/glfw.git
+[submodule "app/src/main/cpp/spige/vendor/soundio"]
+	path = app/src/main/cpp/spige/vendor/soundio
+	url = git@github.com:andrewrk/libsoundio.git

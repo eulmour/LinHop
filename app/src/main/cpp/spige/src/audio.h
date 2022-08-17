@@ -42,6 +42,7 @@ struct audio {
     SLVolumeItf sl_volume_interface;
 };
 #else
+
 struct audio {
     enum state state;
 
@@ -50,6 +51,9 @@ struct audio {
 
     float master_vol;
     short buffer[512][2];
+    void* soundio;
+    void* device;
+    void* outstream;
 };
 #endif
 

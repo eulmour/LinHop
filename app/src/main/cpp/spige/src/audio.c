@@ -10,6 +10,7 @@
 //DSCP compressor values
 #define DSP_CMPR_CONST_A -0.2f
 #define DSP_CMPR_CONST_B 1.1f
+#define NORMALIZE_INT16(x) (2 * (x / (INT16_MAX - INT16_MIN)))
 
 inline float dsp_compressor_func(float x) {
     return ((DSP_CMPR_CONST_B * x) + (DSP_CMPR_CONST_A * x * x * x));
@@ -238,31 +239,6 @@ int audio_init(struct audio* engine) {
     return 1;
 }
 
-void audio_play(struct audio* engine, struct audio_source* source) {
-
-    if (!source) {
-        LOGW("Warning: couldn't resume sound, no free sound sources");
-        return;
-    } else if (source->data == NULL) {
-        LOGW("Warning: tried playing sound with an uninitialized sample (Sample has null data)");
-        return;
-    } else if (engine->free_slot > AUDIO_MAX_SOURCES) {
-        return;
-    }
-
-    source->id = engine->free_slot;
-    source->state = STATE_BUSY;
-    source->position = 0;
-    engine->sources[engine->free_slot++] = *source;
-}
-
-void audio_pause(struct audio* engine, struct audio_source* source) {
-    LOGI("audio_pause is not implemented\n");
-}
-
-void audio_stop(struct audio* engine, struct audio_source* source) {
-    LOGI("audio_stop is not implemented\n");
-}
 
 void audio_play_all(struct audio* engine) {
     (*engine->sl_audio_player_interface)->SetPlayState(engine->sl_audio_player_interface, SL_PLAYSTATE_PLAYING);
@@ -316,31 +292,190 @@ void audio_destroy(struct audio* engine) {
 }
 
 #else
-int  audio_init(struct audio* engine) {
+
+#include "soundio.h"
+
+static void write_callback(struct SoundIoOutStream* outstream, int frame_count_min, int frame_count_max)
+{
+    const struct SoundIoChannelLayout* layout = &outstream->layout;
+    float float_sample_rate = outstream->sample_rate;
+    float seconds_per_frame = 1.0f / float_sample_rate;
+    struct SoundIoChannelArea* areas;
+
+    struct audio* e = outstream->userdata;
+
+    if (e->state != STATE_OFF)
+        return;
+
+	memset(e->buffer, 0, sizeof(e->buffer));
+
+	for (int i = 0; i < AUDIO_MAX_SOURCES; i++) {
+
+		struct audio_source* source = &e->sources[i];
+
+		if (source->state != STATE_BUSY)
+			continue;
+
+		size_t smpls_to_copy = frame_count_max < (source->samples - source->position)
+			? frame_count_max
+			: (source->samples - source->position);
+
+		float fadeDirection;
+		float fade;
+
+		// start, end fades
+		if (source->position < frame_count_max) {
+			fadeDirection = 0.01f;
+			fade = 0.f;
+		} else if (source->position > source->samples - frame_count_max) {
+			fadeDirection = -0.01f;
+			fade = 1.f;
+		} else {
+			fadeDirection = 0.f;
+			fade = 1.f;
+		}
+
+		int err;
+
+		if ((err = soundio_outstream_begin_write(outstream, &areas, &smpls_to_copy))) {
+			fprintf(stderr, "%s\n", soundio_strerror(err));
+			exit(1);
+		}
+
+		for (int frame = 0; frame < smpls_to_copy; ++frame) {
+
+			int16_t *smp = (int16_t*)(source->data) + (frame + source->position * sizeof(int16_t));
+
+			for (int channel = 0; channel < layout->channel_count; ++channel) {
+				float* ptr = (float*)(areas[channel].ptr + areas[channel].step * frame);
+                *ptr += NORMALIZE_INT16(smp[channel]) * source->vol * e->master_vol;
+			}
+
+			fade += fadeDirection;
+		}
+
+		if ((err = soundio_outstream_end_write(outstream))) {
+			fprintf(stderr, "%s\n", soundio_strerror(err));
+			exit(1);
+		}
+
+		source->position += smpls_to_copy;
+
+		if (source->position >= source->samples) {
+			e->free_slot = source->id;
+			source->position = 0;
+			source->state = STATE_READY;
+			source->id = 0;
+		}
+	}
+}
+
+int audio_init(struct audio* engine) {
+
+    int err;
+    struct SoundIo* soundio = soundio_create();
+    
+    if (!soundio) {
+        LOGE("out of memory\n");
+        return 1;
+    }
+
+    if ((err = soundio_connect(soundio))) {
+        LOGE("error connecting: %s", soundio_strerror(err));
+        return 1;
+    }
+
+    soundio_flush_events(soundio);
+
+    int default_out_device_index = soundio_default_output_device_index(soundio);
+    if (default_out_device_index < 0) {
+        LOGE("no output device found");
+        return 1;
+    }
+
+    struct SoundIoDevice* device = soundio_get_output_device(soundio, default_out_device_index);
+    if (!engine->device) {
+        LOGE("out of memory");
+        return 1;
+    }
+
+    fprintf(stderr, "Output device: %s\n", device->name);
+
+    struct SoundIoOutStream* outstream = soundio_outstream_create(device);
+    outstream->format = SoundIoFormatFloat32NE;
+    outstream->write_callback = write_callback;
+
+    if ((err = soundio_outstream_open(outstream))) {
+        fprintf(stderr, "unable to open device: %s", soundio_strerror(err));
+        return 1;
+    }
+
+    if (outstream->layout_error)
+        fprintf(stderr, "unable to set channel layout: %s\n", soundio_strerror(outstream->layout_error));
+
+    if ((err = soundio_outstream_start(outstream))) {
+        fprintf(stderr, "unable to start device: %s", soundio_strerror(err));
+        return 1;
+    }
+
+    soundio->userdata = (void*)engine;
+
+    for (;;)
+        soundio_wait_events(soundio);
+
     return 1;
 }
-void audio_play(struct audio* engine, struct audio_source* source) {
 
-}
-void audio_pause(struct audio* engine, struct audio_source* source) {
-
-}
-void audio_stop(struct audio* engine, struct audio_source* source) {
-
-}
 void audio_play_all(struct audio* engine) {
 
 }
+
 void audio_pause_all(struct audio* engine) {
 
 }
+
 void audio_stop_all(struct audio* engine) {
 
 }
+
 void audio_destroy(struct audio* engine) {
 
+	audio_stop_all(engine);
+
+    soundio_outstream_destroy((struct SoundIoOutStream*)engine->outstream);
+    soundio_device_unref((struct SoundIoDevice*)engine->device);
+    soundio_destroy((struct SoundIo*)engine->soundio);
+
+    engine->state = STATE_OFF;
 }
+
 #endif
+
+void audio_play(struct audio* engine, struct audio_source* source) {
+
+    if (!source) {
+        LOGW("Warning: couldn't resume sound, no free sound sources");
+        return;
+    } else if (source->data == NULL) {
+        LOGW("Warning: tried playing sound with an uninitialized sample (Sample has null data)");
+        return;
+    } else if (engine->free_slot > AUDIO_MAX_SOURCES) {
+        return;
+    }
+
+    source->id = engine->free_slot;
+    source->state = STATE_BUSY;
+    source->position = 0;
+    engine->sources[engine->free_slot++] = *source;
+}
+
+void audio_pause(struct audio* engine, struct audio_source* source) {
+    LOGI("audio_pause is not implemented\n");
+}
+
+void audio_stop(struct audio* engine, struct audio_source* source) {
+    LOGI("audio_stop is not implemented\n");
+}
 
 static void audio_wav_i16i_pcm_read(struct audio_source* source, const char* path) {
 
