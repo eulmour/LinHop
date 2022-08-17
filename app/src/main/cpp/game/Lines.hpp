@@ -4,35 +4,38 @@
 #include "spige.h"
 #include <vector>
 
+#include "glm/vec2.hpp"
+#include "glm/vec4.hpp"
+
 class Lines {
 public:
 
     Lines(struct line* lineDrawable);
-    void Push(vec2 second, vec2 first, bool isCol = true);
+    void Push(glm::vec2 second, glm::vec2 first, bool isCol = true);
     void Draw();
     void Reset();
 
     struct Circle
     {
-        vec2 pos;
-        vec4 color;
+        glm::vec2 pos;
+        glm::vec2 color;
         unsigned int steps = 3 + rand() % 7;
         float angle = 3.1415926f * 2.0f / steps;
         float radius = 20.0f;
 
         Circle();
-        Circle(vec2 pos, vec4 color);
+        Circle(glm::vec2 pos, glm::vec4 color);
     };
 
     struct Line
     {
         bool bCollinear;
-        vec2 a_pos;
-        vec2 b_pos;
-        vec4 color;
+        glm::vec2 a_pos;
+        glm::vec2 b_pos;
+        glm::vec4 color;
         Circle circle[2];
 
-        Line(vec2 a_pos, vec2 b_pos, vec4 color, bool isCol = true);
+        Line(glm::vec2 a_pos, glm::vec2 b_pos, glm::vec4 color, bool isCol = true);
     };
 
     struct line* lineDrawable;

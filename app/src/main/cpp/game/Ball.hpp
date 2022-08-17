@@ -4,13 +4,16 @@
 #include "spige.h"
 #include "Lines.hpp"
 
+#include "glm/vec2.hpp"
+#include "glm/vec4.hpp"
+
 class Ball {
 public:
 
     float radius = 20.0f;
     float diameter = radius / 2;
     float gravity = 9.8f;
-    vec2 pos{}, prev_pos{}, vel{ 0.0f, 0.0f };
+    glm::vec2 pos{}, prev_pos{}, vel{ 0.0f, 0.0f };
 
     float bounceStrength = 1;
     int	bounceCooldown = 0;
@@ -21,7 +24,7 @@ public:
 
     Ball();
     ~Ball();
-    bool Collision(const Lines& line_array, const vec2 prev_position);
+    bool Collision(const Lines& line_array, const glm::vec2 prev_position);
     void Move(float dt);
     void Draw() const;
     void Reset();

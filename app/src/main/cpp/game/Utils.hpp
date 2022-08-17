@@ -1,11 +1,11 @@
 #pragma once
-//#include "../glm/glm.hpp"
-//#include "../glm/gtc/matrix_transform.hpp"
-//#include "../glm/gtc/type_ptr.hpp"
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtc/type_ptr.hpp"
 
 #include <random>
 #include <type_traits>
-#include "cglm/cglm.h"
+#include "spige.h"
 
 #define CCAT(src, condition, a, b) ((condition) ? (src a) : (src b))
 #define COUNT(array) (sizeof(array) / sizeof(array[0]))
@@ -88,14 +88,14 @@ float radians(float degree);
 float degrees(float radian);
 float mirror_angle(float original, float base);
 float dis_func(float x, float y);
-float distance(const vec2 a, const vec2 b);
+float distance(const glm::vec2 a, const glm::vec2 b);
 float normalize(float num, float amt);
-bool onSegment(vec2 p, const vec2 q, vec2 r);
-int orientation(const vec2 p, const vec2 q, const vec2 r);
-bool intersect(vec2 a1_pos, vec2 a2_pos, vec2 b1_pos, vec2 b2_pos);
+bool onSegment(glm::vec2 p, const glm::vec2 q, glm::vec2 r);
+int orientation(const glm::vec2 p, const glm::vec2 q, const glm::vec2 r);
+bool intersect(glm::vec2 a1_pos, glm::vec2 a2_pos, glm::vec2 b1_pos, glm::vec2 b2_pos);
 int sign(int value);
-int checkLineSides(const vec2 a_pos, const vec2 b_pos, const vec2 ball);
-void randColor(vec4 dest, float alpha, float factor = 0.5f);
+int checkLineSides(const glm::vec2 a_pos, const glm::vec2 b_pos, const glm::vec2 ball);
+void randColor(float dest[4], float alpha, float factor = 0.5f);
 
 /* increment / decrement support (C++11) */
 template< typename T >

@@ -1,6 +1,12 @@
 #ifndef LINHOP_MAINSCENE_HPP
 #define LINHOP_MAINSCENE_HPP
 
+#include <memory>
+
+#include "glm/vec2.hpp"
+#include "glm/vec4.hpp"
+#include "glm/gtc/type_ptr.hpp"
+
 #include "spige.h"
 #include "Utils.hpp"
 #include "Lines.hpp"
@@ -20,7 +26,7 @@ public:
     bool draw();
     void reset();
 
-    vec4 backgroundColor{0.0f, 0.1f, 0.2f, 1.f};
+    glm::vec4 backgroundColor{0.0f, 0.1f, 0.2f, 1.f};
 
     struct audio audio_engine = {};
     struct audio_source audio_main = {};
@@ -118,8 +124,8 @@ private:
     float last_place = randLinesDensity;
     bool pressed = false;
     bool tapped = false;
-    vec2 prevMousePos = {0};
-    vec2 lastClick = {0};
+    glm::vec2 prevMousePos {0};
+    glm::vec2 lastClick {0};
     long gameScore = 0L;
 };
 

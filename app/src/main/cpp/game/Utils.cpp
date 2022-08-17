@@ -45,10 +45,10 @@ float mirror_angle(float original, float base)
 
 float dis_func(float x, float y)
 {
-	return std::sqrt(std::powf(x, 2) + std::powf(y, 2));
+	return std::sqrt(std::pow(x, 2) + std::pow(y, 2));
 }
 
-float distance(const vec2 a, const vec2 b) {
+float distance(const glm::vec2 a, const glm::vec2 b) {
 	return static_cast<float>(std::sqrt(std::pow(b[0] - a[0], 2) + std::pow(b[1] - a[1], 2)));
 }
 
@@ -70,7 +70,7 @@ float normalize(float num, float amt)
 	return num;
 }
 
-bool onSegment(vec2 p, const vec2 q, vec2 r)
+bool onSegment(glm::vec2 p, const glm::vec2 q, glm::vec2 r)
 {
 	if ((q[0] <= std::max(p[0], r[0])) &&
 		(q[0] >= std::min(p[0], r[0])) &&
@@ -82,7 +82,7 @@ bool onSegment(vec2 p, const vec2 q, vec2 r)
 	return false;
 }
 
-int orientation(const vec2 p, const vec2 q, const vec2 r)
+int orientation(const glm::vec2 p, const glm::vec2 q, const glm::vec2 r)
 {
 	float val = ((q[1] - p[1]) * (r[0] - q[0])) - ((q[0] - p[0]) * (r[1] - q[1]));
 
@@ -98,7 +98,7 @@ int orientation(const vec2 p, const vec2 q, const vec2 r)
 		return 0;
 }
 
-bool intersect(vec2 a1_pos, vec2 a2_pos, vec2 b1_pos, vec2 b2_pos)
+bool intersect(glm::vec2 a1_pos, glm::vec2 a2_pos, glm::vec2 b1_pos, glm::vec2 b2_pos)
 {
 	int o1 = orientation(a1_pos, a2_pos, b1_pos);
 	int o2 = orientation(a1_pos, a2_pos, b2_pos);
@@ -131,12 +131,12 @@ int sign(int value)
 		return 1;
 }
 
-int checkLineSides(const vec2 a_pos, const vec2 b_pos, const vec2 ball)
+int checkLineSides(const glm::vec2 a_pos, const glm::vec2 b_pos, const glm::vec2 ball)
 {
 	return (b_pos[0] - a_pos[0]) * (ball[1] - a_pos[1]) - (b_pos[1] - a_pos[1]) * (ball[0] - a_pos[0]);
 }
 
-void randColor(vec4 dest, float alpha, float factor /*= 0.5f*/)
+void randColor(float dest[4], float alpha, float factor /*= 0.5f*/)
 {
 	float red = static_cast<float>(rand() % 255) / 255 + factor;
 	float green = static_cast<float>(rand() % 255) / 255 + factor;

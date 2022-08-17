@@ -67,20 +67,20 @@ extern "C" {
 #endif
 
 void line_load(struct line* line);
-void line_draw(const struct line *line, vec4 ab);
+void line_draw(const struct line *line, float ab[4]);
 void line_unload(struct line* line);
 
 void tri_load(struct tri* tri);
-void tri_draw(const struct tri *tri, vec2 pos);
+void tri_draw(const struct tri *tri, float pos[2]);
 void tri_unload(struct tri* tri);
 
 void rect_load(struct rect* rect);
-void rect_draw(const struct rect *rect, vec2 pos);
+void rect_draw(const struct rect *rect, float pos[2]);
 void rect_unload(struct rect* rect);
 void rect_use_texture(struct rect* rect, unsigned int texture);
 
 void text_load(struct text* text, const char* font, float size);
-float text_draw(const struct text *text, const char* str, const vec2 pos);
+float text_draw(const struct text *text, const char* str, const float pos[2]);
 void text_unload(struct text* text);
 
 #ifdef __cplusplus

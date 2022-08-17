@@ -4,7 +4,7 @@
 #include <memory>
 
 #include "spige.h"
-#include "linhop/MainScene.hpp"
+#include "game/MainScene.hpp"
 
 #if defined(__ANDROID__) || defined(ANDROID)
 #include <android/sensor.h>

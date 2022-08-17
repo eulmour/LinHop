@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <memory.h>
 #include <string.h>
+#include <errno.h>
 #include "stb_image.h"
 
 #include "GL/glew.h"
@@ -14,11 +15,11 @@ bool spige_init(struct spige* app) {
 
     memset(app, 0, sizeof(struct spige));
 
-//    // Check openGL on the system
-    int opengl_info[] = { GL_VENDOR, GL_RENDERER, GL_VERSION, GL_EXTENSIONS };
+    // Check openGL on the system
+    int opengl_info[] = { GL_VENDOR, GL_RENDERER, GL_VERSION /*, GL_EXTENSIONS */ };
 
     for (int value = 0; value != sizeof(opengl_info) / sizeof(int); value++) {
-        LOGI("OpenGL Info: %s", glGetString(opengl_info[value]));
+        LOGI("OpenGL Info: %s\n", glGetString(opengl_info[value]));
     }
 
     // Initialize GL state.
@@ -26,6 +27,13 @@ bool spige_init(struct spige* app) {
     glDisable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    char cwd_buf[256] = {0};
+    if (spige_get_cwd(cwd_buf, sizeof(cwd_buf))) {
+        LOGI("Current working directory: %s\n", cwd_buf);
+    } else {
+        LOGW("Failed to get current working directory: %s\n", strerror(errno));
+    }
 
     spige_instance = app;
     return true;
@@ -296,6 +304,8 @@ void file_unload(struct file* file) {
     memset((void*)file, 0, sizeof(struct file));
 }
 
+#if defined (__unix__) || defined (__unix)
+
 #if defined(__ANDROID__) || defined(ANDROID)
 
 #define ABSOLUTE_WD_PATH "data/data/com.pachuch.linhop/files/"
@@ -325,6 +335,16 @@ int file_load_asset(struct file* file, const char* path) {
         LOGE("ERROR: Failed to read file to string, asset not found. (file: %s)\n", path);
         return 0;
     }
+}
+#endif
+#include "unistd.h"
+
+int file_load_asset(struct file* file, const char* path) {
+    return file_load(file, path);
+}
+
+int spige_get_cwd(char* buf, size_t max_size) {
+    return getcwd(buf, max_size) != NULL;
 }
 
 #elif defined (WIN32) || defined (_WIN32)
@@ -363,11 +383,8 @@ int file_load_asset(struct file* file, const char* path) {
     return file_load(file, path);
 }
 
-#else
-
-int file_load_asset(struct file* file, const char* path) {
-    return file_load(file, path);
+int spige_get_cwd(char* buf, size_t max_size) {
+    return GetCurrentDirectoryA(max_size, buf) != 0;
 }
 
 #endif
-

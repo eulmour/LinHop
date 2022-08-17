@@ -4,6 +4,9 @@
 #include "spige.h"
 #include <list>
 
+#include "glm/vec2.hpp"
+#include "glm/vec4.hpp"
+
 class Sparks {
 
 public:
@@ -12,16 +15,16 @@ public:
 
     struct Spark
     {
-        vec2 pos, vel, size;
-        vec4 color{};
+        glm::vec2 pos, vel, size;
+        glm::vec4 color{};
         unsigned int life = 50;
 
-        Spark(vec2 pos);
+        Spark(glm::vec2 pos);
         void Update();
         void Draw();
     };
 
-    void Push(vec2 position);
+    void Push(glm::vec2 position);
     void Draw();
     void activate();
     void deactivate();

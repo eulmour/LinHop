@@ -7,7 +7,7 @@ struct scene {
     GLsizei width;
     GLsizei height;
 
-    vec4 background;
+    glm::vec4 background;
     struct tri tri;
     struct line line;
     struct text text;

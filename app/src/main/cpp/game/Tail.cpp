@@ -5,7 +5,7 @@ extern float scroll;
 
 Tail::Tail(struct line* line, const float alpha) : alpha(alpha), line(line) {}
 
-void Tail::Push(vec2 a, vec2 b)
+void Tail::Push(glm::vec2 a, glm::vec2 b)
 {
     aTail.push_front(Line(a, b));
 }
@@ -17,8 +17,8 @@ void Tail::Draw()
 
     while (current != end)
     {
-        randColor(this->line->color, (static_cast<float>(current->lifeTime) / tailLength) * alpha, 0.15f);
-        line_draw(this->line, vec4{ current->a_pos[0], current->a_pos[1] - scroll, current->b_pos[0], current->b_pos[1] - scroll });
+        randColor(&this->line->color[0], (static_cast<float>(current->lifeTime) / tailLength) * alpha, 0.15f);
+        line_draw(this->line, &glm::vec4{ current->a_pos[0], current->a_pos[1] - scroll, current->b_pos[0], current->b_pos[1] - scroll }[0]);
 
         current->Update();
 
@@ -37,9 +37,9 @@ void Tail::Reset()
     aTail.clear();
 }
 
-Tail::Line::Line(vec2 a, vec2 b) {
-    glm_vec2_copy(a, this->a_pos);
-    glm_vec2_copy(b, this->b_pos);
+Tail::Line::Line(glm::vec2 a, glm::vec2 b) {
+    this->a_pos = a;
+    this->b_pos = b;
 }
 
 void Tail::Line::Update()

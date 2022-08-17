@@ -4,6 +4,9 @@
 #include "spige.h"
 #include <list>
 
+#include "glm/vec2.hpp"
+#include "glm/vec4.hpp"
+
 class Tail {
 
 public:
@@ -12,18 +15,18 @@ public:
 
     struct Line
     {
-        vec2 a_pos;
-        vec2 b_pos;
+        glm::vec2 a_pos;
+        glm::vec2 b_pos;
         unsigned int lifeTime = 50;
 
-        Line(vec2 a, vec2 b);
+        Line(glm::vec2 a, glm::vec2 b);
 
         void Update();
 
 //        void Draw(const Tail& tail_ref) const;
     };
 
-    void Push(vec2 a, vec2 b);
+    void Push(glm::vec2 a, glm::vec2 b);
 
     void Draw();
 

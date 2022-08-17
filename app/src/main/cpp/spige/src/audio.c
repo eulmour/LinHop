@@ -316,7 +316,7 @@ static void write_callback(struct SoundIoOutStream* outstream, int frame_count_m
 		if (source->state != STATE_BUSY)
 			continue;
 
-		size_t smpls_to_copy = frame_count_max < (source->samples - source->position)
+		int smpls_to_copy = frame_count_max < (source->samples - source->position)
 			? frame_count_max
 			: (source->samples - source->position);
 
@@ -377,26 +377,26 @@ int audio_init(struct audio* engine) {
     
     if (!soundio) {
         LOGE("out of memory\n");
-        return 1;
+        return 0;
     }
 
     if ((err = soundio_connect(soundio))) {
-        LOGE("error connecting: %s", soundio_strerror(err));
-        return 1;
+        LOGE("error connecting: %s\n", soundio_strerror(err));
+        return 0;
     }
 
     soundio_flush_events(soundio);
 
     int default_out_device_index = soundio_default_output_device_index(soundio);
     if (default_out_device_index < 0) {
-        LOGE("no output device found");
-        return 1;
+        LOGE("no output device found\n");
+        return 0;
     }
 
     struct SoundIoDevice* device = soundio_get_output_device(soundio, default_out_device_index);
     if (!engine->device) {
-        LOGE("out of memory");
-        return 1;
+        LOGE("out of memory\n");
+        return 0;
     }
 
     fprintf(stderr, "Output device: %s\n", device->name);
@@ -406,16 +406,16 @@ int audio_init(struct audio* engine) {
     outstream->write_callback = write_callback;
 
     if ((err = soundio_outstream_open(outstream))) {
-        fprintf(stderr, "unable to open device: %s", soundio_strerror(err));
-        return 1;
+        fprintf(stderr, "unable to open device: %s\n", soundio_strerror(err));
+        return 0;
     }
 
     if (outstream->layout_error)
         fprintf(stderr, "unable to set channel layout: %s\n", soundio_strerror(outstream->layout_error));
 
     if ((err = soundio_outstream_start(outstream))) {
-        fprintf(stderr, "unable to start device: %s", soundio_strerror(err));
-        return 1;
+        fprintf(stderr, "unable to start device: %s\n", soundio_strerror(err));
+        return 0;
     }
 
     soundio->userdata = (void*)engine;
@@ -423,7 +423,7 @@ int audio_init(struct audio* engine) {
     for (;;)
         soundio_wait_events(soundio);
 
-    return 1;
+    return 0;
 }
 
 void audio_play_all(struct audio* engine) {

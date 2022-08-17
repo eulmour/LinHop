@@ -3,6 +3,7 @@
 
 #include "spige.h"
 #include <list>
+#include "glm/vec2.hpp"
 
 #define LAZERS_WIDTH (static_cast<float>(spige_instance->width) / 3.f)
 
@@ -20,9 +21,9 @@ public:
     class Lazer
     {
     public:
-        vec2 a, b;
+        glm::vec2 a, b;
 
-        Lazer(vec2 a, vec2 b);
+        Lazer(glm::vec2 a, glm::vec2 b);
     };
 
     unsigned int liveTime = 0U;

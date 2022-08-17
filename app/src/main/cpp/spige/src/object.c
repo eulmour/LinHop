@@ -50,7 +50,7 @@ void line_load(struct line* line) {
     line->state = STATE_READY;
 }
 
-void line_draw(const struct line *line, vec4 ab) {
+void line_draw(const struct line *line, float ab[4]) {
 
     glUseProgram(line->shader);
 
@@ -144,7 +144,7 @@ void tri_load(struct tri* tri) {
     tri->state = STATE_READY;
 }
 
-void tri_draw(const struct tri *tri, vec2 pos) {
+void tri_draw(const struct tri *tri, float pos[2]) {
 
     glUseProgram(tri->shader);
 
@@ -251,7 +251,7 @@ void rect_load(struct rect* rect) {
     rect->state = STATE_READY;
 }
 
-void rect_draw(const struct rect *rect, vec2 pos) {
+void rect_draw(const struct rect *rect, float pos[2]) {
 
     glUseProgram(rect->shader);
 
@@ -429,7 +429,7 @@ void text_load(struct text* text, const char* font, float size) {
     text->state = STATE_READY;
 }
 
-float text_draw(const struct text *text, const char* str, const vec2 pos) {
+float text_draw(const struct text *text, const char* str, const float pos[2]) {
 
     float shift = pos[0];
 

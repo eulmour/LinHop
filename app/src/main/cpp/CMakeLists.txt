@@ -4,15 +4,16 @@ project("linhop" C CXX)
 
 add_definitions(-DDEBUG)
 add_subdirectory("spige")
+add_subdirectory("game/vendor")
 
-set (CMAKE_C_STANDARD 17)
+set (CMAKE_C_STANDARD 11)
 set (CMAKE_CXX_STANDARD 17)
 
 if (MSVC)
     add_definitions(-D_CRT_SECURE_NO_WARNINGS)
     # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c17")
 else()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++17 -Wall -Werror -Wno-unused-variable -Wno-deprecated-declarations")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++17 -Wall -Werror -Wno-unused-variable -Wno-unused-but-set-variable -Wno-deprecated-declarations")
 endif()
 
 # build native_app_glue as a static lib
@@ -28,7 +29,7 @@ if (ANDROID)
 
 endif()
 
-file (GLOB linhop_src CONFIGURE_DEPENDS "linhop/*.hpp" "linhop/*.cpp")
+file (GLOB linhop_src CONFIGURE_DEPENDS "game/*.hpp" "game/*.cpp")
 
 # Default target
 if (WIN32)
@@ -39,10 +40,11 @@ endif()
 
 target_include_directories(linhop PRIVATE
     ${CMAKE_SOURCE_DIR}/spige
-    ${CMAKE_SOURCE_DIR}/spige/vendor/glew # TODO: remove include dependency
+    ${CMAKE_SOURCE_DIR}/spige/vendor/glew # TODO: maybe consider moving it to engine or leave freedom
+    ${CMAKE_SOURCE_DIR}/game/vendor/glm/glm
 )
 
-target_link_libraries(linhop spige)
+target_link_libraries(linhop spige glm)
 
  # Android target
 add_library(linhop_android SHARED Main.hpp MainAndroid.cpp ${linhop_src})

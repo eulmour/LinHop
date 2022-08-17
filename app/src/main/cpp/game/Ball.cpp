@@ -5,9 +5,10 @@ extern float scroll;
 extern "C" spige* spige_instance;
 
 Ball::Ball() : rectDrawable{} {
-    glm_vec2_copy(vec2 {
+
+    this->pos = {
         static_cast<float>(spige_instance->width) / 2.f, static_cast<float>(spige_instance->height) / 2.f
-    }, this->pos);
+    };
 }
 
 Ball::~Ball() {
@@ -18,25 +19,21 @@ Ball::~Ball() {
 void Ball::activate() {
     rect_load(&this->rectDrawable);
     rect_use_texture(&this->rectDrawable, texture_load("textures/circle.png"));
-    std::memcpy(&this->rectDrawable.color, vec4{ 1.f, 1.f, 1.f, 1.f }, sizeof(vec4));
-    std::memcpy(&this->rectDrawable.scale, vec2{ radius*2, radius*2 }, sizeof(vec2));
+    glm_vec4_copy(&glm::vec4{ 1.f, 1.f, 1.f, 1.f }[0], this->rectDrawable.color);
+    glm_vec2_copy(&glm::vec2{ radius*2, radius*2 }[0], this->rectDrawable.scale);
 }
 
 void Ball::deactivate() {
     rect_unload(&this->rectDrawable);
 }
 
-bool Ball::Collision(const Lines& line_array, const vec2 prev_position) {
+bool Ball::Collision(const Lines& line_array, const glm::vec2 prev_position) {
     for (const Lines::Line& line : reverse(line_array.lines)) {
 
-        int side = checkLineSides(const_cast<float*>(line.a_pos), const_cast<float*>(line.b_pos), pos);
+        int side = checkLineSides(line.a_pos, line.b_pos, pos);
 
         if (intersect(
-            const_cast<float*>(prev_position),
-            pos,
-            const_cast<float*>(line.a_pos),
-            const_cast<float*>(line.b_pos)
-        ) && sign(side) == 1 && bounceCooldown == 0) {
+            prev_position, pos, line.a_pos, line.b_pos) && sign(side) == 1 && bounceCooldown == 0) {
 
             float angle = std::atan2(line.b_pos[1] - line.a_pos[1], line.b_pos[0] - line.a_pos[0]);
             float normal = angle - 3.1415926f * 0.5f;
@@ -56,27 +53,28 @@ bool Ball::Collision(const Lines& line_array, const vec2 prev_position) {
 }
 
 void Ball::Move(float dt) {
-    glm_vec2_copy(pos, prev_pos);
+    this->prev_pos = this->pos;
 
     /* Update position */
-    vel[1] = std::min(500 + terminalVelocity / terminalVelocityMod, vel[1] + gravity);
-    glm_vec2_add(pos, vec2{vel[0]*dt, vel[1]*dt}, pos);
+    vel.y = std::min(500 + terminalVelocity / terminalVelocityMod, vel[1] + gravity);
+    this->pos += vel * dt;
 
     if (bounceCooldown > 0)
         --bounceCooldown;
 }
 
 void Ball::Draw() const {
-    rect_draw(&this->rectDrawable, vec2{ pos[0] - diameter, pos[1] - scroll - radius });
+    rect_draw(&this->rectDrawable, &glm::vec2{ pos[0] - diameter, pos[1] - scroll - radius }[0]);
 }
 
 void Ball::Reset() {
-    glm_vec2_copy(vec2{
+
+    this->pos = {
         static_cast<float>(spige_instance->width) / 2.f,
         static_cast<float>(spige_instance->height) / 2.f + 30.f
-    },pos);
+    };
 
-    glm_vec2_copy(vec2{ 0.f, 0.f}, vel);
+    this->vel = { 0.f, 0.f };
 
     bounceStrength = 1;
     bounceCooldown = 0;

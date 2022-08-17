@@ -74,6 +74,7 @@ bool spige_init(struct spige *app);
 void spige_viewport(struct spige *app, int w, int h);
 void spige_destroy(struct spige *app);
 void spige_show_message(const char* fmt, ...);
+int spige_get_cwd(char* buf, size_t max_size);
 void spige_check_error();
 unsigned int create_shader(unsigned int shader_type, const char *src);
 unsigned int create_program(const char *vertex_src, const char *fragment_src);
