@@ -49,7 +49,7 @@ elseif(WIN32)
         freetype
 		libsoundio_static
     )
-else()
+elseif(UNIX AND NOT APPLE)
     target_link_libraries(spige
         GL
         OpenGL
@@ -59,5 +59,6 @@ else()
         stb_image
         freetype
 		libsoundio_static
+        pulse
     )
 endif()

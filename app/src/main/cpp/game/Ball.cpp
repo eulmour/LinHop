@@ -19,8 +19,14 @@ Ball::~Ball() {
 void Ball::activate() {
     rect_load(&this->rectDrawable);
     rect_use_texture(&this->rectDrawable, texture_load("textures/circle.png"));
-    glm_vec4_copy(&glm::vec4{ 1.f, 1.f, 1.f, 1.f }[0], this->rectDrawable.color);
-    glm_vec2_copy(&glm::vec2{ radius*2, radius*2 }[0], this->rectDrawable.scale);
+
+    this->rectDrawable.color[0] = 1.f;
+    this->rectDrawable.color[1] = 1.f;
+    this->rectDrawable.color[2] = 1.f;
+    this->rectDrawable.color[3] = 1.f;
+
+    this->rectDrawable.scale[0] = radius * 2;
+    this->rectDrawable.scale[1] = radius * 2;
 }
 
 void Ball::deactivate() {

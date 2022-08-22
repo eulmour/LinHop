@@ -2,12 +2,12 @@ cmake_minimum_required(VERSION 3.8)
 
 project("linhop" C CXX)
 
+set (CMAKE_C_STANDARD 11)
+set (CMAKE_CXX_STANDARD 17)
+
 add_definitions(-DDEBUG)
 add_subdirectory("spige")
 add_subdirectory("game/vendor")
-
-set (CMAKE_C_STANDARD 11)
-set (CMAKE_CXX_STANDARD 17)
 
 if (MSVC)
     add_definitions(-D_CRT_SECURE_NO_WARNINGS)
