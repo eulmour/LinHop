@@ -10,6 +10,11 @@ Main::Main(int argc, char *argv[]) : data{argc, argv}
     this->resume();
 }
 
+Main::~Main()
+{
+    spige_destroy(&this->engine);
+}
+
 void Main::_glfwSizeCallback(GLFWwindow *window, int width, int height)
 {
     Main::instance->screen_width = width;
@@ -77,7 +82,6 @@ static void GLAPIENTRY errorOccurredGL(
     GLsizei length, const GLchar *message, const void *userParam)
 {
     (void)length;
-    (void)userParam;
 
     const char* _source;
     const char* _type;
@@ -175,8 +179,11 @@ static void GLAPIENTRY errorOccurredGL(
 
     printf("%s\n", message);
 
-    if (type == GL_DEBUG_SEVERITY_HIGH)
+    if (type == GL_DEBUG_SEVERITY_HIGH) {
+        const auto* app = reinterpret_cast<const Main*>(userParam);
+        app->~Main();
         exit(-1);
+    }
 }
 
 void Main::load()
@@ -282,12 +289,12 @@ void Main::initGraphics()
     /* Set debug mode */
     glEnable(GL_DEBUG_OUTPUT);
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-    glDebugMessageCallback(errorOccurredGL, NULL);
+    glDebugMessageCallback(errorOccurredGL, this);
 
     spige_init(&this->engine);
     spige_viewport(&engine, this->screen_width, this->screen_height);
 
-    LOGI("GL Init: %d", GL_VERSION);
+    LOGI("GL Init: %d\n", GL_VERSION);
 }
 
 void Main::terminateGraphics()
@@ -306,7 +313,6 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance,
                      _In_ LPTSTR lpCmdLine,
                      _In_ int nCmdShow)
 {
-
     (void)hInstance, (void)hPrevInstance, (void)lpCmdLine, (void)nCmdShow;
 
     Main main(__argc, __argv);

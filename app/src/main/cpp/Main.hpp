@@ -16,8 +16,7 @@
 class Main {
 public:
 
-    ~Main() = default;
-
+    ~Main();
     void load();
     void unload();
     void run();

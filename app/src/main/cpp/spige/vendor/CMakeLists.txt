@@ -2,6 +2,11 @@ macro(SET_OPTION option value)
   set(${option} ${value} CACHE INTERNAL "" FORCE)
 endmacro()
 
+if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID STREQUAL "GNU")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-deprecated-declarations -Wno-error=deprecated-declarations -Wno-language-extension-token -Wno-error=language-extension-token")
+elseif(CMAKE_C_COMPILER_ID STREQUAL "MSVC")
+endif()
+
 add_subdirectory ("freetype")
 add_subdirectory ("stb_image")
 

@@ -1,19 +1,31 @@
 #include "framework.h"
-#include <assert.h>
 #include <memory.h>
 #include <string.h>
 #include <errno.h>
+#include <stdio.h>
 #include "stb_image.h"
 
 #include "GL/glew.h"
 #include "GLFW/glfw3.h"
 
+#if defined (WIN32) || defined (_WIN32)
+    #include <Windows.h>
+#endif
+
 // global
 struct spige* spige_instance;
 
-bool spige_init(struct spige* app) {
+int spige_init(struct spige* app) {
 
+    spige_instance = app;
     memset(app, 0, sizeof(struct spige));
+
+#ifdef SPIGE_WRITE_LOGS
+    app->log = fopen("log.txt", "w"); if(!app->log) {
+        LOGE_PRINT("Error: opening file \"log.txt\" for write failed.\n");
+        return 0;
+    }
+#endif
 
     // Check openGL on the system
     int opengl_info[] = { GL_VENDOR, GL_RENDERER, GL_VERSION /*, GL_EXTENSIONS */ };
@@ -35,8 +47,7 @@ bool spige_init(struct spige* app) {
         LOGW("Failed to get current working directory: %s\n", strerror(errno));
     }
 
-    spige_instance = app;
-    return true;
+    return 1;
 }
 
 void spige_viewport(struct spige* app, int w, int h) {
@@ -47,7 +58,42 @@ void spige_viewport(struct spige* app, int w, int h) {
 }
 
 void spige_destroy(struct spige* app) {
+#ifdef SPIGE_WRITE_LOGS
+    fclose(app->log);
+#endif
+}
 
+void spige_log_message(const char* fmt, ...) {
+    size_t size;
+    va_list args, tmp_args;
+    char* data = 0;
+
+    va_start(args, fmt);
+    va_copy(tmp_args, args);
+    size = _vscprintf(fmt, tmp_args) + 1;
+    va_end(tmp_args);
+
+    if (size > 0) {
+
+        if ((data = (char*)malloc(size)) == NULL) {
+            LOGE_PRINT("Unable to allocate memory.");
+			// MessageBoxA(NULL, data, "Unable to allocate memory.", MB_ICONERROR | MB_OK);
+            return;
+        }
+
+        if (vsnprintf_s(data, size, _TRUNCATE, fmt, args) < 0) {
+            data[size - 1] = 0;
+        }
+
+#ifdef SPIGE_WRITE_LOGS
+        fputs(data, spige_instance->log);
+#else
+        MessageBoxA(NULL, data, "Message", MB_OK);
+#endif
+        free(data);
+    }
+
+    va_end(args);
 }
 
 void spige_check_error() {
@@ -229,7 +275,7 @@ int file_load(struct file *file, const char *path) {
         return 0;
     }
 
-#ifdef DEBUG
+#ifndef NDEBUG
     LOGI("reading file \"%s\".\n", file->path);
 #endif
 
@@ -283,7 +329,7 @@ int file_save(const char* path, void* data, size_t size) {
         return 0;
     }
 
-#ifdef DEBUG
+#ifndef NDEBUG
     LOGI("writing to file \"%s\".\n", path);
 #endif
 
@@ -349,35 +395,6 @@ int spige_get_cwd(char* buf, size_t max_size) {
 
 #elif defined (WIN32) || defined (_WIN32)
 #include <Windows.h>
-
-void spige_show_message(const char* fmt, ...) {
-
-    size_t size;
-    va_list args, tmp_args;
-    char* data = 0;
-
-    va_start(args, fmt);
-    va_copy(tmp_args, args);
-    size = _vscprintf(fmt, tmp_args) + 1;
-    va_end(tmp_args);
-
-    if (size > 0) {
-
-        if ((data = (char*)malloc(size)) == NULL) {
-			MessageBoxA(NULL, data, "Unable to allocate memory.", MB_ICONERROR | MB_OK);
-            return;
-        }
-
-        if (vsnprintf_s(data, size, _TRUNCATE, fmt, args) < 0) {
-            data[size - 1] = 0;
-        }
-
-        MessageBoxA(NULL, data, "Message", MB_OK);
-        free(data);
-    }
-
-    va_end(args);
-}
 
 int file_load_asset(struct file* file, const char* path) {
     return file_load(file, path);

@@ -6,7 +6,7 @@ Label::Label(struct text* drawable, const std::string& text, glm::vec2 pos) : te
 }
 
 void Label::draw() {
-    glm_vec4_copy(&this->color[0], this->drawable->color);
+    std::memcpy(this->drawable->color, &this->color[0], sizeof(glm::vec4));
     this->width = text_draw(this->drawable, text.c_str(), &this->pos[0]) - this->pos[0];
 }
 

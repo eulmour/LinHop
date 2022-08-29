@@ -5,16 +5,12 @@ project("linhop" C CXX)
 set (CMAKE_C_STANDARD 11)
 set (CMAKE_CXX_STANDARD 17)
 
-add_definitions(-DDEBUG)
+add_definitions(-DSPIGE_WRITE_LOGS)
+add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+add_definitions(-D_CRT_NONSTDC_NO_WARNINGS)
+
 add_subdirectory("spige")
 add_subdirectory("game/vendor")
-
-if (MSVC)
-    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
-    # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c17")
-else()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++17 -Wall -Werror -Wno-unused-variable -Wno-unused-but-set-variable -Wno-deprecated-declarations")
-endif()
 
 # build native_app_glue as a static lib
 if (ANDROID)

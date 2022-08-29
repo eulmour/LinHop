@@ -1,6 +1,7 @@
 #include "audio.h"
 #include <memory.h>
 #include <string.h>
+#include <assert.h>
 
 #define AUDIO_NUM_CHANNELS 2
 #define AUDIO_BITS_PER_SAMPLE 16
@@ -295,6 +296,12 @@ void audio_destroy(struct audio* engine) {
 
 #include "soundio.h"
 
+#if defined (WIN32) || defined (_WIN32)
+#include <Windows.h>
+#elif defined (__unix__) || defined (__unix)
+#include <pthread.h>
+#endif
+
 static void write_callback(struct SoundIoOutStream* outstream, int frame_count_min, int frame_count_max)
 {
     const struct SoundIoChannelLayout* layout = &outstream->layout;
@@ -304,7 +311,7 @@ static void write_callback(struct SoundIoOutStream* outstream, int frame_count_m
 
     struct audio* e = outstream->userdata;
 
-    if (e->state != STATE_OFF)
+    if (e->state == STATE_OFF)
         return;
 
 	memset(e->buffer, 0, sizeof(e->buffer));
@@ -320,68 +327,76 @@ static void write_callback(struct SoundIoOutStream* outstream, int frame_count_m
 			? frame_count_max
 			: (source->samples - source->position);
 
-		float fadeDirection;
-		float fade;
+		if (source->position >= source->samples) {
+			e->free_slot = source->id;
+			source->position = 0;
+			source->state = STATE_READY;
+			source->id = 0;
+            continue;
+		}
+
+		//float fadeDirection;
+		//float fade;
 
 		// start, end fades
-		if (source->position < frame_count_max) {
-			fadeDirection = 0.01f;
-			fade = 0.f;
-		} else if (source->position > source->samples - frame_count_max) {
-			fadeDirection = -0.01f;
-			fade = 1.f;
-		} else {
-			fadeDirection = 0.f;
-			fade = 1.f;
-		}
+		//if (source->position < frame_count_max) {
+		//	fadeDirection = 0.01f;
+		//	fade = 0.f;
+		//} else if (source->position > source->samples - frame_count_max) {
+		//	fadeDirection = -0.01f;
+		//	fade = 1.f;
+		//} else {
+		//	fadeDirection = 0.f;
+		//	fade = 1.f;
+		//}
 
 		int err;
 
 		if ((err = soundio_outstream_begin_write(outstream, &areas, &smpls_to_copy))) {
-			fprintf(stderr, "%s\n", soundio_strerror(err));
+            LOGE("%s\n", soundio_strerror(err));
 			exit(1);
 		}
 
 		for (int frame = 0; frame < smpls_to_copy; ++frame) {
 
-			int16_t *smp = (int16_t*)(source->data) + (frame + source->position * sizeof(int16_t));
+            int16_t* smp = &source->data[frame + source->position * sizeof(int16_t)];
 
 			for (int channel = 0; channel < layout->channel_count; ++channel) {
 				float* ptr = (float*)(areas[channel].ptr + areas[channel].step * frame);
                 *ptr += NORMALIZE_INT16(smp[channel]) * source->vol * e->master_vol;
 			}
 
-			fade += fadeDirection;
+			//fade += fadeDirection;
 		}
 
 		if ((err = soundio_outstream_end_write(outstream))) {
-			fprintf(stderr, "%s\n", soundio_strerror(err));
+            LOGE("%s\n", soundio_strerror(err));
 			exit(1);
 		}
 
 		source->position += smpls_to_copy;
-
-		if (source->position >= source->samples) {
-			e->free_slot = source->id;
-			source->position = 0;
-			source->state = STATE_READY;
-			source->id = 0;
-		}
 	}
 }
 
+static unsigned long loop_for_events(void* soundio) {
+    for (;;) soundio_wait_events((struct SoundIo*)soundio);
+}
+
 int audio_init(struct audio* engine) {
+
+    memset(engine, 0, sizeof(struct audio));
+    engine->master_vol = 1.f;
 
     int err;
     struct SoundIo* soundio = soundio_create();
     
     if (!soundio) {
-        LOGE("out of memory\n");
+        LOGE("Audio: out of memory\n");
         return 0;
     }
 
     if ((err = soundio_connect(soundio))) {
-        LOGE("error connecting: %s\n", soundio_strerror(err));
+        LOGE("Audio: error connecting: %s\n", soundio_strerror(err));
         return 0;
     }
 
@@ -389,41 +404,54 @@ int audio_init(struct audio* engine) {
 
     int default_out_device_index = soundio_default_output_device_index(soundio);
     if (default_out_device_index < 0) {
-        LOGE("no output device found\n");
+        LOGE("Audio: no output device found\n");
         return 0;
     }
 
     struct SoundIoDevice* device = soundio_get_output_device(soundio, default_out_device_index);
-    if (!engine->device) {
-        LOGE("out of memory\n");
+    if (!device) {
+        LOGE("Audio: out of memory\n");
         return 0;
     }
 
-    fprintf(stderr, "Output device: %s\n", device->name);
+    LOGI("Audio: output device: %s\n", device->name);
 
     struct SoundIoOutStream* outstream = soundio_outstream_create(device);
     outstream->format = SoundIoFormatFloat32NE;
     outstream->write_callback = write_callback;
+    outstream->userdata = (void*)engine;
 
     if ((err = soundio_outstream_open(outstream))) {
-        fprintf(stderr, "unable to open device: %s\n", soundio_strerror(err));
+        LOGE("Audio: unable to open device: %s\n", soundio_strerror(err));
         return 0;
     }
 
     if (outstream->layout_error)
-        fprintf(stderr, "unable to set channel layout: %s\n", soundio_strerror(outstream->layout_error));
+        LOGE("Audio: unable to set channel layout: %s\n", soundio_strerror(outstream->layout_error));
 
     if ((err = soundio_outstream_start(outstream))) {
-        fprintf(stderr, "unable to start device: %s\n", soundio_strerror(err));
+        LOGE("Audio: unable to start device: %s\n", soundio_strerror(err));
         return 0;
     }
 
-    soundio->userdata = (void*)engine;
+#if defined (WIN32) || defined (_WIN32)
 
-    for (;;)
-        soundio_wait_events(soundio);
+    CreateThread(NULL, 0, loop_for_events, soundio, 0, NULL);
 
-    return 0;
+#elif defined (__unix__) || defined (__unix)
+    pthread_t thread;
+    if (pthread_create(&thread, NULL, loop_for_events, (void*) soundio))
+        LOGE("Thread: cannot create thread.\n");
+#endif
+
+    engine->soundio = (void*)soundio;
+    engine->device = (void*)device;
+    engine->outstream = (void*)outstream;
+    engine->state = STATE_READY;
+    audio_play_all(engine);
+    LOGI("Audio: engine initialization finished.\n");
+
+    return 1;
 }
 
 void audio_play_all(struct audio* engine) {

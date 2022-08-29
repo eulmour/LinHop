@@ -1,15 +1,13 @@
 project("spige" C)
 
 add_definitions(-DGLEW_STATIC)
+add_definitions(-DSOUNDIO_STATIC_LIBRARY)
 
 file(GLOB FILES_SRC CONFIGURE_DEPENDS "*.h" "src/*.h" "src/*.c")
 
 if (ANDROID)
-    # add_definitions (-DSPIGE_USE_EGL)
-    # add_definitions (-DSPIGE_USE_GLES_3)
     add_library(spige SHARED ${FILES_SRC})
 else()
-    #add_definitions (-DGLEW_STATIC)
     add_library(spige STATIC ${FILES_SRC})
 endif()
 
