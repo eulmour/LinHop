@@ -8,6 +8,7 @@
 
 #if defined(__ANDROID__) || defined(ANDROID)
 #include <android/sensor.h>
+#include <EGL/egl.h>
 #else
 #include "GL/glew.h"
 #include "GLFW/glfw3.h"

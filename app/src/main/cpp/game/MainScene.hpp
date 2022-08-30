@@ -71,6 +71,8 @@ public:
     std::unique_ptr<Label> labelGameScore;
     std::unique_ptr<Label> labelGameFps;
 
+    std::unique_ptr<Label> labelDebug;
+
     struct SaveData {
         long maxScoreClassic;
         long maxScoreHidden;

@@ -15,3 +15,6 @@
 [submodule "app/src/main/cpp/linhop/vendor/glm"]
 	path = app/src/main/cpp/linhop/vendor/glm
 	url = git@github.com:g-truc/glm.git
+[submodule "app/src/main/cpp/game/vendor/glm"]
+	path = app/src/main/cpp/game/vendor/glm
+	url = git@github.com:g-truc/glm.git

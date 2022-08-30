@@ -2,6 +2,7 @@
 #define SPIGE_FRAMEWORK_H
 
 #include "cglm/cglm.h"
+//#include "cglm/struct.h"
 
 #define SPIGE_POINTER_COUNT_MAX 16
 

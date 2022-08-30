@@ -30,7 +30,6 @@ void Lines::Draw()
             float new_y = circle.pos[1] + -circle.radius * cosf(circle.angle * i);
 
             std::memcpy(lineDrawable->color, &circle.color[0], sizeof(circle.color));
-            // glm_vec4_copy(&circle.color[0], lineDrawable->color);
             line_draw(lineDrawable, &glm::vec4{ old_x, old_y - scroll, new_x, new_y - scroll }[0]);
 
             old_x = new_x;

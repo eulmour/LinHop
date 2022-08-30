@@ -83,6 +83,9 @@ static void GLAPIENTRY errorOccurredGL(
 {
     (void)length;
 
+    if (severity == GL_DEBUG_SEVERITY_NOTIFICATION)
+        return;
+
     const char* _source;
     const char* _type;
     const char* _severity;

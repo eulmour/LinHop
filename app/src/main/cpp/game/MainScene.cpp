@@ -34,14 +34,10 @@ MainScene::MainScene() {
         file_unload(&saveDataFile);
     }
 
-    glm_vec2_copy(&glm::vec2 {
-        static_cast<float>(spige_instance->width) / 2.f,
-        static_cast<float>(spige_instance->height)
-    }[0], ::spige_instance->cursor[0]);
-    
-    this->prevMousePos = {::spige_instance->cursor[0][0], ::spige_instance->cursor[0][1]};
+    ::spige_instance->cursor[0][0] = static_cast<float>(spige_instance->width) / 2.f;
+    ::spige_instance->cursor[0][1] = static_cast<float>(spige_instance->height);
 
-    // glm_vec2_copy(::spige_instance->cursor[0], this->prevMousePos);
+    this->prevMousePos = {::spige_instance->cursor[0][0], ::spige_instance->cursor[0][1]};
 
     // class
     lines       = std::make_unique<Lines>(&line);
@@ -129,6 +125,10 @@ MainScene::MainScene() {
         static_cast<float>(spige_instance->width) - 80.0f, MainScene::mediumTextSize
     });
 
+    this->labelDebug = std::make_unique<Label>(&this->small_text, "", glm::vec2 {
+            0.f, MainScene::mediumTextSize + 60.f
+    });
+
     /* init clicks */
     lastClick[0] = static_cast<float>(spige_instance->width) / 2.f;
     lastClick[1] = static_cast<float>(spige_instance->height);
@@ -184,6 +184,7 @@ void MainScene::resume() {
 
 void MainScene::update(float dt) {
 
+    // game logic
     switch (this->gameState) {
         case GameState::MENU:
         case GameState::ENDGAME:
@@ -294,7 +295,7 @@ void MainScene::update(float dt) {
             break;
     }
 
-    /* gestures */
+    // gestures
     switch (this->gameState) {
 
         case GameState::MENU:
@@ -395,7 +396,7 @@ void MainScene::update(float dt) {
         default: break;
     }
 
-    /* play random music */
+    // play random music
     if (this->audio_main.state != STATE_BUSY
         && this->audio_alt.state != STATE_BUSY)
     {
@@ -408,7 +409,7 @@ void MainScene::update(float dt) {
 
 bool MainScene::draw() {
 
-    static float dt = 1.f / 60.f;
+    static float dt = 1.f / 60.f; // temporary solution
 
     update(dt);
 
@@ -514,18 +515,32 @@ bool MainScene::draw() {
         case GameState::INGAME:
 
             if (pressed && gameMode == GameMode::CLASSIC) {
-                glm_vec4_copy(&glm::vec4{0.5f, 0.5f, 0.5f, 1.0f}[0], this->line.color);
+
+                this->line.color[0] = .5f;
+                this->line.color[1] = .5f;
+                this->line.color[2] = .5f;
+                this->line.color[3] = 1.f;
+
                 line_draw(&this->line, &glm::vec4 {lastClick[0], lastClick[1] - scroll,
                                                ::spige_instance->cursor[0][0],
                                                ::spige_instance->cursor[0][1]}[0]);
             }
 
-#ifdef DEBUG
-            glm_vec4_copy(gameMode == GameMode::CLASSIC ? &COLOR_SELECTED[0] : &COLOR_HIDDEN[0], this->medium_text.color);
+#ifndef NDEBUG
 
             this->labelGameFps
                 ->setText(std::to_string(static_cast<int>(1 / dt)) + std::string(" fps"))
+                .setColor(gameMode == GameMode::CLASSIC ? COLOR_SELECTED : COLOR_HIDDEN)
                 .draw();
+
+            this->labelDebug
+                ->setText(
+                        "x: "
+                        + std::to_string(::spige_instance->cursor[0][0])
+                        + ", y: "
+                        + std::to_string(::spige_instance->cursor[0][1]) )
+                .draw();
+
 #endif
 
             this->labelGameScore

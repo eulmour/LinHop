@@ -1,8 +1,12 @@
 #include "object.h"
+#include "internal.h"
 #include "memory.h"
+#include <errno.h>
 
+#if !defined(__ANDROID__) && !defined(ANDROID)
 #include "GL/glew.h"
 #include "GLFW/glfw3.h"
+#endif
 
 extern struct spige* spige_instance;
 
@@ -345,25 +349,34 @@ void text_load(struct text* text, const char* font, float size) {
     // then initialize and load the FreeType library
     FT_Library ft;
     if (FT_Init_FreeType(&ft)) // all functions return a value different than 0 whenever an error occurred
-        LOGE("ERROR::FREETYPE: Could not init FreeType Library");
+        LOGE("FREETYPE: Could not init FreeType Library\n");
 
     // load font as face
     FT_Face face;
 
 #if defined(__ANDROID__) || defined(ANDROID)
+
     struct file file;
     if (!file_load_asset(&file, font)) {
-        LOGE("Cannot open file %s", font);
+        LOGE("Cannot open file %s\n", font);
         FT_Done_FreeType(ft); return;
     }
 
     if (FT_New_Memory_Face(ft, file.data, (FT_Long)file.size, 0, &face))
-        LOGE("ERROR::FREETYPE: Failed to load font");
+        LOGE("FREETYPE: Failed to load font\n");
 
     file_unload(&file);
+
 #else
+
+    if (!spige_file_exists_(font)) {
+        LOGE("Failed to load font, file does not exists.\n");
+        return;
+    }
+
     if (FT_New_Face(ft, font, 0, &face))
         LOGE("ERROR::FREETYPE: Failed to load font");
+
 #endif
 
     // set size to load glyphs as
@@ -381,7 +394,7 @@ void text_load(struct text* text, const char* font, float size) {
     {
         // load character glyph
         if (FT_Load_Char(face, c, FT_LOAD_RENDER)) {
-            LOGE("ERROR::FREETYTPE: Failed to load Glyph");
+            LOGE("FREETYTPE: Failed to load Glyph\n");
             continue;
         }
 

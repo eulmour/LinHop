@@ -1,4 +1,5 @@
 #include "Label.hpp"
+#include <cstring>
 
 Label::Label(struct text* drawable, const std::string& text, glm::vec2 pos) : text(text), drawable(drawable) {
     this->pos = pos;

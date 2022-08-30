@@ -12,12 +12,13 @@ android {
         versionCode 1
         versionName "1.0"
 
-//        externalNativeBuild {
-//            cmake {
-//                cppFlags ''
-//                arguments '-DANDROID_STL=c++_static'
-//            }
-//        }
+        externalNativeBuild {
+            cmake {
+                cppFlags ''
+                arguments '-DANDROID_STL=c++_static'
+                targets 'linhop_android'
+            }
+        }
     }
 
     buildTypes {
@@ -42,7 +43,7 @@ android {
     externalNativeBuild {
         cmake {
             path file('src/main/cpp/CMakeLists.txt')
-            version '3.18.1'
+//            version '3.18.1'
         }
     }
 }

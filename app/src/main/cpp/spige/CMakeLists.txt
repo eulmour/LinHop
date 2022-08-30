@@ -27,10 +27,10 @@ target_include_directories(spige PRIVATE
 
 if (ANDROID)
     target_link_libraries(spige
-        egl
-        glesv1_cm
-        glesv3
-        opensles
+        EGL
+        GLESv1_CM
+        GLESv3
+        OpenSLES
         cglm
         stb_image
         freetype

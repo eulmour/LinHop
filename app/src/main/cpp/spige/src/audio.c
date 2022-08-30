@@ -2,6 +2,7 @@
 #include <memory.h>
 #include <string.h>
 #include <assert.h>
+#include <errno.h>
 
 #define AUDIO_NUM_CHANNELS 2
 #define AUDIO_BITS_PER_SAMPLE 16
@@ -101,21 +102,21 @@ int audio_init(struct audio* engine) {
     result = slCreateEngine(&engine->sl_engine, 0, NULL, eng_mix_iid_count, eng_mix_iids, eng_mix_reqs);
     if(result != SL_RESULT_SUCCESS)
     {
-        LOGE("slCreateEngine failed");
+        LOGE("slCreateEngine failed\n");
         return 0;
     }
 
     result = (*engine->sl_engine)->Realize(engine->sl_engine, SL_BOOLEAN_FALSE);
     if(result != SL_RESULT_SUCCESS)
     {
-        LOGE("engine->sl_engine Realize failed");
+        LOGE("engine->sl_engine Realize failed\n");
         return 0;
     }
 
     result = (*engine->sl_engine)->GetInterface(engine->sl_engine, SL_IID_ENGINE, &engine->sl_engine_interface);
     if(result != SL_RESULT_SUCCESS)
     {
-        LOGE("engine->sl_engine GetInterface failed");
+        LOGE("engine->sl_engine GetInterface failed\n");
         return 0;
     }
     //======================================================================================================
@@ -130,13 +131,13 @@ int audio_init(struct audio* engine) {
                                                              out_mix_req);
     if(result != SL_RESULT_SUCCESS)
     {
-        LOGE("engine->sl_engine CreatOutputMix failed");
+        LOGE("engine->sl_engine CreatOutputMix failed\n");
         return 0;
     }
     result = (*engine->sl_output_mix)->Realize(engine->sl_output_mix, SL_BOOLEAN_FALSE);
     if(result != SL_RESULT_SUCCESS)
     {
-        LOGE("engine->sl_engine output_mix_object Realize failed");
+        LOGE("engine->sl_engine output_mix_object Realize failed\n");
         return 0;
     }
 
@@ -185,35 +186,35 @@ int audio_init(struct audio* engine) {
                                                                snd_plyr_iid_count, snd_plyr_iids, snd_plyr_reqs);
     if(result != SL_RESULT_SUCCESS)
     {
-        LOGE("engine->sl_engine CreateAudioPlayer failed");
+        LOGE("engine->sl_engine CreateAudioPlayer failed\n");
         return 0;
     }
 
     result = (*engine->sl_audio_player)->Realize(engine->sl_audio_player, SL_BOOLEAN_FALSE);
     if(result != SL_RESULT_SUCCESS)
     {
-        LOGE("sl_audio_player Realize failed");
+        LOGE("sl_audio_player Realize failed\n");
     }
 
     //Getting the three interfaces we requested above
     result = (*engine->sl_audio_player)->GetInterface(engine->sl_audio_player, SL_IID_PLAY, &engine->sl_audio_player_interface);
     if(result != SL_RESULT_SUCCESS)
     {
-        LOGE("sl_audio_player GetInterface resume failed");
+        LOGE("sl_audio_player GetInterface resume failed\n");
         return 0;
     }
 
     result = (*engine->sl_audio_player)->GetInterface(engine->sl_audio_player, SL_IID_BUFFERQUEUE, &engine->sl_buffer_queue_interface);
     if(result != SL_RESULT_SUCCESS)
     {
-        LOGE("sl_audio_player GetInterface buffer queue failed");
+        LOGE("sl_audio_player GetInterface buffer queue failed\n");
         return 0;
     }
 
     result = (*engine->sl_audio_player)->GetInterface(engine->sl_audio_player, SL_IID_VOLUME, &engine->sl_volume_interface);
     if(result != SL_RESULT_SUCCESS)
     {
-        LOGE("sl_audio_player GetInterface volume failed");
+        LOGE("sl_audio_player GetInterface volume failed\n");
         return 0;
     }
 
@@ -225,7 +226,7 @@ int audio_init(struct audio* engine) {
 
     if(result != SL_RESULT_SUCCESS)
     {
-        LOGE("sl_buffer_queue_interface RegisterCallback failed");
+        LOGE("sl_buffer_queue_interface RegisterCallback failed\n");
         return 0;
     }
     //===========================================================================================================
@@ -482,10 +483,10 @@ void audio_destroy(struct audio* engine) {
 void audio_play(struct audio* engine, struct audio_source* source) {
 
     if (!source) {
-        LOGW("Warning: couldn't resume sound, no free sound sources");
+        LOGW("Warning: couldn't resume sound, no free sound sources\n");
         return;
     } else if (source->data == NULL) {
-        LOGW("Warning: tried playing sound with an uninitialized sample (Sample has null data)");
+        LOGW("Warning: tried playing sound with an uninitialized sample (Sample has null data)\n");
         return;
     } else if (engine->free_slot > AUDIO_MAX_SOURCES) {
         return;
@@ -530,7 +531,10 @@ static void audio_wav_i16i_pcm_read(struct audio_source* source, const char* pat
     } wav_hdr;
 
     file_load_asset(&source->wav_file, path);
-    assert(source->wav_file.size > 0);
+    if (source->wav_file.size < 1) {
+        LOGE("Could not load file %s\n", path);
+        return;
+    }
 
     size_t current_byte = 0;
     memcpy(&wav_hdr, source->wav_file.data, current_byte += sizeof(wav_hdr));
@@ -555,7 +559,7 @@ static void audio_wav_i16i_pcm_read(struct audio_source* source, const char* pat
         LOGE("Unexpected sample rate\n");
         return;
     } else if (wav_hdr.AudioFormat != 1) {
-        LOGE("Audio format %d is not supported", wav_hdr.AudioFormat);
+        LOGE("Audio format %d is not supported\n", wav_hdr.AudioFormat);
         return;
     }
 

@@ -23,6 +23,8 @@ Main::Main(android_app *androidApp)
     this->resume();
 }
 
+Main::~Main() {}
+
 void Main::load() {
     if (!mainScene)
         mainScene = std::make_unique<MainScene>();

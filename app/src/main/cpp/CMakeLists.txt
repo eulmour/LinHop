@@ -5,7 +5,7 @@ project("linhop" C CXX)
 set (CMAKE_C_STANDARD 11)
 set (CMAKE_CXX_STANDARD 17)
 
-add_definitions(-DSPIGE_WRITE_LOGS)
+# add_definitions(-DSPIGE_WRITE_LOGS)
 add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 add_definitions(-D_CRT_NONSTDC_NO_WARNINGS)
 
@@ -48,6 +48,7 @@ add_library(linhop_android SHARED Main.hpp MainAndroid.cpp ${linhop_src})
 target_include_directories(linhop_android PRIVATE
     ${ANDROID_NDK}/sources/android/native_app_glue
     ${CMAKE_SOURCE_DIR}/spige
+    ${CMAKE_SOURCE_DIR}/game/vendor/glm
 )
 
 target_link_libraries(linhop_android

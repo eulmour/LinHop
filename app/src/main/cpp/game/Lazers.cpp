@@ -41,19 +41,18 @@ void Lazers::Draw()
         } else {
 
             for (const Lazers::Lazer& lazer : lazers) {
-                glm_vec4_copy(&LAZERS_LINES_DEFAULT_COLOR[0], this->lineDrawable->color);
+                std::memcpy(this->lineDrawable->color, &LAZERS_LINES_DEFAULT_COLOR[0], sizeof(glm::vec4));
                 line_draw(this->lineDrawable, &glm::vec4{ lazer.a[0], lazer.a[1], lazer.b[0], lazer.b[1] }[0]);
             }
 
             if (liveTime < 60) {
 
                 this->rectDrawable.rot = 0.f;
-                glm_vec4_copy(&LAZERS_INNER_DEFAULT_COLOR[0], this->rectDrawable.color);
 
-                glm_vec2_copy(&glm::vec2{
-                    lazers.back().a[0] - lazers.front().a[0],
-                    static_cast<float>(spige_instance->height)
-                }[0], this->rectDrawable.scale);
+                std::memcpy(this->rectDrawable.color, &LAZERS_INNER_DEFAULT_COLOR[0], sizeof(glm::vec4));
+
+                this->rectDrawable.scale[0] = lazers.back().a[0] - lazers.front().a[0];
+                this->rectDrawable.scale[1] = static_cast<float>(spige_instance->height);
 
                 rect_draw(&this->rectDrawable, &glm::vec2{ lazers.front().a[0], lazers.front().a[1] }[0]);
             }

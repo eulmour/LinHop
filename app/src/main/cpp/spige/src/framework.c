@@ -5,8 +5,10 @@
 #include <stdio.h>
 #include "stb_image.h"
 
-#include "GL/glew.h"
-#include "GLFW/glfw3.h"
+#if !defined(__ANDROID__) && !defined(ANDROID)
+    #include "GL/glew.h"
+    #include "GLFW/glfw3.h"
+#endif
 
 #if defined (WIN32) || defined (_WIN32)
     #include <Windows.h>
@@ -64,31 +66,41 @@ void spige_destroy(struct spige* app) {
 }
 
 void spige_log_message(const char* fmt, ...) {
+
     size_t size;
     va_list args, tmp_args;
     char* data = 0;
 
     va_start(args, fmt);
     va_copy(tmp_args, args);
+
+#if defined (WIN32) || defined (_WIN32)
     size = _vscprintf(fmt, tmp_args) + 1;
+#else
+    size = vsnprintf(NULL, 0, fmt, tmp_args) + 1;
+#endif
     va_end(tmp_args);
 
     if (size > 0) {
 
         if ((data = (char*)malloc(size)) == NULL) {
-            LOGE_PRINT("Unable to allocate memory.");
+            LOGE_PRINT("Unable to allocate memory.\n");
 			// MessageBoxA(NULL, data, "Unable to allocate memory.", MB_ICONERROR | MB_OK);
             return;
         }
 
-        if (vsnprintf_s(data, size, _TRUNCATE, fmt, args) < 0) {
+        if (vsnprintf(data, 10*1024*1024, fmt, args) < 0) {
             data[size - 1] = 0;
         }
 
 #ifdef SPIGE_WRITE_LOGS
         fputs(data, spige_instance->log);
 #else
+    #if defined (WIN32) || defined (_WIN32)
         MessageBoxA(NULL, data, "Message", MB_OK);
+    #else
+        printf("%s", data);
+    #endif
 #endif
         free(data);
     }
@@ -106,19 +118,19 @@ void spige_check_error() {
     {
         switch (error) {
             case GL_NO_ERROR:
-                LOGE("%s GL_NO_ERROR", prefix); break;
+                LOGE("%s GL_NO_ERROR\n", prefix); break;
             case GL_INVALID_ENUM:
-                LOGE("%s GL_INVALID_ENUM", prefix); break;
+                LOGE("%s GL_INVALID_ENUM\n", prefix); break;
             case GL_INVALID_VALUE:
-                LOGE("%s GL_INVALID_VALUE", prefix); break;
+                LOGE("%s GL_INVALID_VALUE\n", prefix); break;
             case GL_INVALID_OPERATION:
-                LOGE("%s GL_INVALID_OPERATION", prefix); break;
+                LOGE("%s GL_INVALID_OPERATION\n", prefix); break;
             case GL_OUT_OF_MEMORY:
-                LOGE("%s GL_OUT_OF_MEMORY", prefix); break;
+                LOGE("%s GL_OUT_OF_MEMORY\n", prefix); break;
             case GL_INVALID_FRAMEBUFFER_OPERATION:
-                LOGE("%s GL_INVALID_FRAMEBUFFER_OPERATION", prefix); break;
+                LOGE("%s GL_INVALID_FRAMEBUFFER_OPERATION\n", prefix); break;
             default:
-                LOGE("GL error: %d", error);
+                LOGE("GL error: %d\n", error);
         }
 
         error = glGetError();
@@ -250,12 +262,13 @@ int file_load(struct file *file, const char *path) {
 
 #if defined(ANDROID)
 
+    const char absolute_wd_path[] = "data/data/com.pachuch.linhop/files/";
     size_t parameter_path_length = strlen(path);
-    file->path_size = parameter_path_length + sizeof(ABSOLUTE_WD_PATH);
+    file->path_size = parameter_path_length + sizeof(absolute_wd_path);
     file->path = (char*)malloc(file->path_size);
 
-    memcpy(file->path, ABSOLUTE_WD_PATH, sizeof(ABSOLUTE_WD_PATH));
-    memcpy(file->path + sizeof(ABSOLUTE_WD_PATH) - sizeof(char), path, parameter_path_length + 1);
+    memcpy(file->path, absolute_wd_path, sizeof(absolute_wd_path));
+    memcpy(file->path + sizeof(absolute_wd_path) - sizeof(char), path, parameter_path_length + 1);
 
 #else
 
@@ -270,13 +283,13 @@ int file_load(struct file *file, const char *path) {
 #endif
 
     FILE* f = fopen(file->path, "r"); if(!f) {
-        LOGE("Error: opening file \"%s\" for read failed.\n", file->path);
+        LOGW("IO: Opening file \"%s\" for read failed.\n", file->path);
         free(file->path);
         return 0;
     }
 
 #ifndef NDEBUG
-    LOGI("reading file \"%s\".\n", file->path);
+    LOGI("IO: Reading file \"%s\".\n", file->path);
 #endif
 
     fseek(f, 0, SEEK_END);
@@ -305,12 +318,14 @@ int file_save(const char* path, void* data, size_t size) {
 
 #if defined(ANDROID)
 
+    const char absolute_wd_path[] = "data/data/com.pachuch.linhop/files/";
+
     size_t parameter_path_length = strlen(path);
-    new_length = parameter_path_length + sizeof(ABSOLUTE_WD_PATH);
+    new_length = parameter_path_length + sizeof(absolute_wd_path);
     new_path = (char*)malloc(new_length);
 
-    memcpy(new_path, ABSOLUTE_WD_PATH, sizeof(ABSOLUTE_WD_PATH));
-    memcpy(new_path + sizeof(ABSOLUTE_WD_PATH) - sizeof(char), path, parameter_path_length + 1);
+    memcpy(new_path, absolute_wd_path, sizeof(absolute_wd_path));
+    memcpy(new_path + sizeof(absolute_wd_path) - sizeof(char), path, parameter_path_length + 1);
 
 #else
 
@@ -325,12 +340,12 @@ int file_save(const char* path, void* data, size_t size) {
 #endif
 
     FILE* f = fopen(new_path, "wb"); if(!f) {
-        LOGE("Error: opening file \"%s\" for write failed.\n", new_path);
+        LOGW("IO: Opening file \"%s\" for write failed.\n", new_path);
         return 0;
     }
 
 #ifndef NDEBUG
-    LOGI("writing to file \"%s\".\n", path);
+    LOGI("IO: Writing to file \"%s\".\n", path);
 #endif
 
     fwrite(data, size, 1, f);
@@ -350,11 +365,9 @@ void file_unload(struct file* file) {
     memset((void*)file, 0, sizeof(struct file));
 }
 
-#if defined (__unix__) || defined (__unix)
-
 #if defined(__ANDROID__) || defined(ANDROID)
 
-#define ABSOLUTE_WD_PATH "data/data/com.pachuch.linhop/files/"
+#include "unistd.h"
 
 int file_load_asset(struct file* file, const char* path) {
 
@@ -382,7 +395,13 @@ int file_load_asset(struct file* file, const char* path) {
         return 0;
     }
 }
-#endif
+
+int spige_get_cwd(char* buf, size_t max_size) {
+    return getcwd(buf, max_size) != NULL;
+}
+
+#elif defined (__unix__) || defined (__unix)
+
 #include "unistd.h"
 
 int file_load_asset(struct file* file, const char* path) {
@@ -394,6 +413,7 @@ int spige_get_cwd(char* buf, size_t max_size) {
 }
 
 #elif defined (WIN32) || defined (_WIN32)
+
 #include <Windows.h>
 
 int file_load_asset(struct file* file, const char* path) {
