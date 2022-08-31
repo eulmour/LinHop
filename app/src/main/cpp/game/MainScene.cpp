@@ -52,28 +52,28 @@ MainScene::MainScene() {
 
     // labels
     this->labelMenuTitle = std::make_unique<Label>(&this->large_text, "LinHop", glm::vec2 {
-        CX - 118, static_cast<float>(spige_instance->height) / 2.f - 180.f
+        CX - 124, static_cast<float>(spige_instance->height) / 2.f - 180.f
     });
     this->labelMenuTitle->setColor(glm::vec4 {0.6f, 0.8f, 1.0f, 1.f});
 
     this->labelMenuContinue = std::make_unique<Label>(&this->medium_text, "Continue", glm::vec2 {
-        CX - 134, static_cast<float>(spige_instance->height) / 2.f - 40.f
+        CX - 120, static_cast<float>(spige_instance->height) / 2.f - 40.f
     });
 
     this->labelMenuStart = std::make_unique<Label>(&this->medium_text, "Start", glm::vec2 {
-        CX - 80, static_cast<float>(spige_instance->height) / 2.f + 20.f
+        CX - 72, static_cast<float>(spige_instance->height) / 2.f + 20.f
     });
 
     this->labelMenuSettings = std::make_unique<Label>(&this->medium_text, "Settings", glm::vec2 {
-        CX - 134, static_cast<float>(spige_instance->height) / 2.f + 80.f
+        CX - 118, static_cast<float>(spige_instance->height) / 2.f + 80.f
     });
 
     this->labelMenuExit = std::make_unique<Label>(&this->medium_text, "Exit", glm::vec2 {
-        CX - 68, static_cast<float>(spige_instance->height) / 2.f + 140.f
+        CX - 56, static_cast<float>(spige_instance->height) / 2.f + 140.f
     });
 
     this->labelMenuHint = std::make_unique<Label>(&this->small_text, "Left or right to change mode", glm::vec2 {
-        CX - 300, static_cast<float>(spige_instance->height - 40)
+        CX - 238, static_cast<float>(spige_instance->height - 40)
     });
     this->labelMenuHint->setColor(glm::vec4 {0.4f, 0.55f, 0.6f, 1.f});
 
@@ -81,40 +81,40 @@ MainScene::MainScene() {
         CX - 74, static_cast<float>(spige_instance->height) / 2.f - 110.f
     });
 
-    this->labelEndgameRestart = std::make_unique<Label>(&this->medium_text, "Press R", glm::vec2 {
-        CX + 29, static_cast<float>(spige_instance->height) / 2.f
+    this->labelEndgameRestart = std::make_unique<Label>(&this->medium_text, "Retry", glm::vec2 {
+        CX + 55, static_cast<float>(spige_instance->height) / 2.f
     });
 
     this->labelEndgameScore = std::make_unique<Label>(&this->medium_text, "Score: ", glm::vec2 {
-        CX - 273, static_cast<float>(spige_instance->height) / 2.f - 60.f
+        CX - 205, static_cast<float>(spige_instance->height) / 2.f - 60.f
     });
 
     this->labelSettingsTitle = std::make_unique<Label>(&this->large_text, "Settings", glm::vec2 {
-        CX - 165, static_cast<float>(spige_instance->height) / 2.f - 180.f
+        CX - 170, static_cast<float>(spige_instance->height) / 2.f - 280.f
     });
 
     this->labelSettingsFx = std::make_unique<Label>(&this->medium_text, "FX: ", glm::vec2 {
-        CX - 190, static_cast<float>(spige_instance->height) / 2.f - 60.f
+        CX - 165, static_cast<float>(spige_instance->height) / 2.f - 60.f
     });
 
-    this->labelSettingsMusicVolume = std::make_unique<Label>(&this->medium_text, "Music volume: ", glm::vec2 {
-        CX - 280, static_cast<float>(spige_instance->height) / 2.f
+    this->labelSettingsMusicVolume = std::make_unique<Label>(&this->medium_text, "Volume: ", glm::vec2 {
+        CX - 150, static_cast<float>(spige_instance->height) / 2.f
     });
 
-    this->labelSettingsUnlockResizing = std::make_unique<Label>(&this->medium_text, "Unlock resizing: ", glm::vec2 {
-        CX - 332, static_cast<float>(spige_instance->height) / 2.f + 60.f
+    this->labelSettingsUnlockResizing = std::make_unique<Label>(&this->medium_text, "Resizing: ", glm::vec2 {
+        CX - 182, static_cast<float>(spige_instance->height) / 2.f + 60.f
     });
 
 #if defined(ANDROID)
     this->labelSettingsUnlockResizing->setColor(COLOR_DISABLED);
 #endif
 
-    this->labelSettingsResetStatistics = std::make_unique<Label>(&this->medium_text, "Reset statistics", glm::vec2 {
-        CX - 270, static_cast<float>(spige_instance->height) / 2.f + 120.f
+    this->labelSettingsResetStatistics = std::make_unique<Label>(&this->medium_text, "Reset", glm::vec2 {
+        CX - 76, static_cast<float>(spige_instance->height) / 2.f + 120.f
     });
 
     this->labelSettingsBack = std::make_unique<Label>(&this->medium_text, "Back", glm::vec2 {
-        CX - 62, static_cast<float>(spige_instance->height) / 2.f + 180.f
+        CX - 58, static_cast<float>(spige_instance->height) / 2.f + 280.f
     });
 
     this->labelGameScore = std::make_unique<Label>(&this->medium_text, "Score: ", glm::vec2 {
@@ -125,9 +125,9 @@ MainScene::MainScene() {
         static_cast<float>(spige_instance->width) - 80.0f, MainScene::mediumTextSize
     });
 
-    this->labelDebug = std::make_unique<Label>(&this->small_text, "", glm::vec2 {
-            0.f, MainScene::mediumTextSize + 60.f
-    });
+    // this->labelDebug = std::make_unique<Label>(&this->small_text, "", glm::vec2 {
+    //         0.f, MainScene::mediumTextSize + 60.f
+    // });
 
     /* init clicks */
     lastClick[0] = static_cast<float>(spige_instance->width) / 2.f;
@@ -168,7 +168,7 @@ void MainScene::pause() {
 void MainScene::resume() {
 
     line_load(&this->line);
-    line.width = 5.f;
+    line.width = 4.f;
 
     const char *const fontPath = "fonts/OCRAEXT.TTF";
     text_load(&this->small_text, fontPath, MainScene::smallTextSize);
@@ -422,6 +422,45 @@ bool MainScene::draw() {
     backgroundColor[1] += bgColorDirection / 3;
     backgroundColor[2] += bgColorDirection / 2;
 
+    lazers->Draw();
+
+    if (lazers->liveTime == 0 && !lazers->lazers.empty()) {
+        // lazer will destroy ball
+
+        if (ball->pos[0] > lazers->lazers.front().a[0] &&
+            ball->pos[0] < lazers->lazers.back().a[0]) {
+
+            if (gameState == GameState::INGAME)
+                gameState = GameState::ENDGAME;
+
+            if (t_rand(0, 1) == 0)
+                audio_play(&this->audio_engine, &this->audio_fail_a);
+            else
+                audio_play(&this->audio_engine, &this->audio_fail_b);
+        }
+
+        sparks->Push(glm::vec2 {0.0f, 0.0f});
+
+        for (int i = 0; i < spige_instance->height; i += spige_instance->height / 10) {
+            sparks->Push(glm::vec2 {lazers->lazers.back().a[0], static_cast<float>(i)});
+            sparks->Push(glm::vec2 {lazers->lazers.front().a[0], static_cast<float>(i)});
+        }
+    }
+
+    if (saveData.fxEnabled) {
+        cursorTail->Draw();
+        sparks->Draw();
+        ballTail->Draw();
+    }
+
+    if (gameMode == GameMode::CLASSIC)
+        lines->Draw();
+
+    ball->Draw();
+
+    rand_lines->Draw();
+
+    // gui text
     switch (gameState) {
         case GameState::PAUSED:
         case GameState::MENU:
@@ -450,13 +489,13 @@ bool MainScene::draw() {
                 case GameMode::CLASSIC:
 
                     this->labelGameScore
-                        ->setText("High score: " + std::to_string(saveData.maxScoreClassic))
+                        ->setText("Highest: " + std::to_string(saveData.maxScoreClassic))
                         .setColor(COLOR_IDLE)
                         .draw();
 
                     this->labelMenuMode
                         ->setText("Classic")
-                        .setPos(glm::vec2{ CX - 74, static_cast<float>(spige_instance->height) / 2.f - 110.f })
+                        .setPos(glm::vec2{ CX - 60, static_cast<float>(spige_instance->height) / 2.f - 110.f })
                         .setColor(COLOR_IDLE)
                         .draw();
 
@@ -465,13 +504,13 @@ bool MainScene::draw() {
                 case GameMode::HIDDEN:
 
                     this->labelGameScore
-                        ->setText("High score: " + std::to_string(saveData.maxScoreClassic))
+                        ->setText("Highest: " + std::to_string(saveData.maxScoreClassic))
                         .setColor(COLOR_IDLE)
                         .draw();
 
                     this->labelMenuMode
                         ->setText("Hidden")
-                        .setPos(glm::vec2{ CX - 70, static_cast<float>(spige_instance->height) / 2.f - 110.f })
+                        .setPos(glm::vec2{ CX - 52, static_cast<float>(spige_instance->height) / 2.f - 110.f })
                         .setColor(COLOR_IDLE)
                         .draw();
 
@@ -493,12 +532,12 @@ bool MainScene::draw() {
                 .draw();
 
             this->labelSettingsMusicVolume
-                ->setText("Music volume: " + std::to_string(static_cast<int>(saveData.musicVolumeFloat * 100)))
+                ->setText("Volume: " + std::to_string(static_cast<int>(saveData.musicVolumeFloat * 100)))
                 .setColor(settingsSelected == SettingsSelected::MUSIC_VOLUME ? COLOR_SELECTED : COLOR_IDLE)
                 .draw();
 
             this->labelSettingsUnlockResizing
-                ->setText(CCAT("Unlock resizing: ", saveData.unlockResizing, "yes", "no"))
+                ->setText(CCAT("Resizing: ", saveData.unlockResizing, "yes", "no"))
                 .setColor(settingsSelected == SettingsSelected::UNLOCK_RESIZE ? COLOR_SELECTED : COLOR_IDLE)
                 .draw();
 
@@ -533,13 +572,13 @@ bool MainScene::draw() {
                 .setColor(gameMode == GameMode::CLASSIC ? COLOR_SELECTED : COLOR_HIDDEN)
                 .draw();
 
-            this->labelDebug
-                ->setText(
-                        "x: "
-                        + std::to_string(::spige_instance->cursor[0][0])
-                        + ", y: "
-                        + std::to_string(::spige_instance->cursor[0][1]) )
-                .draw();
+            // this->labelDebug
+            //     ->setText(
+            //             "x: "
+            //             + std::to_string(::spige_instance->cursor[0][0])
+            //             + ", y: "
+            //             + std::to_string(::spige_instance->cursor[0][1]) )
+            //     .draw();
 
 #endif
 
@@ -564,44 +603,6 @@ bool MainScene::draw() {
         default:
             break;
     }
-
-    lazers->Draw();
-
-    if (lazers->liveTime == 0 && !lazers->lazers.empty()) {
-        // lazer will destroy ball
-
-        if (ball->pos[0] > lazers->lazers.front().a[0] &&
-            ball->pos[0] < lazers->lazers.back().a[0]) {
-
-            if (gameState == GameState::INGAME)
-                gameState = GameState::ENDGAME;
-
-            if (t_rand(0, 1) == 0)
-                audio_play(&this->audio_engine, &this->audio_fail_a);
-            else
-                audio_play(&this->audio_engine, &this->audio_fail_b);
-        }
-
-        sparks->Push(glm::vec2 {0.0f, 0.0f});
-
-        for (int i = 0; i < spige_instance->height; i += spige_instance->height / 10) {
-            sparks->Push(glm::vec2 {lazers->lazers.back().a[0], static_cast<float>(i)});
-            sparks->Push(glm::vec2 {lazers->lazers.front().a[0], static_cast<float>(i)});
-        }
-    }
-
-    ball->Draw();
-
-    if (gameMode == GameMode::CLASSIC)
-        lines->Draw();
-
-    if (saveData.fxEnabled) {
-        cursorTail->Draw();
-        sparks->Draw();
-        ballTail->Draw();
-    }
-
-    rand_lines->Draw();
 
     this->prevMousePos = {
         ::spige_instance->cursor[0][0],

@@ -10,7 +10,7 @@
 class Ball {
 public:
 
-    float radius = 20.0f;
+    float radius = 18.0f;
     float diameter = radius / 2;
     float gravity = 9.8f;
     glm::vec2 pos{}, prev_pos{}, vel{ 0.0f, 0.0f };

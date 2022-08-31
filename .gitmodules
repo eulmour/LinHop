@@ -12,9 +12,6 @@
 [submodule "app/src/main/cpp/spige/vendor/soundio"]
 	path = app/src/main/cpp/spige/vendor/soundio
 	url = git@github.com:andrewrk/libsoundio.git
-[submodule "app/src/main/cpp/linhop/vendor/glm"]
-	path = app/src/main/cpp/linhop/vendor/glm
-	url = git@github.com:g-truc/glm.git
 [submodule "app/src/main/cpp/game/vendor/glm"]
 	path = app/src/main/cpp/game/vendor/glm
 	url = git@github.com:g-truc/glm.git

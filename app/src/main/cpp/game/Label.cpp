@@ -1,7 +1,8 @@
 #include "Label.hpp"
 #include <cstring>
+#include <utility>
 
-Label::Label(struct text* drawable, const std::string& text, glm::vec2 pos) : text(text), drawable(drawable) {
+Label::Label(struct text* drawable, std::string text, glm::vec2 pos) : text(std::move(text)), drawable(drawable) {
     this->pos = pos;
     this->color = { 1.f, 1.f, 1.f, 1.f };
 }

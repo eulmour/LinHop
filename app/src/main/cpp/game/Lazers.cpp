@@ -1,4 +1,5 @@
 #include "Lazers.hpp"
+#include <cstring>
 #include <string>
 
 #include "glm/vec4.hpp"

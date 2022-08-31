@@ -77,6 +77,7 @@ struct file {
 struct spige {
     int width;
     int height;
+    // float scale;
     float cursor[SPIGE_POINTER_COUNT_MAX][2]; // pointer count
 
 #ifdef SPIGE_WRITE_LOGS

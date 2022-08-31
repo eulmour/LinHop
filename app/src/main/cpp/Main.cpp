@@ -20,7 +20,7 @@ void Main::_glfwSizeCallback(GLFWwindow *window, int width, int height)
     Main::instance->screen_width = width;
     Main::instance->screen_height = height;
 
-    glViewport(0, 0, width, height);
+    spige_viewport(&Main::instance->engine, width, height);
 }
 
 void Main::_glfwCursorCallback(GLFWwindow *window, double xpos, double ypos)

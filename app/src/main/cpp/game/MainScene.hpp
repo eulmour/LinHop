@@ -71,7 +71,7 @@ public:
     std::unique_ptr<Label> labelGameScore;
     std::unique_ptr<Label> labelGameFps;
 
-    std::unique_ptr<Label> labelDebug;
+    // std::unique_ptr<Label> labelDebug;
 
     struct SaveData {
         long maxScoreClassic;
@@ -119,8 +119,8 @@ private:
     static constexpr int ballStrengthMod = 25000;
     static constexpr int ballGravityMod = 8000;
     static constexpr float randLinesDensity = 350.0f; /* lower = higher */
-    static constexpr float smallTextSize = 34.f;
-    static constexpr float mediumTextSize = 58.f;
+    static constexpr float smallTextSize = 28.f;
+    static constexpr float mediumTextSize = 50.f;
     static constexpr float largeTextSize = 72.f;
 
     float last_place = randLinesDensity;

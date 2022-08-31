@@ -22,6 +22,8 @@ int spige_init(struct spige* app) {
     spige_instance = app;
     memset(app, 0, sizeof(struct spige));
 
+    // app->scale = 1.f;
+
 #ifdef SPIGE_WRITE_LOGS
     app->log = fopen("log.txt", "w"); if(!app->log) {
         LOGE_PRINT("Error: opening file \"log.txt\" for write failed.\n");
@@ -56,6 +58,9 @@ void spige_viewport(struct spige* app, int w, int h) {
 
     app->width = w;
     app->height = h;
+
+    // TODO dynamic game scale (requires a lot of work)
+    // app->scale = ((float)w * (float)h) / (720.f * 1280.f);
     glViewport(0, 0, w, h);
 }
 
