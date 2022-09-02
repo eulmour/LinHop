@@ -1,11 +1,8 @@
 #ifndef LINHOP_MAINSCENE_HPP
 #define LINHOP_MAINSCENE_HPP
 
+#include "IScene.hpp"
 #include <memory>
-
-#include "glm/vec2.hpp"
-#include "glm/vec4.hpp"
-#include "glm/gtc/type_ptr.hpp"
 
 #include "spige.h"
 #include "Utils.hpp"
@@ -16,17 +13,15 @@
 #include "Lazers.hpp"
 #include "Label.hpp"
 
-class MainScene {
+class MainScene : public IScene {
 public:
     MainScene();
     ~MainScene();
 
-    void pause();
-    void resume();
-    bool draw();
-    void reset();
-
-    glm::vec4 backgroundColor{0.0f, 0.1f, 0.2f, 1.f};
+    void pause() override;
+    void resume() override;
+    bool draw() override;
+    void reset() override;
 
     struct audio audio_engine = {};
     struct audio_source audio_main = {};
@@ -85,7 +80,6 @@ public:
     {
         MENU, SETTINGS, INGAME, PAUSED, ENDGAME, EXITING, END
     } gameState = GameState::MENU;
-//    } gameState = GameState::INGAME;
 
     enum class GameMode
     {
@@ -102,17 +96,18 @@ public:
         FX_ENABLED, MUSIC_VOLUME, UNLOCK_RESIZE, RESET_STATISTICS, BACK, END
     } settingsSelected = SettingsSelected::FX_ENABLED;
 
-    void onEventPointerDown();
-    void onEventPointerUp();
-    void onEventSelect();
-    void onEventUp();
-    void onEventLeft();
-    void onEventDown();
-    void onEventRight();
-    bool onEventBack();
+    void onEventPointerMove() override;
+    void onEventPointerDown() override;
+    void onEventPointerUp() override;
+    void onEventSelect() override;
+    void onEventUp() override;
+    void onEventLeft() override;
+    void onEventDown() override;
+    void onEventRight() override;
+    bool onEventBack() override;
 
 private:
-    void update(float dt);
+    void update(float dt) override;
 
     SaveData saveData { 0, 0, 1, 0, .8f };
 
@@ -124,10 +119,6 @@ private:
     static constexpr float largeTextSize = 72.f;
 
     float last_place = randLinesDensity;
-    bool pressed = false;
-    bool tapped = false;
-    glm::vec2 prevMousePos {0};
-    glm::vec2 lastClick {0};
     long gameScore = 0L;
 };
 

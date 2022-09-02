@@ -266,6 +266,7 @@ int32_t Main::androidHandleInput(struct android_app* app, AInputEvent* event) {
                     myApp->engine.cursor[i][1] = AMotionEvent_getY(event, i);
                 }
 
+                myApp->mainScene->onEventPointerMove();
                 return 1;
 
             case AMOTION_EVENT_ACTION_DOWN:

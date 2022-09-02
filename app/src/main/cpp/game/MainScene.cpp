@@ -3,7 +3,8 @@
 
 extern "C" spige *spige_instance;
 
-#define CX (static_cast<float>(spige_instance->width) / 2) /* center x */
+#define CX (static_cast<float>(spige_instance->width) / 2.f) /* center x */
+#define CY (static_cast<float>(spige_instance->height) / 2.f) /* center y */
 
 /* colors --- I used macros because cglm don't deal with consts */
 #define COLOR_SELECTED glm::vec4{ 0.6f, 0.9f, 1.0f, 1.f }
@@ -16,7 +17,7 @@ float scroll = 0.f;
 
 MainScene::MainScene() {
 
-    srand((unsigned)time(nullptr));
+    srand((unsigned)time(nullptr) + 228);
 
     int ret = 0;
     ret += audio_source_load(&audio_main, "audio/a.wav", .5f);
@@ -124,10 +125,6 @@ MainScene::MainScene() {
     this->labelGameFps = std::make_unique<Label>(&this->medium_text, " fps", glm::vec2 {
         static_cast<float>(spige_instance->width) - 80.0f, MainScene::mediumTextSize
     });
-
-    // this->labelDebug = std::make_unique<Label>(&this->small_text, "", glm::vec2 {
-    //         0.f, MainScene::mediumTextSize + 60.f
-    // });
 
     /* init clicks */
     lastClick[0] = static_cast<float>(spige_instance->width) / 2.f;
@@ -293,107 +290,6 @@ void MainScene::update(float dt) {
 
         default:
             break;
-    }
-
-    // gestures
-    switch (this->gameState) {
-
-        case GameState::MENU:
-        case GameState::PAUSED:
-            if (this->labelMenuContinue->isCollide(glm::make_vec2(::spige_instance->cursor[0]))) {
-                if (this->tapped) {
-                    this->menuSelected = MenuSelected::CONTINUE;
-                    this->onEventSelect();
-                }
-            }
-
-            if (this->labelMenuStart->isCollide(glm::make_vec2(::spige_instance->cursor[0]))) {
-                if (this->tapped) {
-                    this->menuSelected = MenuSelected::START;
-                    this->onEventSelect();
-                }
-            }
-            if (this->labelMenuSettings->isCollide(glm::make_vec2(::spige_instance->cursor[0]))) {
-                if (this->tapped) {
-                    this->menuSelected = MenuSelected::SETTINGS;
-                    this->onEventSelect();
-                }
-            }
-
-            if (this->labelMenuExit->isCollide(glm::make_vec2(::spige_instance->cursor[0]))) {
-                if (this->tapped) {
-                    this->menuSelected = MenuSelected::EXIT;
-                    this->onEventSelect();
-                }
-            }
-
-            if (this->labelMenuHint->isCollide(glm::make_vec2(::spige_instance->cursor[0]))) {
-                if (this->tapped) {
-                    this->labelMenuHint->setColor(glm::vec4 {
-                        t_rand(.0f, 1.f), t_rand(.0f, 1.f), t_rand(.0f, 1.f), 1.f
-                    });
-                }
-            }
-
-            if (this->labelMenuMode->isCollide(glm::make_vec2(::spige_instance->cursor[0]))) {
-                if (this->tapped) {
-                    this->onEventRight();
-                }
-            }
-
-            break;
-
-        case GameState::ENDGAME:
-
-            if (this->labelEndgameRestart->isCollide(glm::make_vec2(::spige_instance->cursor[0]))) {
-                if (this->tapped)
-                    this->onEventSelect();
-            }
-            break;
-
-        case GameState::SETTINGS:
-
-            if (this->labelSettingsFx->isCollide(glm::make_vec2(::spige_instance->cursor[0]))) {
-
-                if (this->tapped) {
-                    this->settingsSelected = SettingsSelected::FX_ENABLED;
-                    this->onEventSelect();
-                }
-            }
-
-            if (this->labelSettingsMusicVolume->isCollide(glm::make_vec2(::spige_instance->cursor[0]))) {
-
-                if (this->tapped) {
-                    this->settingsSelected = SettingsSelected::MUSIC_VOLUME;
-                    this->onEventLeft();
-                }
-            }
-
-            if (this->labelSettingsUnlockResizing->isCollide(glm::make_vec2(::spige_instance->cursor[0]))) {
-
-                if (this->tapped) {
-                    this->settingsSelected = SettingsSelected::UNLOCK_RESIZE;
-                    this->onEventSelect();
-                }
-            }
-
-            if (this->labelSettingsResetStatistics->isCollide(glm::make_vec2(::spige_instance->cursor[0]))) {
-
-                if (this->tapped) {
-                    this->settingsSelected = SettingsSelected::RESET_STATISTICS;
-                    this->onEventSelect();
-                }
-            }
-
-            if (this->labelSettingsBack->isCollide(glm::make_vec2(::spige_instance->cursor[0]))) {
-
-                if (this->tapped) {
-                    this->settingsSelected = SettingsSelected::BACK;
-                    this->onEventSelect();
-                }
-            }
-            break;
-        default: break;
     }
 
     // play random music
@@ -572,14 +468,6 @@ bool MainScene::draw() {
                 .setColor(gameMode == GameMode::CLASSIC ? COLOR_SELECTED : COLOR_HIDDEN)
                 .draw();
 
-            // this->labelDebug
-            //     ->setText(
-            //             "x: "
-            //             + std::to_string(::spige_instance->cursor[0][0])
-            //             + ", y: "
-            //             + std::to_string(::spige_instance->cursor[0][1]) )
-            //     .draw();
-
 #endif
 
             this->labelGameScore
@@ -609,7 +497,7 @@ bool MainScene::draw() {
         ::spige_instance->cursor[0][1] + scroll,
     };
 
-    this->tapped = false;
+    this->pressedOnce = false;
     return this->gameState != GameState::EXITING;
 }
 
@@ -644,6 +532,114 @@ void MainScene::reset() {
     lines->Reset();
 }
 
+void MainScene::onEventPointerMove() {
+
+    // gestures
+    switch (this->gameState) {
+
+        case GameState::MENU:
+        case GameState::PAUSED:
+            if (this->labelMenuContinue->isCollide(glm::make_vec2(::spige_instance->cursor[0]))) {
+
+                this->menuSelected = MenuSelected::CONTINUE;
+                if (this->pressedOnce) {
+                    this->onEventSelect();
+                }
+            }
+
+            if (this->labelMenuStart->isCollide(glm::make_vec2(::spige_instance->cursor[0]))) {
+
+                this->menuSelected = MenuSelected::START;
+                if (this->pressedOnce) {
+                    this->onEventSelect();
+                }
+            }
+            if (this->labelMenuSettings->isCollide(glm::make_vec2(::spige_instance->cursor[0]))) {
+
+                this->menuSelected = MenuSelected::SETTINGS;
+                if (this->pressedOnce) {
+                    this->onEventSelect();
+                }
+            }
+
+            if (this->labelMenuExit->isCollide(glm::make_vec2(::spige_instance->cursor[0]))) {
+
+                this->menuSelected = MenuSelected::EXIT;
+                if (this->pressedOnce) {
+                    this->onEventSelect();
+                }
+            }
+
+            if (this->labelMenuHint->isCollide(glm::make_vec2(::spige_instance->cursor[0]))) {
+                if (this->pressedOnce) {
+                    this->labelMenuHint->setColor(glm::vec4 {
+                            t_rand(.0f, 1.f), t_rand(.0f, 1.f), t_rand(.0f, 1.f), 1.f
+                    });
+                }
+            }
+
+            if (this->labelMenuMode->isCollide(glm::make_vec2(::spige_instance->cursor[0]))) {
+                if (this->pressedOnce) {
+                    this->onEventRight();
+                }
+            }
+
+            break;
+
+        case GameState::ENDGAME:
+
+            if (this->labelEndgameRestart->isCollide(glm::make_vec2(::spige_instance->cursor[0]))) {
+                if (this->pressedOnce)
+                    this->onEventSelect();
+            }
+            break;
+
+        case GameState::SETTINGS:
+
+            if (this->labelSettingsFx->isCollide(glm::make_vec2(::spige_instance->cursor[0]))) {
+
+                this->settingsSelected = SettingsSelected::FX_ENABLED;
+                if (this->pressedOnce) {
+                    this->onEventSelect();
+                }
+            }
+
+            if (this->labelSettingsMusicVolume->isCollide(glm::make_vec2(::spige_instance->cursor[0]))) {
+
+                this->settingsSelected = SettingsSelected::MUSIC_VOLUME;
+                if (this->pressedOnce) {
+                    this->onEventLeft();
+                }
+            }
+
+            if (this->labelSettingsUnlockResizing->isCollide(glm::make_vec2(::spige_instance->cursor[0]))) {
+
+                this->settingsSelected = SettingsSelected::UNLOCK_RESIZE;
+                if (this->pressedOnce) {
+                    this->onEventSelect();
+                }
+            }
+
+            if (this->labelSettingsResetStatistics->isCollide(glm::make_vec2(::spige_instance->cursor[0]))) {
+
+                this->settingsSelected = SettingsSelected::RESET_STATISTICS;
+                if (this->pressedOnce) {
+                    this->onEventSelect();
+                }
+            }
+
+            if (this->labelSettingsBack->isCollide(glm::make_vec2(::spige_instance->cursor[0]))) {
+
+                this->settingsSelected = SettingsSelected::BACK;
+                if (this->pressedOnce) {
+                    this->onEventSelect();
+                }
+            }
+            break;
+        default: break;
+    }
+}
+
 void MainScene::onEventPointerDown() {
     pressed = true;
 }
@@ -660,7 +656,9 @@ void MainScene::onEventPointerUp() {
     }
 
     this->pressed = false;
-    this->tapped = true;
+    this->pressedOnce = true;
+
+    onEventPointerMove();
 }
 
 void MainScene::onEventSelect() {

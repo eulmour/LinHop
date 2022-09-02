@@ -441,6 +441,7 @@ int audio_init(struct audio* engine) {
 
 #elif defined (__unix__) || defined (__unix)
     pthread_t thread;
+    // TODO fix audio playback
     if (pthread_create(&thread, NULL, loop_for_events, (void*) soundio))
         LOGE("Thread: cannot create thread.\n");
 #endif
@@ -563,7 +564,7 @@ static void audio_wav_i16i_pcm_read(struct audio_source* source, const char* pat
         return;
     }
 
-    source->data = (uint16_t*)((uint8_t*)source->wav_file.data + current_byte);
+    source->data = (int16_t*)((uint8_t*)source->wav_file.data + current_byte);
 }
 
 int audio_source_load(struct audio_source* source, const char* path, float vol) {

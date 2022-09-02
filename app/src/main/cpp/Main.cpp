@@ -15,7 +15,7 @@ Main::~Main()
     spige_destroy(&this->engine);
 }
 
-void Main::_glfwSizeCallback(GLFWwindow *window, int width, int height)
+void Main::glfwSizeCallback_(GLFWwindow *window, int width, int height)
 {
     Main::instance->screen_width = width;
     Main::instance->screen_height = height;
@@ -23,13 +23,14 @@ void Main::_glfwSizeCallback(GLFWwindow *window, int width, int height)
     spige_viewport(&Main::instance->engine, width, height);
 }
 
-void Main::_glfwCursorCallback(GLFWwindow *window, double xpos, double ypos)
+void Main::glfwCursorCallback_(GLFWwindow *window, double xpos, double ypos)
 {
     Main::instance->engine.cursor[0][0] = xpos;
     Main::instance->engine.cursor[0][1] = ypos;
+    Main::instance->mainScene->onEventPointerMove();
 }
 
-void Main::_glfwInputCallback(GLFWwindow *window, int key, int scancode, int action, int mods)
+void Main::glfwInputCallback_(GLFWwindow *window, int key, int scancode, int action, int mods)
 {
     if (action != GLFW_PRESS)
         return;
@@ -64,8 +65,10 @@ void Main::_glfwInputCallback(GLFWwindow *window, int key, int scancode, int act
     }
 }
 
-void Main::_glfwMouseCallback(GLFWwindow *window, int button, int action, int mods)
+void Main::glfwMouseCallback_(GLFWwindow *window, int button, int action, int mods)
 {
+    Main::instance->mainScene->onEventPointerMove();
+
     if (action != GLFW_PRESS)
         return;
 
@@ -270,11 +273,11 @@ void Main::initGraphics()
 
     /* Make the window's context current */
     glfwMakeContextCurrent(this->window);
-    glfwSetFramebufferSizeCallback(this->window, Main::_glfwSizeCallback);
+    glfwSetFramebufferSizeCallback(this->window, Main::glfwSizeCallback_);
     glfwSwapInterval(1);
-    glfwSetCursorPosCallback(this->window, Main::_glfwCursorCallback);
-    glfwSetKeyCallback(this->window, Main::_glfwInputCallback);
-    glfwSetMouseButtonCallback(this->window, Main::_glfwMouseCallback);
+    glfwSetCursorPosCallback(this->window, Main::glfwCursorCallback_);
+    glfwSetKeyCallback(this->window, Main::glfwInputCallback_);
+    glfwSetMouseButtonCallback(this->window, Main::glfwMouseCallback_);
 
     if (glewInit() != GLEW_OK)
         exit(-1);

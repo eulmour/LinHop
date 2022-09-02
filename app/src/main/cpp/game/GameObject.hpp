@@ -1,5 +1,5 @@
-#ifndef NATIVEACTIVITY_GAMEOBJECT_HPP
-#define NATIVEACTIVITY_GAMEOBJECT_HPP
+#ifndef LINHOP_GAMEOBJECT_HPP
+#define LINHOP_GAMEOBJECT_HPP
 
 #include "glm/vec2.hpp"
 #include "glm/vec4.hpp"
@@ -18,4 +18,4 @@ protected:
     glm::vec4 color {1.f};
 };
 
-#endif //NATIVEACTIVITY_GAMEOBJECT_HPP
+#endif //LINHOP_GAMEOBJECT_HPP

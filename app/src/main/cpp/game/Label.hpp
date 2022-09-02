@@ -1,5 +1,5 @@
-#ifndef NATIVEACTIVITY_LABEL_HPP
-#define NATIVEACTIVITY_LABEL_HPP
+#ifndef LINHOP_LABEL_HPP
+#define LINHOP_LABEL_HPP
 
 #include "spige.h"
 #include <string>
@@ -24,4 +24,4 @@ private:
     float width = 0.f;
 };
 
-#endif //NATIVEACTIVITY_LABEL_HPP
+#endif //LINHOP_LABEL_HPP

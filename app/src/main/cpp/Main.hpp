@@ -70,10 +70,10 @@ public:
     } data;
 
     private:
-        static void _glfwSizeCallback(GLFWwindow* window, int width, int height);
-        static void _glfwCursorCallback(GLFWwindow* window, double xpos, double ypos);
-        static void _glfwInputCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
-        static void _glfwMouseCallback(GLFWwindow* window, int button, int action, int mods);
+        static void glfwSizeCallback_(GLFWwindow* window, int width, int height);
+        static void glfwCursorCallback_(GLFWwindow* window, double xpos, double ypos);
+        static void glfwInputCallback_(GLFWwindow* window, int key, int scancode, int action, int mods);
+        static void glfwMouseCallback_(GLFWwindow* window, int button, int action, int mods);
 
 #endif
 

@@ -9,7 +9,7 @@ struct audio_source {
     enum state state;
     float vol;
     struct file wav_file;
-    uint16_t* data;
+    int16_t* data;
 
     size_t id;
     size_t size;
