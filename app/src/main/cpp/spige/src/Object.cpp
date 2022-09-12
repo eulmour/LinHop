@@ -1,5 +1,5 @@
-#include "object.h"
-#include "internal.h"
+#include "Object.h"
+#include "Internal.h"
 #include "memory.h"
 #include <errno.h>
 
@@ -362,7 +362,7 @@ void text_load(struct text* text, const char* font, float size) {
         FT_Done_FreeType(ft); return;
     }
 
-    if (FT_New_Memory_Face(ft, file.data, (FT_Long)file.size, 0, &face))
+    if (FT_New_Memory_Face(ft, static_cast<const FT_Byte*>(file.data), (FT_Long)file.size, 0, &face))
         LOGE("FREETYPE: Failed to load font\n");
 
     file_unload(&file);
@@ -425,7 +425,7 @@ void text_load(struct text* text, const char* font, float size) {
             .texture = texture,
             .size = { (int)face->glyph->bitmap.width, (int)face->glyph->bitmap.rows },
             .bearing = { face->glyph->bitmap_left, face->glyph->bitmap_top },
-            .advance = face->glyph->advance.x
+            .advance = static_cast<unsigned int>(face->glyph->advance.x)
         };
 
 //        text->width += (float)face->glyph->bitmap.width;

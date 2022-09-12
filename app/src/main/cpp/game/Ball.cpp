@@ -2,13 +2,9 @@
 #include "Utils.hpp"
 
 extern float scroll;
-extern "C" spige* spige_instance;
 
-Ball::Ball() : rectDrawable{} {
-
-    this->pos = {
-        static_cast<float>(spige_instance->width) / 2.f, static_cast<float>(spige_instance->height) / 2.f
-    };
+Ball::Ball(IVec2 screenSize) : rectDrawable{} {
+    this->pos = {static_cast<float>(screenSize[0]) / 2.f, static_cast<float>(screenSize[1]) / 2.f};
 }
 
 Ball::~Ball() {
@@ -73,11 +69,11 @@ void Ball::Draw() const {
     rect_draw(&this->rectDrawable, &glm::vec2{ pos[0] - diameter, pos[1] - scroll - radius }[0]);
 }
 
-void Ball::Reset() {
+void Ball::Reset(IVec2 screenSize) {
 
     this->pos = {
-        static_cast<float>(spige_instance->width) / 2.f,
-        static_cast<float>(spige_instance->height) / 2.f + 30.f
+        static_cast<float>(screenSize[0]) / 2.f,
+        static_cast<float>(screenSize[1]) / 2.f + 30.f
     };
 
     this->vel = { 0.f, 0.f };

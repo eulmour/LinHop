@@ -15,7 +15,8 @@ android {
         externalNativeBuild {
             cmake {
                 cppFlags ''
-                arguments '-DANDROID_STL=c++_static'
+//                arguments '-DANDROID_STL=c++_static'
+                arguments '-DANDROID_STL=c++_shared'
                 targets 'linhop_android'
             }
         }

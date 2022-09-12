@@ -22,12 +22,12 @@ public:
     static constexpr float terminalVelocityMod = 12000.f;
     float terminalVelocity = 1.f;
 
-    Ball();
+    Ball(IVec2 screenSize);
     ~Ball();
     bool Collision(const Lines& line_array, const glm::vec2 prev_position);
     void Move(float dt);
     void Draw() const;
-    void Reset();
+    void Reset(IVec2 screenSize);
     void activate();
     void deactivate();
 

@@ -4,19 +4,20 @@
 #include "spige.h"
 #include <list>
 #include "glm/vec2.hpp"
+#include "GameObject.hpp"
 
-#define LAZERS_WIDTH (static_cast<float>(spige_instance->width) / 3.f)
+//#define LAZERS_WIDTH (static_cast<float>(spige_instance->width) / 3.f)
 
-class Lazers {
+class Lazers : IGameObject {
 
 public:
-    Lazers(struct line* linedrawable);
+    explicit Lazers(Engine& e, struct line* lineDrawable);
     ~Lazers();
 
     void Trigger(float position);
-    void Draw();
-    void activate();
-    void deactivate();
+    void draw() override;
+    void activate() override;
+    void deactivate() override;
 
     class Lazer
     {
@@ -27,6 +28,7 @@ public:
     };
 
     unsigned int liveTime = 0U;
+    float areaWidth = 480.f / 3.f;
     float pos;
 
     static constexpr std::size_t lazersLives = 240;

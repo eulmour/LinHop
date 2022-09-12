@@ -1,7 +1,7 @@
 #include "MainScene.hpp"
 #include <memory>
 
-extern "C" spige *spige_instance;
+//extern "C" spige *spige_instance;
 
 #define CX (static_cast<float>(spige_instance->width) / 2.f) /* center x */
 #define CY (static_cast<float>(spige_instance->height) / 2.f) /* center y */
@@ -12,10 +12,17 @@ extern "C" spige *spige_instance;
 #define COLOR_IDLE glm::vec4{ 0.4f, 0.55f, 0.6f, 1.f }
 #define COLOR_DISABLED glm::vec4{ 0.2f, 0.35f, 0.4f, 1.f }
 
+#define PROLOG(e) float& pointerX = e.input.getPointerArray()[0][0]; \
+    float& pointerY = e.input.getPointerArray()[0][1]; \
+    float screenW = static_cast<float>(e.window->getLogicalSize()[0]); \
+    float screenH = static_cast<float>(e.window->getLogicalSize()[1]);
+
 // global
 float scroll = 0.f;
 
-MainScene::MainScene() {
+MainScene::MainScene(Engine& e) {
+
+    PROLOG(e)
 
     srand((unsigned)time(nullptr) + 228);
 
@@ -35,75 +42,70 @@ MainScene::MainScene() {
         file_unload(&saveDataFile);
     }
 
-    ::spige_instance->cursor[0][0] = static_cast<float>(spige_instance->width) / 2.f;
-    ::spige_instance->cursor[0][1] = static_cast<float>(spige_instance->height);
-
-    this->prevMousePos = {::spige_instance->cursor[0][0], ::spige_instance->cursor[0][1]};
-
     // class
     lines       = std::make_unique<Lines>(&line);
     rand_lines  = std::make_unique<Lines>(&line);
     sparks      = std::make_unique<Sparks>();
-    lazers      = std::make_unique<Lazers>(&line);
+    lazers      = std::make_unique<Lazers>(e, &line);
     ballTail    = std::make_unique<Tail>(&line, .7f);
     cursorTail  = std::make_unique<Tail>(&line, .08f);
-    ball        = std::make_unique<Ball>();
+    ball        = std::make_unique<Ball>(e.window->getLogicalSize());
 
     lines->Reset();
 
     // labels
     this->labelMenuTitle = std::make_unique<Label>(&this->large_text, "LinHop", glm::vec2 {
-        CX - 124, static_cast<float>(spige_instance->height) / 2.f - 180.f
+            screenW / 2 - 124, screenH / 2.f - 180.f
     });
     this->labelMenuTitle->setColor(glm::vec4 {0.6f, 0.8f, 1.0f, 1.f});
 
     this->labelMenuContinue = std::make_unique<Label>(&this->medium_text, "Continue", glm::vec2 {
-        CX - 120, static_cast<float>(spige_instance->height) / 2.f - 40.f
+            screenW / 2 - 120, screenH / 2.f - 40.f
     });
 
     this->labelMenuStart = std::make_unique<Label>(&this->medium_text, "Start", glm::vec2 {
-        CX - 72, static_cast<float>(spige_instance->height) / 2.f + 20.f
+            screenW / 2 - 72, screenH / 2.f + 20.f
     });
 
     this->labelMenuSettings = std::make_unique<Label>(&this->medium_text, "Settings", glm::vec2 {
-        CX - 118, static_cast<float>(spige_instance->height) / 2.f + 80.f
+            screenW / 2 - 118, screenH / 2.f + 80.f
     });
 
     this->labelMenuExit = std::make_unique<Label>(&this->medium_text, "Exit", glm::vec2 {
-        CX - 56, static_cast<float>(spige_instance->height) / 2.f + 140.f
+            screenW / 2 - 56, screenH / 2.f + 140.f
     });
 
     this->labelMenuHint = std::make_unique<Label>(&this->small_text, "Left or right to change mode", glm::vec2 {
-        CX - 238, static_cast<float>(spige_instance->height - 40)
+            screenW / 2 - 238, screenH - 40.f
     });
     this->labelMenuHint->setColor(glm::vec4 {0.4f, 0.55f, 0.6f, 1.f});
 
     this->labelMenuMode = std::make_unique<Label>(&this->small_text, "Classic", glm::vec2 {
-        CX - 74, static_cast<float>(spige_instance->height) / 2.f - 110.f
+            screenW / 2 - 74, screenH / 2.f - 110.f
     });
 
     this->labelEndgameRestart = std::make_unique<Label>(&this->medium_text, "Retry", glm::vec2 {
-        CX + 55, static_cast<float>(spige_instance->height) / 2.f
+            screenW / 2 + 55, screenH / 2.f
     });
 
     this->labelEndgameScore = std::make_unique<Label>(&this->medium_text, "Score: ", glm::vec2 {
-        CX - 205, static_cast<float>(spige_instance->height) / 2.f - 60.f
+            screenW / 2 - 205, screenH / 2.f - 60.f
     });
 
     this->labelSettingsTitle = std::make_unique<Label>(&this->large_text, "Settings", glm::vec2 {
-        CX - 170, static_cast<float>(spige_instance->height) / 2.f - 280.f
+            screenW / 2 - 170, screenH / 2.f - 280.f
     });
 
     this->labelSettingsFx = std::make_unique<Label>(&this->medium_text, "FX: ", glm::vec2 {
-        CX - 165, static_cast<float>(spige_instance->height) / 2.f - 60.f
+            screenW / 2 - 165, screenH / 2.f - 60.f
     });
 
     this->labelSettingsMusicVolume = std::make_unique<Label>(&this->medium_text, "Volume: ", glm::vec2 {
-        CX - 150, static_cast<float>(spige_instance->height) / 2.f
+            screenW / 2 - 150, screenH / 2.f
     });
 
     this->labelSettingsUnlockResizing = std::make_unique<Label>(&this->medium_text, "Resizing: ", glm::vec2 {
-        CX - 182, static_cast<float>(spige_instance->height) / 2.f + 60.f
+            screenW / 2 - 182, screenH / 2.f + 60.f
     });
 
 #if defined(ANDROID)
@@ -111,24 +113,25 @@ MainScene::MainScene() {
 #endif
 
     this->labelSettingsResetStatistics = std::make_unique<Label>(&this->medium_text, "Reset", glm::vec2 {
-        CX - 76, static_cast<float>(spige_instance->height) / 2.f + 120.f
+            screenW / 2 - 76, screenH / 2.f + 120.f
     });
 
     this->labelSettingsBack = std::make_unique<Label>(&this->medium_text, "Back", glm::vec2 {
-        CX - 58, static_cast<float>(spige_instance->height) / 2.f + 280.f
+            screenW / 2 - 58, screenH / 2.f + 280.f
     });
 
     this->labelGameScore = std::make_unique<Label>(&this->medium_text, "Score: ", glm::vec2 {
-        0.0f, MainScene::mediumTextSize
+            0.0f, MainScene::mediumTextSize
     });
 
     this->labelGameFps = std::make_unique<Label>(&this->medium_text, " fps", glm::vec2 {
-        static_cast<float>(spige_instance->width) - 80.0f, MainScene::mediumTextSize
+            screenW - 80.0f, MainScene::mediumTextSize
     });
 
     /* init clicks */
-    lastClick[0] = static_cast<float>(spige_instance->width) / 2.f;
-    lastClick[1] = static_cast<float>(spige_instance->height);
+    pointerX = lastClick[0] = screenW / 2.f;
+    pointerY = lastClick[1] = screenH;
+    this->prevMousePos = {pointerX, pointerY};
 
     if (!audio_init(&audio_engine))
         LOGE("Failed to initialize audio engine.\n");
@@ -147,7 +150,7 @@ MainScene::~MainScene() {
     audio_source_unload(&this->audio_warning);
 }
 
-void MainScene::pause() {
+void MainScene::suspend(Engine& engine) {
 
     this->ball->deactivate();
     this->lazers->deactivate();
@@ -162,7 +165,7 @@ void MainScene::pause() {
     audio_pause_all(&audio_engine);
 }
 
-void MainScene::resume() {
+void MainScene::resume(Engine& engine) {
 
     line_load(&this->line);
     line.width = 4.f;
@@ -179,7 +182,39 @@ void MainScene::resume() {
     audio_play_all(&audio_engine);
 }
 
-void MainScene::update(float dt) {
+bool MainScene::update(Engine& engine) {
+
+    // update background color
+    static float bgColorDirection = 0.005f * engine.window->getDeltaTime();
+    if (backgroundColor[0] > 0.2f || backgroundColor[0] < 0.0f)
+        bgColorDirection = -bgColorDirection;
+
+    backgroundColor[0] += -bgColorDirection / 2;
+    backgroundColor[1] += bgColorDirection / 3;
+    backgroundColor[2] += bgColorDirection / 2;
+
+    engine.graphics.clear(backgroundColor);
+
+    if (engine.input.isKeyHold(InputKey::PointerMove))
+        this->onEventPointerMove(engine);
+    if (engine.input.isKeyDown(InputKey::Pointer))
+        this->onEventPointerDown();
+    if (engine.input.isKeyUp(InputKey::Pointer))
+        this->onEventPointerUp(engine);
+    if (engine.input.isKeyDown(InputKey::Select))
+        this->onEventSelect(engine);
+    if (engine.input.isKeyDown(InputKey::Back))
+        this->onEventBack();
+    if (engine.input.isKeyDown(InputKey::Up))
+        this->onEventUp();
+    if (engine.input.isKeyDown(InputKey::Down))
+        this->onEventDown();
+    if (engine.input.isKeyDown(InputKey::Left))
+        this->onEventLeft();
+    if (engine.input.isKeyDown(InputKey::Right))
+        this->onEventRight();
+
+    PROLOG(engine)
 
     // game logic
     switch (this->gameState) {
@@ -188,12 +223,12 @@ void MainScene::update(float dt) {
         case GameState::INGAME:
 
             gameScore = std::max(gameScore, -static_cast<long>(
-                ball->pos[1] - static_cast<float>(spige_instance->height) / 2.f));
+                ball->pos[1] - screenH / 2.f));
 
             ball->bounceStrength = 1 + static_cast<float>(gameScore) / ballStrengthMod;
             ball->gravity = 9.8f + static_cast<float>(gameScore) / ballGravityMod;
 
-            ball->Move(dt);
+            ball->Move(engine.window->getDeltaTime());
 
             if (ball->Collision(*lines, ball->prev_pos)) {
                 sparks->Push(ball->pos);
@@ -206,8 +241,8 @@ void MainScene::update(float dt) {
             }
 
             /* If ball reaches half of the screen then update scroll */
-            if (ball->pos[1] - static_cast<float>(spige_instance->height) / 2.f - 10.f < scroll) {
-                scroll += (ball->pos[1] - static_cast<float>(spige_instance->height) / 2.f - 10.f - scroll) / 10.f;
+            if (ball->pos[1] - screenH / 2.f - 10.f < scroll) {
+                scroll += (ball->pos[1] - screenH / 2.f - 10.f - scroll) / 10.f;
             }
 
             /* If game was over turn global scroll back */
@@ -216,8 +251,8 @@ void MainScene::update(float dt) {
             }
 
             /* If the ball is out of screen then stop the game */
-            if (ball->pos[0] < 0 || ball->pos[0] > static_cast<float>(spige_instance->width) ||
-                ball->pos[1] - scroll > static_cast<float>(spige_instance->height) + ball->radius)
+            if (ball->pos[0] < 0 || ball->pos[0] > screenW ||
+                ball->pos[1] - scroll > screenH + ball->radius)
             {
                 if (gameState == GameState::INGAME) {
                     if (t_rand(0, 1) == 0)
@@ -233,15 +268,15 @@ void MainScene::update(float dt) {
             if ((-scroll) - last_place > randLinesDensity) {
                 if (t_rand(0, 1) <= 1) {
                     auto base_y = scroll - 80.0f;
-                    auto base_x = t_rand(-((float)spige_instance->width/3), (float)spige_instance->width);
+                    auto base_x = t_rand(-(screenW/3), screenW);
 
                     struct line {
                         glm::vec2 first;
                         glm::vec2 second;
                     } new_line {
                         {base_x, base_y},
-                        {base_x + (static_cast<float>(t_rand(0, spige_instance->width)) / 2.f) - CX / 4,
-							base_y + static_cast<float>(t_rand(0, spige_instance->height)) / 6.f}
+                        {base_x + (t_rand(0.f, screenW) / 2.f) - (screenW/2.f) / 4.f,
+							base_y + t_rand(0.f, screenH) / 6.f}
                     };
 
                     if (dis_func(new_line.second[0] - new_line.first[0],
@@ -267,8 +302,7 @@ void MainScene::update(float dt) {
 
                 if (pressed) {
                     cursorTail->Push(
-                        glm::vec2 {::spige_instance->cursor[0][0],
-                                ::spige_instance->cursor[0][1] + scroll},
+                        glm::vec2 {pointerX, pointerY + scroll},
                         prevMousePos);
                 }
             }
@@ -279,7 +313,7 @@ void MainScene::update(float dt) {
                     audio_play(&this->audio_engine, &this->audio_warning);
 
                     lazers->Trigger(
-                        t_rand(0.0f, static_cast<float>(spige_instance->width) - LAZERS_WIDTH));
+                        t_rand(0.0f, screenW - this->lazers->areaWidth));
                 }
 
                 if (lazers->liveTime == 59)
@@ -301,24 +335,15 @@ void MainScene::update(float dt) {
         else
             audio_play(&audio_engine, &audio_alt);
     }
+
+    return this->gameState != GameState::EXITING;
 }
 
-bool MainScene::draw() {
+void MainScene::render(Engine& engine) {
 
-    static float dt = 1.f / 60.f; // temporary solution
+    PROLOG(engine)
 
-    update(dt);
-
-    // update background color
-    static float bgColorDirection = 0.005f * dt;
-    if (backgroundColor[0] > 0.2f || backgroundColor[0] < 0.0f)
-        bgColorDirection = -bgColorDirection;
-
-    backgroundColor[0] += -bgColorDirection / 2;
-    backgroundColor[1] += bgColorDirection / 3;
-    backgroundColor[2] += bgColorDirection / 2;
-
-    lazers->Draw();
+    lazers->draw();
 
     if (lazers->liveTime == 0 && !lazers->lazers.empty()) {
         // lazer will destroy ball
@@ -337,7 +362,7 @@ bool MainScene::draw() {
 
         sparks->Push(glm::vec2 {0.0f, 0.0f});
 
-        for (int i = 0; i < spige_instance->height; i += spige_instance->height / 10) {
+        for (int i = 0; i < screenH; i += screenH / 10) {
             sparks->Push(glm::vec2 {lazers->lazers.back().a[0], static_cast<float>(i)});
             sparks->Push(glm::vec2 {lazers->lazers.front().a[0], static_cast<float>(i)});
         }
@@ -391,7 +416,7 @@ bool MainScene::draw() {
 
                     this->labelMenuMode
                         ->setText("Classic")
-                        .setPos(glm::vec2{ CX - 60, static_cast<float>(spige_instance->height) / 2.f - 110.f })
+                        .setPos(glm::vec2{ screenW/2 - 60, screenH / 2.f - 110.f })
                         .setColor(COLOR_IDLE)
                         .draw();
 
@@ -406,7 +431,7 @@ bool MainScene::draw() {
 
                     this->labelMenuMode
                         ->setText("Hidden")
-                        .setPos(glm::vec2{ CX - 52, static_cast<float>(spige_instance->height) / 2.f - 110.f })
+                        .setPos(glm::vec2{ screenW/2.f - 52.f, screenH / 2.f - 110.f })
                         .setColor(COLOR_IDLE)
                         .draw();
 
@@ -456,15 +481,13 @@ bool MainScene::draw() {
                 this->line.color[2] = .5f;
                 this->line.color[3] = 1.f;
 
-                line_draw(&this->line, &glm::vec4 {lastClick[0], lastClick[1] - scroll,
-                                               ::spige_instance->cursor[0][0],
-                                               ::spige_instance->cursor[0][1]}[0]);
+                line_draw(&this->line, &glm::vec4 {lastClick[0], lastClick[1] - scroll, pointerX, pointerY}[0]);
             }
 
 #ifndef NDEBUG
 
             this->labelGameFps
-                ->setText(std::to_string(static_cast<int>(1 / dt)) + std::string(" fps"))
+                ->setText(std::to_string(static_cast<int>(1 / engine.window->getDeltaTime())) + std::string(" fps"))
                 .setColor(gameMode == GameMode::CLASSIC ? COLOR_SELECTED : COLOR_HIDDEN)
                 .draw();
 
@@ -493,21 +516,20 @@ bool MainScene::draw() {
     }
 
     this->prevMousePos = {
-        ::spige_instance->cursor[0][0],
-        ::spige_instance->cursor[0][1] + scroll,
+        pointerX,
+        pointerY + scroll,
     };
 
     this->pressedOnce = false;
-    return this->gameState != GameState::EXITING;
 }
 
-void MainScene::reset() {
+void MainScene::reset(Engine& engine) {
 
     cursorTail->Reset();
 
     this->prevMousePos = {
-        static_cast<float>(spige_instance->width) / 2.f,
-        static_cast<float>(spige_instance->height)
+        engine.input.getPointerArray()[0][0] / 2.f,
+        engine.input.getPointerArray()[0][1]
     };
 
     this->lastClick = this->prevMousePos;
@@ -527,50 +549,52 @@ void MainScene::reset() {
     gameState = GameState::INGAME;
     last_place = randLinesDensity;
 
-    ball->Reset();
+    ball->Reset(engine.window->getLogicalSize());
     rand_lines->Reset();
     lines->Reset();
 }
 
-void MainScene::onEventPointerMove() {
+void MainScene::onEventPointerMove(Engine& engine) {
+
+    auto& pointerPos = engine.input.getPointerArray()[0];
 
     // gestures
     switch (this->gameState) {
 
         case GameState::MENU:
         case GameState::PAUSED:
-            if (this->labelMenuContinue->isCollide(glm::make_vec2(::spige_instance->cursor[0]))) {
+            if (this->labelMenuContinue->isCollide(glm::make_vec2(pointerPos.data()))) {
 
                 this->menuSelected = MenuSelected::CONTINUE;
                 if (this->pressedOnce) {
-                    this->onEventSelect();
+                    this->onEventSelect(engine);
                 }
             }
 
-            if (this->labelMenuStart->isCollide(glm::make_vec2(::spige_instance->cursor[0]))) {
+            if (this->labelMenuStart->isCollide(glm::make_vec2(pointerPos.data()))) {
 
                 this->menuSelected = MenuSelected::START;
                 if (this->pressedOnce) {
-                    this->onEventSelect();
+                    this->onEventSelect(engine);
                 }
             }
-            if (this->labelMenuSettings->isCollide(glm::make_vec2(::spige_instance->cursor[0]))) {
+            if (this->labelMenuSettings->isCollide(glm::make_vec2(pointerPos.data()))) {
 
                 this->menuSelected = MenuSelected::SETTINGS;
                 if (this->pressedOnce) {
-                    this->onEventSelect();
+                    this->onEventSelect(engine);
                 }
             }
 
-            if (this->labelMenuExit->isCollide(glm::make_vec2(::spige_instance->cursor[0]))) {
+            if (this->labelMenuExit->isCollide(glm::make_vec2(pointerPos.data()))) {
 
                 this->menuSelected = MenuSelected::EXIT;
                 if (this->pressedOnce) {
-                    this->onEventSelect();
+                    this->onEventSelect(engine);
                 }
             }
 
-            if (this->labelMenuHint->isCollide(glm::make_vec2(::spige_instance->cursor[0]))) {
+            if (this->labelMenuHint->isCollide(glm::make_vec2(pointerPos.data()))) {
                 if (this->pressedOnce) {
                     this->labelMenuHint->setColor(glm::vec4 {
                             t_rand(.0f, 1.f), t_rand(.0f, 1.f), t_rand(.0f, 1.f), 1.f
@@ -578,7 +602,7 @@ void MainScene::onEventPointerMove() {
                 }
             }
 
-            if (this->labelMenuMode->isCollide(glm::make_vec2(::spige_instance->cursor[0]))) {
+            if (this->labelMenuMode->isCollide(glm::make_vec2(pointerPos.data()))) {
                 if (this->pressedOnce) {
                     this->onEventRight();
                 }
@@ -588,23 +612,23 @@ void MainScene::onEventPointerMove() {
 
         case GameState::ENDGAME:
 
-            if (this->labelEndgameRestart->isCollide(glm::make_vec2(::spige_instance->cursor[0]))) {
+            if (this->labelEndgameRestart->isCollide(glm::make_vec2(pointerPos.data()))) {
                 if (this->pressedOnce)
-                    this->onEventSelect();
+                    this->onEventSelect(engine);
             }
             break;
 
         case GameState::SETTINGS:
 
-            if (this->labelSettingsFx->isCollide(glm::make_vec2(::spige_instance->cursor[0]))) {
+            if (this->labelSettingsFx->isCollide(glm::make_vec2(pointerPos.data()))) {
 
                 this->settingsSelected = SettingsSelected::FX_ENABLED;
                 if (this->pressedOnce) {
-                    this->onEventSelect();
+                    this->onEventSelect(engine);
                 }
             }
 
-            if (this->labelSettingsMusicVolume->isCollide(glm::make_vec2(::spige_instance->cursor[0]))) {
+            if (this->labelSettingsMusicVolume->isCollide(glm::make_vec2(pointerPos.data()))) {
 
                 this->settingsSelected = SettingsSelected::MUSIC_VOLUME;
                 if (this->pressedOnce) {
@@ -612,27 +636,27 @@ void MainScene::onEventPointerMove() {
                 }
             }
 
-            if (this->labelSettingsUnlockResizing->isCollide(glm::make_vec2(::spige_instance->cursor[0]))) {
+            if (this->labelSettingsUnlockResizing->isCollide(glm::make_vec2(pointerPos.data()))) {
 
                 this->settingsSelected = SettingsSelected::UNLOCK_RESIZE;
                 if (this->pressedOnce) {
-                    this->onEventSelect();
+                    this->onEventSelect(engine);
                 }
             }
 
-            if (this->labelSettingsResetStatistics->isCollide(glm::make_vec2(::spige_instance->cursor[0]))) {
+            if (this->labelSettingsResetStatistics->isCollide(glm::make_vec2(pointerPos.data()))) {
 
                 this->settingsSelected = SettingsSelected::RESET_STATISTICS;
                 if (this->pressedOnce) {
-                    this->onEventSelect();
+                    this->onEventSelect(engine);
                 }
             }
 
-            if (this->labelSettingsBack->isCollide(glm::make_vec2(::spige_instance->cursor[0]))) {
+            if (this->labelSettingsBack->isCollide(glm::make_vec2(pointerPos.data()))) {
 
                 this->settingsSelected = SettingsSelected::BACK;
                 if (this->pressedOnce) {
-                    this->onEventSelect();
+                    this->onEventSelect(engine);
                 }
             }
             break;
@@ -644,11 +668,11 @@ void MainScene::onEventPointerDown() {
     pressed = true;
 }
 
-void MainScene::onEventPointerUp() {
+void MainScene::onEventPointerUp(Engine& engine) {
 
     if (this->gameState == GameState::INGAME) {
         glm::vec2 newPos = {
-            ::spige_instance->cursor[0][0], ::spige_instance->cursor[0][1] + scroll
+            engine.input.getPointerArray()[0][0], engine.input.getPointerArray()[0][1] + scroll
         };
         
         this->lines->Push(newPos, lastClick);
@@ -658,10 +682,10 @@ void MainScene::onEventPointerUp() {
     this->pressed = false;
     this->pressedOnce = true;
 
-    onEventPointerMove();
+    onEventPointerMove(engine);
 }
 
-void MainScene::onEventSelect() {
+void MainScene::onEventSelect(Engine& engine) {
 
     switch (gameState) {
         case GameState::SETTINGS:
@@ -711,7 +735,7 @@ void MainScene::onEventSelect() {
             switch (menuSelected) {
                 case MenuSelected::START:
                     gameState = GameState::INGAME;
-                    reset();
+                    reset(engine);
                     break;
 
                 case MenuSelected::CONTINUE:
@@ -735,7 +759,7 @@ void MainScene::onEventSelect() {
             break;
 
         case GameState::ENDGAME:
-            reset();
+            reset(engine);
             break;
         default:
             return;

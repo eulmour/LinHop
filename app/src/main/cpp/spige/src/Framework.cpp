@@ -1,4 +1,4 @@
-#include "framework.h"
+#include "Framework.h"
 #include <memory.h>
 #include <string.h>
 #include <errno.h>
@@ -211,7 +211,8 @@ unsigned int texture_load(const char* path) {
     struct file texture_file;
     file_load_asset(&texture_file, path);
     stbi_uc* buffer = stbi_load_from_memory(
-        texture_file.data, (int)texture_file.size, &width, &height, &bpp, 4);
+        static_cast<const stbi_uc*>(texture_file.data),
+        (int)texture_file.size, &width, &height, &bpp, 4);
 
     file_unload(&texture_file);
 #else

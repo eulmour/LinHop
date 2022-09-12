@@ -1,4 +1,4 @@
-#include "audio.h"
+#include "Audio.h"
 #include <memory.h>
 #include <string.h>
 #include <assert.h>
@@ -299,7 +299,13 @@ void audio_destroy(struct audio* engine) {
 
 #if defined (WIN32) || defined (_WIN32)
 #include <Windows.h>
+static unsigned long loop_for_events(void* soundio) {
+    for (;;) soundio_wait_events((struct SoundIo*)soundio);
+}
 #elif defined (__unix__) || defined (__unix)
+static void* loop_for_events(void* soundio) {
+    for (;;) soundio_wait_events((struct SoundIo*)soundio);
+}
 #include <pthread.h>
 #endif
 
@@ -310,7 +316,7 @@ static void write_callback(struct SoundIoOutStream* outstream, int frame_count_m
     float seconds_per_frame = 1.0f / float_sample_rate;
     struct SoundIoChannelArea* areas;
 
-    struct audio* e = outstream->userdata;
+    struct audio* e = static_cast<struct audio*>(outstream->userdata);
 
     if (e->state == STATE_OFF)
         return;
@@ -377,10 +383,6 @@ static void write_callback(struct SoundIoOutStream* outstream, int frame_count_m
 
 		source->position += smpls_to_copy;
 	}
-}
-
-static unsigned long loop_for_events(void* soundio) {
-    for (;;) soundio_wait_events((struct SoundIo*)soundio);
 }
 
 int audio_init(struct audio* engine) {

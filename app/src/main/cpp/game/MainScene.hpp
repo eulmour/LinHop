@@ -1,7 +1,6 @@
 #ifndef LINHOP_MAINSCENE_HPP
 #define LINHOP_MAINSCENE_HPP
 
-#include "IScene.hpp"
 #include <memory>
 
 #include "spige.h"
@@ -13,15 +12,18 @@
 #include "Lazers.hpp"
 #include "Label.hpp"
 
-class MainScene : public IScene {
+class MainScene : public Scene {
 public:
-    MainScene();
-    ~MainScene();
+    MainScene() = delete;
+    MainScene(Engine& e);
 
-    void pause() override;
-    void resume() override;
-    bool draw() override;
-    void reset() override;
+    ~MainScene() override;
+
+    void suspend(Engine& engine) override;
+    void resume(Engine& engine) override;
+    bool update(Engine& engine) override;
+    void render(Engine& engine) override;
+    [[nodiscard]] Color getBackgroundColor() const { return this->backgroundColor; }
 
     struct audio audio_engine = {};
     struct audio_source audio_main = {};
@@ -66,7 +68,39 @@ public:
     std::unique_ptr<Label> labelGameScore;
     std::unique_ptr<Label> labelGameFps;
 
-    // std::unique_ptr<Label> labelDebug;
+    enum class GameState {
+        MENU, SETTINGS, INGAME, PAUSED, ENDGAME, EXITING, END
+    } gameState = GameState::MENU;
+
+    enum class GameMode {
+        CLASSIC, HIDDEN, END
+    } gameMode = GameMode::CLASSIC;
+
+    enum class MenuSelected {
+        CONTINUE, START, SETTINGS, EXIT, END
+    } menuSelected = MenuSelected::START;
+
+    enum class SettingsSelected {
+        FX_ENABLED, MUSIC_VOLUME, UNLOCK_RESIZE, RESET_STATISTICS, BACK, END
+    } settingsSelected = SettingsSelected::FX_ENABLED;
+
+    void onEventPointerMove(Engine& engine);
+    void onEventPointerDown();
+    void onEventPointerUp(Engine& engine);
+    void onEventSelect(Engine& engine);
+    void onEventUp();
+    void onEventLeft();
+    void onEventDown();
+    void onEventRight();
+    bool onEventBack();
+
+private:
+
+    void reset(Engine& engine);
+
+    glm::vec2 prevMousePos {0};
+    glm::vec2 lastClick {0};
+    Color backgroundColor{0.0f, 0.1f, 0.2f, 1.f};
 
     struct SaveData {
         long maxScoreClassic;
@@ -74,42 +108,7 @@ public:
         long fxEnabled;
         long unlockResizing;
         float musicVolumeFloat;
-    };
-
-    enum class GameState
-    {
-        MENU, SETTINGS, INGAME, PAUSED, ENDGAME, EXITING, END
-    } gameState = GameState::MENU;
-
-    enum class GameMode
-    {
-        CLASSIC, HIDDEN, END
-    } gameMode = GameMode::CLASSIC;
-
-    enum class MenuSelected
-    {
-        CONTINUE, START, SETTINGS, EXIT, END
-    } menuSelected = MenuSelected::START;
-
-    enum class SettingsSelected
-    {
-        FX_ENABLED, MUSIC_VOLUME, UNLOCK_RESIZE, RESET_STATISTICS, BACK, END
-    } settingsSelected = SettingsSelected::FX_ENABLED;
-
-    void onEventPointerMove() override;
-    void onEventPointerDown() override;
-    void onEventPointerUp() override;
-    void onEventSelect() override;
-    void onEventUp() override;
-    void onEventLeft() override;
-    void onEventDown() override;
-    void onEventRight() override;
-    bool onEventBack() override;
-
-private:
-    void update(float dt) override;
-
-    SaveData saveData { 0, 0, 1, 0, .8f };
+    } saveData { 0, 0, 1, 0, .8f };
 
     static constexpr int ballStrengthMod = 25000;
     static constexpr int ballGravityMod = 8000;
@@ -120,6 +119,10 @@ private:
 
     float last_place = randLinesDensity;
     long gameScore = 0L;
+
+protected:
+    bool pressed {false};
+    bool pressedOnce {false};
 };
 
 // for each type you want the operator(s) to be enabled, do this:

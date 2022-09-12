@@ -8,8 +8,8 @@ class IGameObject {
 
 public:
     virtual void draw() = 0;
-    virtual IGameObject& setPos(glm::vec2 newPos) = 0;
-    virtual IGameObject& setColor(glm::vec4 newColor) = 0;
+    virtual IGameObject& setPos(glm::vec2 newPos) { return *this; }
+    virtual IGameObject& setColor(glm::vec4 newColor) { return *this; }
     virtual void activate() = 0;
     virtual void deactivate() = 0;
 

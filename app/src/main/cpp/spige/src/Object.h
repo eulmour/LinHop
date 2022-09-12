@@ -1,7 +1,7 @@
 #ifndef SPIGE_OBJECT_H
 #define SPIGE_OBJECT_H
 
-#include "framework.h"
+#include "Framework.h"
 
 struct line {
     enum state state;

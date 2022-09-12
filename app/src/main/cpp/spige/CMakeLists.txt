@@ -1,9 +1,11 @@
-project("spige" C)
+project("spige" CXX)
+
+set (CMAKE_CXX_STANDARD 17)
 
 add_definitions(-DGLEW_STATIC)
 add_definitions(-DSOUNDIO_STATIC_LIBRARY)
 
-file(GLOB FILES_SRC CONFIGURE_DEPENDS "*.h" "src/*.h" "src/*.c")
+file(GLOB FILES_SRC CONFIGURE_DEPENDS "*.h" "src/*.h" "src/*cpp")
 
 if (ANDROID)
     add_library(spige SHARED ${FILES_SRC})
@@ -11,7 +13,7 @@ else()
     add_library(spige STATIC ${FILES_SRC})
 endif()
 
-set_target_properties(spige PROPERTIES LINKER_LANGUAGE C)
+#set_target_properties(spige PROPERTIES LINKER_LANGUAGE C)
 
 add_subdirectory("vendor")
 

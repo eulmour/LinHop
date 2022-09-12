@@ -2,6 +2,7 @@
 #define SPIGE_FRAMEWORK_H
 
 #include "cglm/cglm.h"
+#include <array>
 //#include "cglm/struct.h"
 
 #define SPIGE_POINTER_COUNT_MAX 16
@@ -59,6 +60,12 @@
     #define LOGW LOGW_PRINT
     #define LOGE LOGE_PRINT
 #endif
+
+using Color = std::array<float, 4>;
+using Vec2 = std::array<float, 2>;
+using Vec3 = std::array<float, 3>;
+using Vec4 = std::array<float, 4>;
+using IVec2 = std::array<int, 2>;
 
 enum state {
     STATE_OFF,

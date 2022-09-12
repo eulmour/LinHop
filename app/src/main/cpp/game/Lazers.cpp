@@ -9,7 +9,8 @@ extern "C" spige* spige_instance;
 #define LAZERS_LINES_DEFAULT_COLOR glm::vec4{ 1.0f, 0.0f, 0.0f, 0.85f }
 #define LAZERS_INNER_DEFAULT_COLOR glm::vec4{ 1.0f, 0.0f, 0.0f, 0.5f }
 
-Lazers::Lazers(struct line* lineDrawable) : lineDrawable(lineDrawable) {}
+Lazers::Lazers(Engine& e, struct line* lineDrawable) :
+        lineDrawable(lineDrawable), areaWidth(e.window->getLogicalSize()[0] / 3.f) {}
 
 Lazers::~Lazers() {
     if (this->rectDrawable.state != STATE_OFF)
@@ -21,20 +22,20 @@ void Lazers::Trigger(float position)
     if (liveTime == 0)
     {
         liveTime = lazersLives;
-        auto lazersWidth = LAZERS_WIDTH;
+//        auto lazersWidth = LAZERS_WIDTH;
 
         lazers.emplace_back(
             glm::vec2{ position, 0.0f },
             glm::vec2{ position, static_cast<float>(spige_instance->height) });
 
         lazers.emplace_back(
-            glm::vec2{ position + lazersWidth, 0.0f },
-            glm::vec2{ position + lazersWidth, static_cast<float>(spige_instance->height) }
+            glm::vec2{position + areaWidth, 0.0f },
+            glm::vec2{position + areaWidth, static_cast<float>(spige_instance->height) }
         );
     }
 }
 
-void Lazers::Draw()
+void Lazers::draw()
 {
     if (lazers.size() > 0) {
         if (liveTime < 1) {

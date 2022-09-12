@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.8)
 
 project("linhop" C CXX)
 
-set (CMAKE_C_STANDARD 11)
 set (CMAKE_CXX_STANDARD 17)
 
 # add_definitions(-DSPIGE_WRITE_LOGS)
@@ -43,7 +42,7 @@ target_include_directories(linhop PRIVATE
 target_link_libraries(linhop spige glm)
 
  # Android target
-add_library(linhop_android SHARED Main.hpp MainAndroid.cpp ${linhop_src})
+add_library(linhop_android SHARED Main.hpp Main.cpp ${linhop_src})
 
 target_include_directories(linhop_android PRIVATE
     ${ANDROID_NDK}/sources/android/native_app_glue

@@ -3,7 +3,7 @@
 
 #define AUDIO_MAX_SOURCES 10
 
-#include "framework.h"
+#include "Framework.h"
 
 struct audio_source {
     enum state state;

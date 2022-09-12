@@ -1,13 +1,26 @@
-#include "Main.hpp"
-#include <dlfcn.h>
-//#include <fcntl.h>
+#include "Engine.h"
+#include "EmptyScene.h"
 
-Main::Main(android_app *androidApp)
+Engine *Engine::instance = nullptr;
+
+void Engine::setScene(Scene *scene) {
+    if (scene) {
+        this->currentScene->suspend(*this);
+        this->currentScene = scene;
+        this->currentScene->resume(*this);
+    }
+}
+
+#if defined(__ANDROID__) || defined(ANDROID)
+
+#include <dlfcn.h>
+
+Engine::Engine(IApplication* mainApp, android_app *androidApp)
     : androidApp(androidApp), state{0} {
 
     this->androidApp->userData = this;
-    this->androidApp->onAppCmd = Main::androidHandleCmd;
-    this->androidApp->onInputEvent = Main::androidHandleInput;
+    this->androidApp->onAppCmd = Engine::androidHandleCmd;
+    this->androidApp->onInputEvent = Engine::androidHandleInput;
 
     // Prepare to monitor accelerometer
     this->sensorManager = ASensorManager_getInstance();
@@ -17,24 +30,25 @@ Main::Main(android_app *androidApp)
           this->androidApp->looper, LOOPER_ID_USER, nullptr, nullptr);
 
     if (this->androidApp->savedState != nullptr) {
-        this->state = *(Main::SavedState*)this->androidApp->savedState;
+        this->state = *(Engine::SavedState*)this->androidApp->savedState;
     }
 
     this->resume();
 }
 
-Main::~Main() {}
+Engine::~Engine() {}
 
-void Main::load() {
-    if (!mainScene)
-        mainScene = std::make_unique<MainScene>();
+void Engine::load() {
+//    if (!currentScene)
+//        currentScene = std::make_unique<Scene>();
+    currentScene->initialize();
 }
 
-void Main::unload() {
-    mainScene->pause();
+void Engine::unload() {
+    currentScene->destroy();
 }
 
-void Main::run() {
+void Engine::run() {
 
     // loop waiting for stuff to do.
     for (;;) {
@@ -81,113 +95,28 @@ void Main::run() {
     }
 }
 
-void Main::render() {
+void Engine::render() {
 
     if (this->display == nullptr) {
         // No display.
         return;
     }
 
+    float* backgroundColor = this->currentScene->getBackgroundColor();
+
     glClearColor(
-        this->mainScene->backgroundColor[0],
-        this->mainScene->backgroundColor[1],
-        this->mainScene->backgroundColor[2],
-        this->mainScene->backgroundColor[3]
-    );
+        backgroundColor[0],
+        backgroundColor[1],
+        backgroundColor[2],
+        backgroundColor[3]);
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    if (!this->mainScene->draw()) {
+    if (!this->currentScene->render(*this)) {
         ANativeActivity_finish(this->androidApp->activity);
     }
 
     eglSwapBuffers(this->display, this->surface);
-}
-
-/**
-* Initialize an EGL context for the current display.
-*/
-void Main::initGraphics() {
-    // initialize OpenGL ES and EGL
-
-    /*
-    * Here specify the attributes of the desired configuration.
-    * Below, we select an EGLConfig with at least 8 bits per color
-    * component compatible with on-screen windows
-    */
-    const EGLint attribs[] = {
-        EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
-        EGL_BLUE_SIZE, 8,
-        EGL_GREEN_SIZE, 8,
-        EGL_RED_SIZE, 8,
-        EGL_DEPTH_SIZE, 24,
-        EGL_NONE
-    };
-
-    const EGLint context_attribs[] = {
-        EGL_CONTEXT_CLIENT_VERSION, 3,
-        EGL_NONE
-    };
-
-    EGLint w, h, format;
-    EGLint numConfigs;
-    EGLConfig config;
-
-    display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-
-    eglInitialize(display, nullptr, nullptr);
-
-    /* Here, the application chooses the configuration it desires. In this
-    * sample, we have a very simplified selection process, where we pick
-    * the first EGLConfig that matches our criteria */
-    eglChooseConfig(display, attribs, &config, 1, &numConfigs);
-
-    /* EGL_NATIVE_VISUAL_ID is an attribute of the EGLConfig that is
-    * guaranteed to be accepted by ANativeWindow_setBuffersGeometry().
-    * As soon as we picked a EGLConfig, we can safely reconfigure the
-    * ANativeWindow buffers to match, using EGL_NATIVE_VISUAL_ID. */
-    eglGetConfigAttrib(display, config, EGL_NATIVE_VISUAL_ID, &format);
-
-    ANativeWindow_setBuffersGeometry(this->androidApp->window, 0, 0, format);
-
-    surface = eglCreateWindowSurface(display, config, this->androidApp->window, nullptr);
-    context = eglCreateContext(display, config, EGL_NO_CONTEXT, context_attribs);
-
-    if (eglMakeCurrent(display, surface, surface, context) == EGL_FALSE) {
-        LOGW("Unable to eglMakeCurrent");
-        return;
-    }
-
-    eglQuerySurface(display, surface, EGL_WIDTH, &w);
-    eglQuerySurface(display, surface, EGL_HEIGHT, &h);
-
-    this->state.angle = 0;
-
-    LOGI("GL Init: %d", GL_VERSION);
-
-    spige_init(&engine);
-    spige_viewport(&engine, w, h);
-    engine.asset_mgr = this->androidApp->activity->assetManager;
-}
-
-void Main::terminateGraphics() {
-
-    spige_destroy(&this->engine);
-
-    if (this->display != EGL_NO_DISPLAY) {
-        eglMakeCurrent(this->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-        if (this->context != EGL_NO_CONTEXT) {
-            eglDestroyContext(this->display, this->context);
-        }
-        if (this->surface != EGL_NO_SURFACE) {
-            eglDestroySurface(this->display, this->surface);
-        }
-        eglTerminate(this->display);
-    }
-
-    this->display = EGL_NO_DISPLAY;
-    this->context = EGL_NO_CONTEXT;
-    this->surface = EGL_NO_SURFACE;
 }
 
 /*
@@ -195,7 +124,7 @@ void Main::terminateGraphics() {
 *    Workaround ASensorManager_getInstance() deprecation false alarm
 *    for Android-N and before, when compiling with NDK-r15
 */
-ASensorManager* Main::acquireASensorManagerInstance(android_app* app) {
+ASensorManager* Engine::acquireASensorManagerInstance(android_app* app) {
 
     typedef ASensorManager *(*PF_GETINSTANCEFORPACKAGE)(const char *name);
     void* androidHandle = dlopen("libandroid.so", RTLD_NOW);
@@ -244,9 +173,9 @@ ASensorManager* Main::acquireASensorManagerInstance(android_app* app) {
 /**
 * Process the next input event.
 */
-int32_t Main::androidHandleInput(struct android_app* app, AInputEvent* event) {
+int32_t Engine::androidHandleInput(struct android_app* app, AInputEvent* event) {
 
-    Main *myApp = (Main *) app->userData;
+    Engine *pEngine = (Engine *) app->userData;
     int32_t eventType = AInputEvent_getType(event);
 
     if (eventType == AINPUT_EVENT_TYPE_MOTION) {
@@ -262,27 +191,27 @@ int32_t Main::androidHandleInput(struct android_app* app, AInputEvent* event) {
             case AMOTION_EVENT_ACTION_MOVE:
 
                 for (size_t i = 0; i < pointerCount; i++) {
-                    myApp->engine.cursor[i][0] = AMotionEvent_getX(event, i);
-                    myApp->engine.cursor[i][1] = AMotionEvent_getY(event, i);
+                    pEngine->engine.cursor[i][0] = AMotionEvent_getX(event, i);
+                    pEngine->engine.cursor[i][1] = AMotionEvent_getY(event, i);
                 }
 
-                myApp->mainScene->onEventPointerMove();
+                pEngine->currentScene->onEventPointerMove();
                 return 1;
 
             case AMOTION_EVENT_ACTION_DOWN:
             case AMOTION_EVENT_ACTION_POINTER_DOWN:
 
                 for (size_t i = 0; i < pointerCount; i++) {
-                    myApp->engine.cursor[i][0] = AMotionEvent_getX(event, i);
-                    myApp->engine.cursor[i][1] = AMotionEvent_getY(event, i);
+                    pEngine->engine.cursor[i][0] = AMotionEvent_getX(event, i);
+                    pEngine->engine.cursor[i][1] = AMotionEvent_getY(event, i);
                 }
 
-                myApp->mainScene->onEventPointerDown();
+                pEngine->currentScene->onEventPointerDown();
                 return 1;
 
             case AMOTION_EVENT_ACTION_UP:
             case AMOTION_EVENT_ACTION_POINTER_UP:
-                myApp->mainScene->onEventPointerUp();
+                pEngine->currentScene->onEventPointerUp();
                 return 1;
 
             default: break;
@@ -310,25 +239,25 @@ int32_t Main::androidHandleInput(struct android_app* app, AInputEvent* event) {
             switch (keyCode) {
                 case AKEYCODE_BACK:
                 case AKEYCODE_MENU:
-                    if (!myApp->mainScene->onEventBack()) {
-                        ANativeActivity_finish(myApp->androidApp->activity);
+                    if (!pEngine->currentScene->onEventBack()) {
+                        ANativeActivity_finish(pEngine->androidApp->activity);
                     }
 
                     break;
                 case AKEYCODE_DPAD_LEFT:
-                    myApp->mainScene->onEventLeft();
+                    pEngine->currentScene->onEventLeft();
                     break;
                 case AKEYCODE_DPAD_UP:
-                    myApp->mainScene->onEventUp();
+                    pEngine->currentScene->onEventUp();
                     break;
                 case AKEYCODE_DPAD_RIGHT:
-                    myApp->mainScene->onEventRight();
+                    pEngine->currentScene->onEventRight();
                     break;
                 case AKEYCODE_DPAD_DOWN:
-                    myApp->mainScene->onEventDown();
+                    pEngine->currentScene->onEventDown();
                     break;
                 case AKEYCODE_ENTER:
-                    myApp->mainScene->onEventSelect();
+                    pEngine->currentScene->onEventSelect();
                     break;
                 default: break;
             }
@@ -362,18 +291,18 @@ int32_t Main::androidHandleInput(struct android_app* app, AInputEvent* event) {
 /**
 * Process the next main command.
 */
-void Main::androidHandleCmd(struct android_app* app, int32_t cmd) {
+void Engine::androidHandleCmd(struct android_app* app, int32_t cmd) {
 
-    Main* myApp = (Main*)app->userData;
+    Engine* myApp = (Engine*)app->userData;
 
     switch (cmd) {
 
         case APP_CMD_SAVE_STATE:
 
             // The system has asked us to save our current state.  Do so.
-            myApp->androidApp->savedState = malloc(sizeof(Main::SavedState));
-            *((Main::SavedState*)myApp->androidApp->savedState) = myApp->state;
-            myApp->androidApp->savedStateSize = sizeof(Main::SavedState);
+            myApp->androidApp->savedState = malloc(sizeof(Engine::SavedState));
+            *((Engine::SavedState*)myApp->androidApp->savedState) = myApp->state;
+            myApp->androidApp->savedStateSize = sizeof(Engine::SavedState);
 
             break;
 
@@ -381,7 +310,7 @@ void Main::androidHandleCmd(struct android_app* app, int32_t cmd) {
 
             // The window is being shown, get it ready.
             if (myApp->androidApp->window != nullptr) {
-                myApp->initGraphics();
+                myApp->window.init();
                 myApp->load();
             }
 
@@ -404,7 +333,7 @@ void Main::androidHandleCmd(struct android_app* app, int32_t cmd) {
                                                myApp->accelerometerSensor, (1000L / 60) * 1000);
             }
 
-            myApp->mainScene->resume();
+            myApp->currentScene->resume(*myApp);
             myApp->resume();
 
             break;
@@ -418,7 +347,7 @@ void Main::androidHandleCmd(struct android_app* app, int32_t cmd) {
             }
 
             // Also stop animating.
-            myApp->mainScene->pause();
+            myApp->currentScene->suspend(*myApp);
             myApp->pause();
 
             break;
@@ -427,12 +356,94 @@ void Main::androidHandleCmd(struct android_app* app, int32_t cmd) {
     }
 }
 
-/**
-* This is the main entry point of a native application that is using
-* android_native_app_glue.  It runs in its own thread, with its own
-* event loop for receiving input events and doing other things.
-*/
-void android_main(struct android_app* state) {
-    Main main(state);
-    main.run();
+#else
+
+Engine::Engine(SpigeApplication& mainApp, int argc, char *argv[]) :
+    data{argc, argv},
+    mainApp(mainApp),
+    window(nullptr),
+    input()
+{
+    Engine::instance = this;
+}
+
+Engine::~Engine()
+{
+    spige_destroy(&this->engine);
+}
+
+void Engine::load()
+{
+    if (this->state != STATE_OFF)
+        return;
+
+    this->currentScene = new EmptyScene(); // TODO dangling ptr
+
+    auto builder = this->mainApp.config();
+
+    this->window = std::make_unique<Window>(WindowConfig()
+//        .setSizeCallback([this](int width, int height) mutable {
+//            this->window->setLogicalSize({width, height});
+//            spige_viewport(&Engine::instance->engine, width, height);
+//        })
+    );
+
+    graphics
+        .init()
+        .viewport(window->getLogicalSize())
+        .clear({0.0f, 0.1f, 0.2f, 1.0f});
+
+    spige_init(&this->engine);
+    spige_viewport(
+            &engine,
+            static_cast<int>(this->window->getLogicalSize()[0]),
+            static_cast<int>(this->window->getLogicalSize()[1]));
+
+    this->state = STATE_READY;
+    this->mainApp.init(*this);
+}
+
+void Engine::unload()
+{
+    currentScene->suspend(*this);
+}
+
+void Engine::run()
+{
+    this->load();
+    this->resume();
+
+    if (!this->currentScene) {
+        LOGW("Unable to run engine: No scene available\n");
+        return;
+    }
+
+    this->currentScene->resume(*this);
+
+    while (!this->window->isShouldClose()) {
+
+        // Poll for and process events
+        this->input.clearStates();
+        glfwPollEvents();
+
+        // Render
+        this->render();
+    }
+}
+
+void Engine::render()
+{
+    /* Rendering scene */
+    this->currentScene->update(*this);
+    this->currentScene->render(*this);
+
+    /* Swap front and back buffers */
+    this->window->swapBuffers();
+}
+
+#endif
+
+EngineConfig& EngineConfig::windowTitle(const std::string& newTitle) {
+    this->title = newTitle;
+    return *this;
 }
