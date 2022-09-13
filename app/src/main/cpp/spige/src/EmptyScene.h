@@ -10,7 +10,7 @@ public:
     ~EmptyScene() override = default;
     void resume(Engine& engine) override {};
     void suspend(Engine& engine) override {};
-    bool update(Engine& engine) override { return true; };
+    void update(Engine& engine) override {};
     void render(Engine& engine) override {};
     static Color getBackgroundColor() { return {0.f, 0.f, 0.f, 0.f}; }
 };

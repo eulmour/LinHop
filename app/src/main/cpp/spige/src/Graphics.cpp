@@ -1,4 +1,5 @@
 #include "Graphics.h"
+#include "Framework.h"
 
 #if defined(__ANDROID__) || defined(ANDROID)
 #include <android/sensor.h>
@@ -8,6 +9,7 @@
 #include "GLFW/glfw3.h"
 #endif
 
+#if not defined(__ANDROID__) && not defined(ANDROID)
 static void GLAPIENTRY errorOccurredGL(
         GLenum source, GLenum type, GLuint id, GLenum severity,
         GLsizei length, const GLchar *message, const void *userParam)
@@ -119,21 +121,24 @@ static void GLAPIENTRY errorOccurredGL(
         exit(-1);
     }
 }
+#endif
 
 Graphics& Graphics::init() {
 
-    /* Set view parameters */
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    glEnable(GL_DEPTH_TEST);
-
-    /* Set texturing parameters */
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    /* Set debug mode */
+#if defined(__ANDROID__) || defined(ANDROID)
+    glEnable(GL_CULL_FACE);
+    glDisable(GL_DEPTH_TEST);
+#else
+    glEnable(GL_DEPTH_TEST);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
     glEnable(GL_DEBUG_OUTPUT);
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
     glDebugMessageCallback(errorOccurredGL, this);
+#endif
     return *this;
 }
 

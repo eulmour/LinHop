@@ -1,23 +1,22 @@
 #include "Sparks.hpp"
 #include "Utils.hpp"
 
+using namespace linhop::utils;
 extern float scroll;
-
-Sparks::Sparks() {}
 
 Sparks::~Sparks() {
     if (this->rectDrawable.state != STATE_OFF)
         this->deactivate();
 }
 
-void Sparks::Draw()
+void Sparks::draw()
 {
-    auto current = aSparks.begin();
-    auto end = aSparks.end();
+    auto current = sparks.begin();
+    auto end = sparks.end();
 
     while (current != end)
     {
-        current->Update();
+        current->update();
 
         this->rectDrawable.rot = degrees(std::atan2(-current->vel[0], -current->vel[1]));
         this->rectDrawable.color[0] = current->color[0];
@@ -30,18 +29,18 @@ void Sparks::Draw()
 
         if (current->life == 0)
         {
-            aSparks.erase(current++);
+            sparks.erase(current++);
             continue;
         }
         ++current;
     }
 }
 
-void Sparks::Push(glm::vec2 position)
+void Sparks::push(glm::vec2 position)
 {
     for (unsigned int i = 0; i < sparkAmount; ++i)
     {
-        aSparks.push_front(Spark(position));
+        sparks.push_front(Spark(position));
     }
 }
 
@@ -62,25 +61,21 @@ void Sparks::deactivate() {
     rect_unload(&this->rectDrawable);
 }
 
-Sparks::Spark::Spark(glm::vec2 pos) {
+Sparks::Spark::Spark(glm::vec2 pos) :
+    pos(pos),
+    vel{ t_rand(-20.0f, 20.0f), t_rand(-30.0f, -10.0f) },
+    size{ t_rand(1.0f, 5.0f), t_rand(1.0f, 5.0f) },
+    color{t_rand(0.0f, 1.0f),
+        t_rand(0.0f, 1.0f),
+        t_rand(0.0f, 1.0f),
+        t_rand(0.0f, 1.0f)}
+{}
 
-    this->pos = pos;
-    this->size = { t_rand(1.0f, 5.0f), t_rand(1.0f, 5.0f) };
-    this->vel = { t_rand(-20.0f, 20.0f), t_rand(-30.0f, -10.0f) };
-    this->color = {
-        t_rand(0.0f, 1.0f),
-        t_rand(0.0f, 1.0f),
-        t_rand(0.0f, 1.0f),
-        t_rand(0.0f, 1.0f)
-    };
-}
-
-void Sparks::Spark::Update()
+void Sparks::Spark::update()
 {
     vel[0] -= vel[0] / 5;
     vel[1] = std::min(1.0f, vel[1] + sparkGravity);
     pos += vel;
-    // glm_vec2_add(pos, vel, pos);
 
     --life;
 }

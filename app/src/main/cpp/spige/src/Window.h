@@ -11,21 +11,39 @@
 #include "GLFW/glfw3.h"
 #endif
 
+#include <string>
 #include <functional>
-
-class WindowConfig {
-
-public:
-//    WindowConfig& setSizeCallback(std::function<void(int, int)> callback);
-//    WindowBuilder& setPointerCallback();
-//    WindowBuilder& setKeyCallback();
-//    WindowBuilder& setMouseButtonCallback();
-};
 
 class Window {
 
 public:
-    explicit Window(WindowConfig config);
+    struct Config {
+
+        Config& title(std::string title);
+        Config& innerSize(int width, int height);
+        Config& resizeable(bool resizeable);
+        Config& fullscreen(bool fullscreen);
+        Config& maximized(bool maximized);
+        Config& vsync(bool vsync);
+        Config& visible(bool visible);
+        Config& decorated(bool decorated);
+
+        std::string m_Title{"Application"};
+        IVec2 m_InnerSize{480, 800};
+        bool m_Resizeable{true};
+        bool m_Fullscreen{false};
+        bool m_Maximized{false};
+        bool m_Vsync{false};
+        bool m_Visible{true};
+        bool m_Decorated{true};
+
+#if defined(__ANDROID__) || defined(ANDROID)
+        Config& androidApp(android_app* androidApp);
+        android_app* m_AndroidApp;
+#endif
+    };
+
+    explicit Window(const Config& config);
     ~Window();
 
     void close();
@@ -38,7 +56,8 @@ public:
     void setLogicalSize(IVec2 size) { this->logicalSize = size; }
 
 protected:
-    IVec2 logicalSize {480, 800};
+    IVec2 logicalSize{};
+    bool m_ShouldClose{false};
 
     struct FrameInfo {
         float deltaTime {1.f / 60.f};
@@ -46,6 +65,7 @@ protected:
     } frameInfo;
 
 #if defined(__ANDROID__) || defined(ANDROID)
+    android_app* m_AndroidApp;
     EGLDisplay display = EGL_NO_DISPLAY;
     EGLSurface surface = EGL_NO_SURFACE;
     EGLContext context = EGL_NO_CONTEXT;

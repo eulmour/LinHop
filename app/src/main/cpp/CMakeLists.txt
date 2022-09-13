@@ -56,3 +56,11 @@ target_link_libraries(linhop_android
     native_app_glue
     log
 )
+
+target_compile_options(linhop PRIVATE
+    $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>:
+    -Werror -Wall -Wextra>
+    $<$<CXX_COMPILER_ID:MSVC>:
+    /W4>)
+
+target_compile_options(linhop_android PRIVATE -Werror -Wall -Wextra)

@@ -10,32 +10,29 @@
 class Sparks {
 
 public:
-    Sparks();
+    Sparks() = default;
     ~Sparks();
 
-    struct Spark
-    {
-        glm::vec2 pos, vel, size;
+    struct Spark {
+        glm::vec2 pos, vel{0.f, 0.f}, size;
         glm::vec4 color{};
-        unsigned int life = 50;
+        unsigned int life{50};
 
-        Spark(glm::vec2 pos);
-        void Update();
-        void Draw();
+        explicit Spark(glm::vec2 pos);
+        void update();
     };
 
-    void Push(glm::vec2 position);
-    void Draw();
+    void push(glm::vec2 position);
+    void draw();
     void activate();
     void deactivate();
 
-    std::list<Spark> aSparks;
+    std::list<Spark> sparks;
 
 private:
-    static constexpr std::size_t sparkLife = 50;
-    static constexpr std::size_t sparkAmount = 6;
-    static constexpr float sparkGravity = 2.5f;
-
+    static constexpr std::size_t sparkLife{50};
+    static constexpr std::size_t sparkAmount{6};
+    static constexpr float sparkGravity{2.5f};
     struct rect rectDrawable{};
 };
 

@@ -10,24 +10,24 @@
 class Ball {
 public:
 
-    float radius = 18.0f;
-    float diameter = radius / 2;
-    float gravity = 9.8f;
+    float radius{18.0f};
+    float diameter{radius / 2.f};
+    float gravity{9.8f};
     glm::vec2 pos{}, prev_pos{}, vel{ 0.0f, 0.0f };
 
-    float bounceStrength = 1;
-    int	bounceCooldown = 0;
+    float bounceStrength{1.f};
+    int	bounceCoolDown{0};
 
-    bool colliding = false;
-    static constexpr float terminalVelocityMod = 12000.f;
-    float terminalVelocity = 1.f;
+    bool colliding{false};
+    static constexpr float terminalVelocityMod{12000.f};
+    float terminalVelocity{1.f};
 
-    Ball(IVec2 screenSize);
+    explicit Ball(IVec2 screenSize);
     ~Ball();
-    bool Collision(const Lines& line_array, const glm::vec2 prev_position);
-    void Move(float dt);
-    void Draw() const;
-    void Reset(IVec2 screenSize);
+    bool collision(const Lines& line_array, glm::vec2 prev_position);
+    void move(float dt);
+    void draw() const;
+    void reset(IVec2 screenSize);
     void activate();
     void deactivate();
 

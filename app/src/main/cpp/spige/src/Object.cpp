@@ -423,15 +423,17 @@ void text_load(struct text* text, const char* font, float size) {
         // now store character for later use
         text->characters[c] = (struct character) {
             .texture = texture,
+            .advance = static_cast<unsigned int>(face->glyph->advance.x),
             .size = { (int)face->glyph->bitmap.width, (int)face->glyph->bitmap.rows },
-            .bearing = { face->glyph->bitmap_left, face->glyph->bitmap_top },
-            .advance = static_cast<unsigned int>(face->glyph->advance.x)
+            .bearing = { face->glyph->bitmap_left, face->glyph->bitmap_top }
         };
 
 //        text->width += (float)face->glyph->bitmap.width;
+        text->width += (float)(face->glyph->advance.x >> 6) * text->scale; // TODO find text width and height
+        float height = (float)(face->glyph->advance.y >> 6) * text->scale;
 
-//        if ((float)face->glyph->bitmap.rows > text->height)
-//            text->height = (float)face->glyph->bitmap.rows;
+        if (height > text->height)
+            text->height = height;
     }
 
     glBindTexture(GL_TEXTURE_2D, 0);

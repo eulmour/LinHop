@@ -1,11 +1,6 @@
 #include "MainScene.hpp"
 #include <memory>
 
-//extern "C" spige *spige_instance;
-
-#define CX (static_cast<float>(spige_instance->width) / 2.f) /* center x */
-#define CY (static_cast<float>(spige_instance->height) / 2.f) /* center y */
-
 /* colors --- I used macros because cglm don't deal with consts */
 #define COLOR_SELECTED glm::vec4{ 0.6f, 0.9f, 1.0f, 1.f }
 #define COLOR_HIDDEN glm::vec4{ 0.5f, 0.35f, 0.6f, 1.f }
@@ -16,6 +11,8 @@
     float& pointerY = e.input.getPointerArray()[0][1]; \
     float screenW = static_cast<float>(e.window->getLogicalSize()[0]); \
     float screenH = static_cast<float>(e.window->getLogicalSize()[1]);
+
+using namespace linhop::utils;
 
 // global
 float scroll = 0.f;
@@ -42,11 +39,16 @@ MainScene::MainScene(Engine& e) {
         file_unload(&saveDataFile);
     }
 
+    /* init clicks */
+    pointerX = lastClick[0] = screenW / 2.f;
+    pointerY = lastClick[1] = screenH;
+    this->prevMousePos = {pointerX, pointerY};
+
     // class
-    lines       = std::make_unique<Lines>(&line);
-    rand_lines  = std::make_unique<Lines>(&line);
+    lines       = std::make_unique<Lines>(e, &line);
+    rand_lines  = std::make_unique<Lines>(e, &line);
     sparks      = std::make_unique<Sparks>();
-    lazers      = std::make_unique<Lazers>(e, &line);
+    lasers      = std::make_unique<Lasers>(e, &line);
     ballTail    = std::make_unique<Tail>(&line, .7f);
     cursorTail  = std::make_unique<Tail>(&line, .08f);
     ball        = std::make_unique<Ball>(e.window->getLogicalSize());
@@ -55,57 +57,57 @@ MainScene::MainScene(Engine& e) {
 
     // labels
     this->labelMenuTitle = std::make_unique<Label>(&this->large_text, "LinHop", glm::vec2 {
-            screenW / 2 - 124, screenH / 2.f - 180.f
+            screenW / 2.f - 124.f, screenH / 2.f - 180.f
     });
     this->labelMenuTitle->setColor(glm::vec4 {0.6f, 0.8f, 1.0f, 1.f});
 
     this->labelMenuContinue = std::make_unique<Label>(&this->medium_text, "Continue", glm::vec2 {
-            screenW / 2 - 120, screenH / 2.f - 40.f
+            screenW / 2.f - 120.f, screenH / 2.f - 40.f
     });
 
     this->labelMenuStart = std::make_unique<Label>(&this->medium_text, "Start", glm::vec2 {
-            screenW / 2 - 72, screenH / 2.f + 20.f
+            screenW / 2.f - 72.f, screenH / 2.f + 20.f
     });
 
     this->labelMenuSettings = std::make_unique<Label>(&this->medium_text, "Settings", glm::vec2 {
-            screenW / 2 - 118, screenH / 2.f + 80.f
+            screenW / 2.f - 118.f, screenH / 2.f + 80.f
     });
 
     this->labelMenuExit = std::make_unique<Label>(&this->medium_text, "Exit", glm::vec2 {
-            screenW / 2 - 56, screenH / 2.f + 140.f
+            screenW / 2.f - 56.f, screenH / 2.f + 140.f
     });
 
     this->labelMenuHint = std::make_unique<Label>(&this->small_text, "Left or right to change mode", glm::vec2 {
-            screenW / 2 - 238, screenH - 40.f
+            screenW / 2.f - 238.f, screenH - 40.f
     });
     this->labelMenuHint->setColor(glm::vec4 {0.4f, 0.55f, 0.6f, 1.f});
 
     this->labelMenuMode = std::make_unique<Label>(&this->small_text, "Classic", glm::vec2 {
-            screenW / 2 - 74, screenH / 2.f - 110.f
+            screenW / 2.f - 74.f, screenH / 2.f - 110.f
     });
 
     this->labelEndgameRestart = std::make_unique<Label>(&this->medium_text, "Retry", glm::vec2 {
-            screenW / 2 + 55, screenH / 2.f
+            screenW / 2.f + 55.f, screenH / 2.f
     });
 
     this->labelEndgameScore = std::make_unique<Label>(&this->medium_text, "Score: ", glm::vec2 {
-            screenW / 2 - 205, screenH / 2.f - 60.f
+            screenW / 2.f - 205.f, screenH / 2.f - 60.f
     });
 
     this->labelSettingsTitle = std::make_unique<Label>(&this->large_text, "Settings", glm::vec2 {
-            screenW / 2 - 170, screenH / 2.f - 280.f
+            screenW / 2.f - 170.f, screenH / 2.f - 280.f
     });
 
     this->labelSettingsFx = std::make_unique<Label>(&this->medium_text, "FX: ", glm::vec2 {
-            screenW / 2 - 165, screenH / 2.f - 60.f
+            screenW / 2.f - 165.f, screenH / 2.f - 60.f
     });
 
     this->labelSettingsMusicVolume = std::make_unique<Label>(&this->medium_text, "Volume: ", glm::vec2 {
-            screenW / 2 - 150, screenH / 2.f
+            screenW / 2.f - 150.f, screenH / 2.f
     });
 
     this->labelSettingsUnlockResizing = std::make_unique<Label>(&this->medium_text, "Resizing: ", glm::vec2 {
-            screenW / 2 - 182, screenH / 2.f + 60.f
+            screenW / 2.f - 182.f, screenH / 2.f + 60.f
     });
 
 #if defined(ANDROID)
@@ -113,11 +115,11 @@ MainScene::MainScene(Engine& e) {
 #endif
 
     this->labelSettingsResetStatistics = std::make_unique<Label>(&this->medium_text, "Reset", glm::vec2 {
-            screenW / 2 - 76, screenH / 2.f + 120.f
+            screenW / 2.f - 76.f, screenH / 2.f + 120.f
     });
 
     this->labelSettingsBack = std::make_unique<Label>(&this->medium_text, "Back", glm::vec2 {
-            screenW / 2 - 58, screenH / 2.f + 280.f
+            screenW / 2.f - 58.f, screenH / 2.f + 280.f
     });
 
     this->labelGameScore = std::make_unique<Label>(&this->medium_text, "Score: ", glm::vec2 {
@@ -127,11 +129,6 @@ MainScene::MainScene(Engine& e) {
     this->labelGameFps = std::make_unique<Label>(&this->medium_text, " fps", glm::vec2 {
             screenW - 80.0f, MainScene::mediumTextSize
     });
-
-    /* init clicks */
-    pointerX = lastClick[0] = screenW / 2.f;
-    pointerY = lastClick[1] = screenH;
-    this->prevMousePos = {pointerX, pointerY};
 
     if (!audio_init(&audio_engine))
         LOGE("Failed to initialize audio engine.\n");
@@ -150,10 +147,10 @@ MainScene::~MainScene() {
     audio_source_unload(&this->audio_warning);
 }
 
-void MainScene::suspend(Engine& engine) {
+void MainScene::suspend(Engine&) {
 
     this->ball->deactivate();
-    this->lazers->deactivate();
+    this->lasers->deactivate();
     this->sparks->deactivate();
 
     line_unload(&line);
@@ -165,7 +162,7 @@ void MainScene::suspend(Engine& engine) {
     audio_pause_all(&audio_engine);
 }
 
-void MainScene::resume(Engine& engine) {
+void MainScene::resume(Engine&) {
 
     line_load(&this->line);
     line.width = 4.f;
@@ -176,13 +173,15 @@ void MainScene::resume(Engine& engine) {
     text_load(&this->large_text, fontPath, MainScene::largeTextSize);
 
     this->ball->activate();
-    this->lazers->activate();
+    this->lasers->activate();
     this->sparks->activate();
 
     audio_play_all(&audio_engine);
 }
 
-bool MainScene::update(Engine& engine) {
+void MainScene::update(Engine& engine) {
+
+    PROLOG(engine)
 
     // update background color
     static float bgColorDirection = 0.005f * engine.window->getDeltaTime();
@@ -193,8 +192,7 @@ bool MainScene::update(Engine& engine) {
     backgroundColor[1] += bgColorDirection / 3;
     backgroundColor[2] += bgColorDirection / 2;
 
-    engine.graphics.clear(backgroundColor);
-
+    // handle input
     if (engine.input.isKeyHold(InputKey::PointerMove))
         this->onEventPointerMove(engine);
     if (engine.input.isKeyDown(InputKey::Pointer))
@@ -204,7 +202,7 @@ bool MainScene::update(Engine& engine) {
     if (engine.input.isKeyDown(InputKey::Select))
         this->onEventSelect(engine);
     if (engine.input.isKeyDown(InputKey::Back))
-        this->onEventBack();
+        this->onEventBack(engine);
     if (engine.input.isKeyDown(InputKey::Up))
         this->onEventUp();
     if (engine.input.isKeyDown(InputKey::Down))
@@ -213,8 +211,6 @@ bool MainScene::update(Engine& engine) {
         this->onEventLeft();
     if (engine.input.isKeyDown(InputKey::Right))
         this->onEventRight();
-
-    PROLOG(engine)
 
     // game logic
     switch (this->gameState) {
@@ -228,15 +224,15 @@ bool MainScene::update(Engine& engine) {
             ball->bounceStrength = 1 + static_cast<float>(gameScore) / ballStrengthMod;
             ball->gravity = 9.8f + static_cast<float>(gameScore) / ballGravityMod;
 
-            ball->Move(engine.window->getDeltaTime());
+            ball->move(engine.window->getDeltaTime());
 
-            if (ball->Collision(*lines, ball->prev_pos)) {
-                sparks->Push(ball->pos);
+            if (ball->collision(*lines, ball->prev_pos)) {
+                sparks->push(ball->pos);
                 audio_play(&this->audio_engine, &this->audio_bounce);
             }
 
-            if (ball->Collision(*rand_lines, ball->prev_pos)) {
-                sparks->Push(ball->pos);
+            if (ball->collision(*rand_lines, ball->prev_pos)) {
+                sparks->push(ball->pos);
                 audio_play(&this->audio_engine, &this->audio_bounce);
             }
 
@@ -268,7 +264,7 @@ bool MainScene::update(Engine& engine) {
             if ((-scroll) - last_place > randLinesDensity) {
                 if (t_rand(0, 1) <= 1) {
                     auto base_y = scroll - 80.0f;
-                    auto base_x = t_rand(-(screenW/3), screenW);
+                    auto base_x = t_rand(-(screenW/3.f), screenW);
 
                     struct line {
                         glm::vec2 first;
@@ -291,32 +287,32 @@ bool MainScene::update(Engine& engine) {
             /* Push for tail */
             if (this->saveData.fxEnabled) {
 
-                ballTail->Push(glm::vec2 {
-                        ball->pos[0] + ball->diameter,
-                        ball->pos[1] + ball->diameter
-                    }, glm::vec2{
-                        ball->prev_pos[0] + ball->diameter,
-                        ball->prev_pos[1] + ball->diameter
-                    }
+                ballTail->push(glm::vec2{
+                                       ball->pos[0] + ball->diameter,
+                                       ball->pos[1] + ball->diameter
+                               }, glm::vec2{
+                                       ball->prev_pos[0] + ball->diameter,
+                                       ball->prev_pos[1] + ball->diameter
+                               }
                 );
 
                 if (pressed) {
-                    cursorTail->Push(
-                        glm::vec2 {pointerX, pointerY + scroll},
-                        prevMousePos);
+                    cursorTail->push(
+                            glm::vec2{pointerX, pointerY + scroll},
+                            prevMousePos);
                 }
             }
 
-            /* lazers */
+            /* lasers */
             if (gameScore > 1000L) {
                 if (t_rand(0, 600) == 1) {
                     audio_play(&this->audio_engine, &this->audio_warning);
 
-                    lazers->Trigger(
-                        t_rand(0.0f, screenW - this->lazers->areaWidth));
+                    lasers->trigger(
+                            t_rand(0.0f, screenW - this->lasers->areaWidth));
                 }
 
-                if (lazers->liveTime == 59)
+                if (lasers->liveTime == 59)
                     audio_play(&this->audio_engine, &this->audio_warning);
             }
 
@@ -335,21 +331,21 @@ bool MainScene::update(Engine& engine) {
         else
             audio_play(&audio_engine, &audio_alt);
     }
-
-    return this->gameState != GameState::EXITING;
 }
 
 void MainScene::render(Engine& engine) {
 
     PROLOG(engine)
 
-    lazers->draw();
+    engine.graphics.clear(backgroundColor);
 
-    if (lazers->liveTime == 0 && !lazers->lazers.empty()) {
-        // lazer will destroy ball
+    lasers->draw();
 
-        if (ball->pos[0] > lazers->lazers.front().a[0] &&
-            ball->pos[0] < lazers->lazers.back().a[0]) {
+    if (lasers->liveTime == 0 && !lasers->lasers.empty()) {
+
+        // laser destroys ball
+        if (ball->pos[0] > lasers->lasers.front().a[0] &&
+            ball->pos[0] < lasers->lasers.back().a[0]) {
 
             if (gameState == GameState::INGAME)
                 gameState = GameState::ENDGAME;
@@ -360,25 +356,24 @@ void MainScene::render(Engine& engine) {
                 audio_play(&this->audio_engine, &this->audio_fail_b);
         }
 
-        sparks->Push(glm::vec2 {0.0f, 0.0f});
+        sparks->push(glm::vec2{0.0f, 0.0f});
 
-        for (int i = 0; i < screenH; i += screenH / 10) {
-            sparks->Push(glm::vec2 {lazers->lazers.back().a[0], static_cast<float>(i)});
-            sparks->Push(glm::vec2 {lazers->lazers.front().a[0], static_cast<float>(i)});
+        for (int i = 0; i < static_cast<int>(screenH); i += static_cast<int>(screenH) / 10) {
+            sparks->push(glm::vec2{lasers->lasers.back().a[0], static_cast<float>(i)});
+            sparks->push(glm::vec2{lasers->lasers.front().a[0], static_cast<float>(i)});
         }
     }
 
     if (saveData.fxEnabled) {
-        cursorTail->Draw();
-        sparks->Draw();
-        ballTail->Draw();
+        cursorTail->draw();
+        sparks->draw();
+        ballTail->draw();
     }
 
     if (gameMode == GameMode::CLASSIC)
         lines->Draw();
 
-    ball->Draw();
-
+    ball->draw();
     rand_lines->Draw();
 
     // gui text
@@ -416,7 +411,7 @@ void MainScene::render(Engine& engine) {
 
                     this->labelMenuMode
                         ->setText("Classic")
-                        .setPos(glm::vec2{ screenW/2 - 60, screenH / 2.f - 110.f })
+                        .setPos(glm::vec2{ screenW/2.f - 60.f, screenH / 2.f - 110.f })
                         .setColor(COLOR_IDLE)
                         .draw();
 
@@ -525,11 +520,11 @@ void MainScene::render(Engine& engine) {
 
 void MainScene::reset(Engine& engine) {
 
-    cursorTail->Reset();
+    cursorTail->reset();
 
     this->prevMousePos = {
-        engine.input.getPointerArray()[0][0] / 2.f,
-        engine.input.getPointerArray()[0][1]
+        static_cast<float>(engine.window->getLogicalSize()[0]) / 2.f,
+        static_cast<float>(engine.window->getLogicalSize()[1])
     };
 
     this->lastClick = this->prevMousePos;
@@ -549,7 +544,7 @@ void MainScene::reset(Engine& engine) {
     gameState = GameState::INGAME;
     last_place = randLinesDensity;
 
-    ball->Reset(engine.window->getLogicalSize());
+    ball->reset(engine.window->getLogicalSize());
     rand_lines->Reset();
     lines->Reset();
 }
@@ -697,18 +692,18 @@ void MainScene::onEventSelect(Engine& engine) {
 
                     break; /* end of FX_ENABLED */
 
-                case SettingsSelected::UNLOCK_RESIZE: {
-                    if (saveData.unlockResizing == 1L) {
-                        /* little evil */
-                        saveData.maxScoreClassic = 0L;
-                        saveData.maxScoreHidden = 0L;
-                    }
-
-                    saveData.unlockResizing = saveData.unlockResizing == 0L ? 1L : 0L;
+//                case SettingsSelected::UNLOCK_RESIZE: {
+//                    if (saveData.unlockResizing == 1L) {
+//                        /* little evil */
+//                        saveData.maxScoreClassic = 0L;
+//                        saveData.maxScoreHidden = 0L;
+//                    }
+//
+//                    saveData.unlockResizing = saveData.unlockResizing == 0L ? 1L : 0L;
 //                    SaveGameData(saveData);
 //                    Quit();
-                    break; /* end of UNLOCK_RESIZE */
-                }
+//                    break; /* end of UNLOCK_RESIZE */
+//                }
 
                 case SettingsSelected::RESET_STATISTICS:
 
@@ -749,6 +744,7 @@ void MainScene::onEventSelect(Engine& engine) {
 
                 case MenuSelected::EXIT: {
                     this->gameState = GameState::EXITING;
+                    engine.window->close();
                     break;
                 }
 
@@ -766,11 +762,12 @@ void MainScene::onEventSelect(Engine& engine) {
     }
 }
 
-bool MainScene::onEventBack() {
+void MainScene::onEventBack(Engine& engine) {
     switch (gameState) {
 
         case GameState::MENU:
-            return false;
+            engine.window->close();
+            return;
 
         case GameState::SETTINGS:
             gameState = GameState::PAUSED;
@@ -787,13 +784,12 @@ bool MainScene::onEventBack() {
 
         case GameState::ENDGAME:
             gameState = GameState::MENU;
+            reset(engine);
             break;
 
         default:
             break;
     }
-
-    return true;
 }
 
 void MainScene::onEventUp() {

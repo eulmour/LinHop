@@ -1,11 +1,13 @@
 #include "Lines.hpp"
 #include "Utils.hpp"
 
-extern "C" spige* spige_instance;
+using namespace linhop::utils;
 
 extern float scroll;
 
-Lines::Lines(struct line* lineDrawable) : lineDrawable(lineDrawable) {}
+Lines::Lines(Engine& e, struct line* lineDrawable) :
+    lineDrawable(lineDrawable),
+    screenSize(e.window->getLogicalSize()) {}
 
 void Lines::Push(glm::vec2 second, glm::vec2 first, bool isCol /* = true */)
 {
@@ -20,9 +22,6 @@ void Lines::Draw()
 
         float old_x = circle.pos[0];
         float old_y = circle.pos[1] - circle.radius;
-
-        // if (rand() % 500 == 0)
-        // 	sparks.Push(pos);
 
         for (size_t i = 0; i <= circle.steps; ++i)
         {
@@ -40,7 +39,7 @@ void Lines::Draw()
     for (const auto& line : lines)
     {
         /* No off-screen rendering */
-        if (line.a_pos[1] - scroll > spige_instance->height && line.b_pos[1] - scroll > spige_instance->height)
+        if (line.a_pos[1] - scroll > static_cast<float>(screenSize[1]) && line.b_pos[1] - scroll > static_cast<float>(screenSize[1]))
             continue;
 
         std::memcpy(lineDrawable->color, &line.color[0], sizeof(line.color));
@@ -58,8 +57,8 @@ void Lines::Reset()
     lines.clear();
 
     lines.emplace_back( /* First line */
-        glm::vec2{ 0.f, static_cast<float>(spige_instance->height) },
-        glm::vec2{ static_cast<float>(spige_instance->width), static_cast<float>(spige_instance->height) },
+        glm::vec2{ 0.f, static_cast<float>(screenSize[1]) },
+        glm::vec2{ static_cast<float>(screenSize[0]), static_cast<float>(screenSize[1]) },
         glm::vec4{ 1.0f, 1.0f, 1.0f, 1.0f },
         false
     );
@@ -67,10 +66,9 @@ void Lines::Reset()
 
 Lines::Line::Line(glm::vec2 a_pos, glm::vec2 b_pos, glm::vec4 color, bool isCol /* = true */) :
         bCollinear(isCol),
+        color(color),
         circle{ { a_pos, color }, { b_pos, color } }
 {
-    this->color = color;
-
     if (a_pos[0] < b_pos[0]) {
         this->a_pos = a_pos;
         this->b_pos = b_pos;

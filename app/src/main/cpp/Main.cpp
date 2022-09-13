@@ -1,16 +1,17 @@
 #include "Main.hpp"
 #include "game/MainScene.hpp"
-//#include "game/SettingsScene.hpp"
 
 class Application : public SpigeApplication {
 
 public:
     std::unique_ptr<EngineConfig> config() override {
         auto& builder = (new EngineConfig())
-            ->windowTitle("LinHop");
-//            .windowResizeable(false)
-//            .windowMaximized(false)
-//            .windowVsync(true);
+            ->windowConfig(Window::Config()
+                .title("LinHop")
+                .innerSize(480, 800)
+                .resizeable(false)
+                .vsync(true)
+            );
 
         return std::unique_ptr<EngineConfig>(&builder);
     }

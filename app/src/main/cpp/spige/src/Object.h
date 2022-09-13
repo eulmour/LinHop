@@ -58,6 +58,7 @@ struct text {
     float scale;
     float size;
     float width;
+    float height;
     vec4 color;
     struct character* characters;
 };

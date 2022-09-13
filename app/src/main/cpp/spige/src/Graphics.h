@@ -8,9 +8,6 @@ public:
     Graphics& init();
     Graphics& clear(Color color);
     Graphics& viewport(IVec2 size);
-
-private:
-
 };
 
 #endif //SPIGE_GRAPHICS_H

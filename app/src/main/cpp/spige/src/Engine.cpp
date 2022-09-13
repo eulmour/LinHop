@@ -1,7 +1,14 @@
 #include "Engine.h"
+
+#include <utility>
 #include "EmptyScene.h"
 
 Engine *Engine::instance = nullptr;
+
+Engine::~Engine()
+{
+    spige_destroy(&this->engine);
+}
 
 void Engine::setScene(Scene *scene) {
     if (scene) {
@@ -11,41 +18,76 @@ void Engine::setScene(Scene *scene) {
     }
 }
 
+void Engine::load()
+{
+    if (this->state != STATE_OFF)
+        return;
+
+    this->currentScene = new EmptyScene(); // TODO dangling ptr
+
+    auto builder = this->mainApp.config();
+
+#if defined(__ANDROID__) || defined(ANDROID)
+    builder->m_WindowConfig.androidApp(this->androidApp);
+#endif
+
+    this->window = std::make_unique<Window>(builder->m_WindowConfig);
+
+    graphics
+        .init()
+        .viewport(window->getLogicalSize())
+        .clear({0.0f, 0.1f, 0.2f, 1.0f});
+
+    spige_init(&this->engine);
+    spige_viewport(
+        &engine,
+        static_cast<int>(this->window->getLogicalSize()[0]),
+        static_cast<int>(this->window->getLogicalSize()[1]));
+
+    this->state = STATE_READY;
+    this->engine.asset_mgr = this->androidApp->activity->assetManager;
+    this->mainApp.init(*this);
+}
+
+void Engine::unload()
+{
+    currentScene->suspend(*this);
+}
+
+void Engine::render()
+{
+    /* Rendering scene */
+    this->currentScene->update(*this);
+    this->currentScene->render(*this);
+
+    /* Swap front and back buffers */
+    this->window->swapBuffers();
+}
+
 #if defined(__ANDROID__) || defined(ANDROID)
 
 #include <dlfcn.h>
 
-Engine::Engine(IApplication* mainApp, android_app *androidApp)
-    : androidApp(androidApp), state{0} {
+Engine::Engine(SpigeApplication& mainApp, android_app* androidApp)
+    : mainApp(mainApp), androidApp(androidApp) {
 
     this->androidApp->userData = this;
     this->androidApp->onAppCmd = Engine::androidHandleCmd;
-    this->androidApp->onInputEvent = Engine::androidHandleInput;
+    this->androidApp->onInputEvent = Input::androidHandleInput;
 
     // Prepare to monitor accelerometer
-    this->sensorManager = ASensorManager_getInstance();
+//    this->sensorManager = ASensorManager_getInstance();
+    this->sensorManager = acquireASensorManagerInstance(androidApp);
     this->accelerometerSensor = ASensorManager_getDefaultSensor(this->sensorManager,
          ASENSOR_TYPE_ACCELEROMETER);
     this->sensorEventQueue = ASensorManager_createEventQueue(this->sensorManager,
           this->androidApp->looper, LOOPER_ID_USER, nullptr, nullptr);
 
     if (this->androidApp->savedState != nullptr) {
-        this->state = *(Engine::SavedState*)this->androidApp->savedState;
+        this->savedState = *(Engine::SavedState*)this->androidApp->savedState;
     }
 
-    this->resume();
-}
-
-Engine::~Engine() {}
-
-void Engine::load() {
-//    if (!currentScene)
-//        currentScene = std::make_unique<Scene>();
-    currentScene->initialize();
-}
-
-void Engine::unload() {
-    currentScene->destroy();
+    Engine::instance = this;
 }
 
 void Engine::run() {
@@ -82,7 +124,8 @@ void Engine::run() {
 
             // Check if we are exiting.
             if (this->androidApp->destroyRequested != 0) {
-                this->terminateGraphics();
+                spige_destroy(&this->engine);
+                this->window.reset();
                 return;
             }
         }
@@ -90,34 +133,36 @@ void Engine::run() {
         if (!this->paused) {
             // Drawing is throttled to the screen update rate, so there
             // is no need to do timing here.
+
+            // Render
             this->render();
+            this->input.clearStates();
         }
     }
 }
 
-void Engine::render() {
-
-    if (this->display == nullptr) {
-        // No display.
-        return;
-    }
-
-    float* backgroundColor = this->currentScene->getBackgroundColor();
-
-    glClearColor(
-        backgroundColor[0],
-        backgroundColor[1],
-        backgroundColor[2],
-        backgroundColor[3]);
-
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    if (!this->currentScene->render(*this)) {
-        ANativeActivity_finish(this->androidApp->activity);
-    }
-
-    eglSwapBuffers(this->display, this->surface);
-}
+//void Engine::render() {
+//
+//    if (this->display == nullptr) {
+//        // No display.
+//        return;
+//    }
+//
+//    float* backgroundColor = this->currentScene->getBackgroundColor();
+//
+//    glClearColor(
+//        backgroundColor[0],
+//        backgroundColor[1],
+//        backgroundColor[2],
+//        backgroundColor[3]);
+//
+//    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+//
+//    if (!this->currentScene->render(*this)) {
+//        ANativeActivity_finish(this->androidApp->activity);
+//    }
+//
+//}
 
 /*
 * AcquireASensorManagerInstance(void)
@@ -171,129 +216,11 @@ ASensorManager* Engine::acquireASensorManagerInstance(android_app* app) {
 }
 
 /**
-* Process the next input event.
-*/
-int32_t Engine::androidHandleInput(struct android_app* app, AInputEvent* event) {
-
-    Engine *pEngine = (Engine *) app->userData;
-    int32_t eventType = AInputEvent_getType(event);
-
-    if (eventType == AINPUT_EVENT_TYPE_MOTION) {
-
-        int32_t motionAction = AMotionEvent_getAction(event);
-        int32_t motionType = motionAction & AMOTION_EVENT_ACTION_MASK;
-        size_t pointerCount = AMotionEvent_getPointerCount(event); // may overflow buffer
-
-        if (pointerCount < 1)
-            return 0;
-
-        switch (motionType) {
-            case AMOTION_EVENT_ACTION_MOVE:
-
-                for (size_t i = 0; i < pointerCount; i++) {
-                    pEngine->engine.cursor[i][0] = AMotionEvent_getX(event, i);
-                    pEngine->engine.cursor[i][1] = AMotionEvent_getY(event, i);
-                }
-
-                pEngine->currentScene->onEventPointerMove();
-                return 1;
-
-            case AMOTION_EVENT_ACTION_DOWN:
-            case AMOTION_EVENT_ACTION_POINTER_DOWN:
-
-                for (size_t i = 0; i < pointerCount; i++) {
-                    pEngine->engine.cursor[i][0] = AMotionEvent_getX(event, i);
-                    pEngine->engine.cursor[i][1] = AMotionEvent_getY(event, i);
-                }
-
-                pEngine->currentScene->onEventPointerDown();
-                return 1;
-
-            case AMOTION_EVENT_ACTION_UP:
-            case AMOTION_EVENT_ACTION_POINTER_UP:
-                pEngine->currentScene->onEventPointerUp();
-                return 1;
-
-            default: break;
-        }
-
-        return 0;
-
-    } else if (eventType == AINPUT_EVENT_TYPE_KEY) {
-
-        int32_t keyAction = AKeyEvent_getAction(event);
-        int32_t keyCode = AKeyEvent_getKeyCode(event);
-
-        //Meta state holds info regarding whether shift was held, ctrl, alt, etc...
-//        int32_t keyMetaState = AKeyEvent_getMetaState(event);
-
-        if (keyCode == AKEYCODE_VOLUME_UP || keyCode == AKEYCODE_VOLUME_DOWN) {
-            return 0;
-        }
-
-        if (keyAction == AKEY_EVENT_ACTION_DOWN) {
-
-//            int event_type = 0;
-//            char event_key_char = 0;
-
-            switch (keyCode) {
-                case AKEYCODE_BACK:
-                case AKEYCODE_MENU:
-                    if (!pEngine->currentScene->onEventBack()) {
-                        ANativeActivity_finish(pEngine->androidApp->activity);
-                    }
-
-                    break;
-                case AKEYCODE_DPAD_LEFT:
-                    pEngine->currentScene->onEventLeft();
-                    break;
-                case AKEYCODE_DPAD_UP:
-                    pEngine->currentScene->onEventUp();
-                    break;
-                case AKEYCODE_DPAD_RIGHT:
-                    pEngine->currentScene->onEventRight();
-                    break;
-                case AKEYCODE_DPAD_DOWN:
-                    pEngine->currentScene->onEventDown();
-                    break;
-                case AKEYCODE_ENTER:
-                    pEngine->currentScene->onEventSelect();
-                    break;
-                default: break;
-            }
-
-//            //if(key_meta_state && AMETA_CAPS_LOCK_ON)//Checks for caps lock
-//            //if(key_meta_state && AMETA_SHIFT_ON)//Checks for shift
-//            event_key_char = eng->jnii->get_key_event_char(keyAction, keyCode, keyMetaState);
-//
-//            //get key event returns null if backspace, and we want to catch backspace characters
-//            if (keyCode == AKEYCODE_DEL) {
-//                event_key_char = '\b';
-//            }
-//
-//            //Filtering out unwanted character through this array
-//            event_key_char = INPUT_CHAR_FILTER[static_cast<std::size_t>((unsigned char) event_key_char)];
-//
-//            if (event_key_char) {
-//                event_type = INPUT_KEY_KEYBOARD;
-//            }
-//            if (event_type) {
-//                eng->game->handle_key_input(event_type, event_key_char);
-//            }
-        }
-
-        return 1;
-    }
-
-    return 0;
-}
-
-/**
 * Process the next main command.
 */
 void Engine::androidHandleCmd(struct android_app* app, int32_t cmd) {
 
-    Engine* myApp = (Engine*)app->userData;
+    auto* myApp = (Engine*)app->userData;
 
     switch (cmd) {
 
@@ -301,7 +228,7 @@ void Engine::androidHandleCmd(struct android_app* app, int32_t cmd) {
 
             // The system has asked us to save our current state.  Do so.
             myApp->androidApp->savedState = malloc(sizeof(Engine::SavedState));
-            *((Engine::SavedState*)myApp->androidApp->savedState) = myApp->state;
+            *((Engine::SavedState*)myApp->androidApp->savedState) = myApp->savedState;
             myApp->androidApp->savedStateSize = sizeof(Engine::SavedState);
 
             break;
@@ -310,16 +237,21 @@ void Engine::androidHandleCmd(struct android_app* app, int32_t cmd) {
 
             // The window is being shown, get it ready.
             if (myApp->androidApp->window != nullptr) {
-                myApp->window.init();
                 myApp->load();
+                myApp->resume();
+
+                if (!myApp->currentScene) {
+                    LOGW("Unable to run engine: No scene available\n");
+                }
+
+                myApp->currentScene->resume(*myApp);
             }
 
             break;
 
         case APP_CMD_TERM_WINDOW:
             // The window is being hidden or closed, clean it up.
-
-            myApp->terminateGraphics();
+            myApp->window.reset();
 
             break;
 
@@ -367,47 +299,6 @@ Engine::Engine(SpigeApplication& mainApp, int argc, char *argv[]) :
     Engine::instance = this;
 }
 
-Engine::~Engine()
-{
-    spige_destroy(&this->engine);
-}
-
-void Engine::load()
-{
-    if (this->state != STATE_OFF)
-        return;
-
-    this->currentScene = new EmptyScene(); // TODO dangling ptr
-
-    auto builder = this->mainApp.config();
-
-    this->window = std::make_unique<Window>(WindowConfig()
-//        .setSizeCallback([this](int width, int height) mutable {
-//            this->window->setLogicalSize({width, height});
-//            spige_viewport(&Engine::instance->engine, width, height);
-//        })
-    );
-
-    graphics
-        .init()
-        .viewport(window->getLogicalSize())
-        .clear({0.0f, 0.1f, 0.2f, 1.0f});
-
-    spige_init(&this->engine);
-    spige_viewport(
-            &engine,
-            static_cast<int>(this->window->getLogicalSize()[0]),
-            static_cast<int>(this->window->getLogicalSize()[1]));
-
-    this->state = STATE_READY;
-    this->mainApp.init(*this);
-}
-
-void Engine::unload()
-{
-    currentScene->suspend(*this);
-}
-
 void Engine::run()
 {
     this->load();
@@ -431,19 +322,9 @@ void Engine::run()
     }
 }
 
-void Engine::render()
-{
-    /* Rendering scene */
-    this->currentScene->update(*this);
-    this->currentScene->render(*this);
-
-    /* Swap front and back buffers */
-    this->window->swapBuffers();
-}
-
 #endif
 
-EngineConfig& EngineConfig::windowTitle(const std::string& newTitle) {
-    this->title = newTitle;
+EngineConfig& EngineConfig::windowConfig(Window::Config windowConfig) {
+    this->m_WindowConfig = std::move(windowConfig);
     return *this;
 }

@@ -10,18 +10,18 @@
 class Lines {
 public:
 
-    Lines(struct line* lineDrawable);
+    Lines(Engine& e, struct line* lineDrawable);
     void Push(glm::vec2 second, glm::vec2 first, bool isCol = true);
     void Draw();
     void Reset();
 
     struct Circle
     {
-        glm::vec2 pos;
-        glm::vec2 color;
-        unsigned int steps = 3 + rand() % 7;
-        float angle = 3.1415926f * 2.0f / steps;
-        float radius = 20.0f;
+        glm::vec2 pos{};
+        glm::vec2 color{};
+        const unsigned int steps{static_cast<unsigned int>(3 + rand() % 7)};
+        const float angle{3.1415926f * 2.0f / static_cast<float>(steps)};
+        const float radius{20.0f};
 
         Circle();
         Circle(glm::vec2 pos, glm::vec4 color);
@@ -30,8 +30,8 @@ public:
     struct Line
     {
         bool bCollinear;
-        glm::vec2 a_pos;
-        glm::vec2 b_pos;
+        glm::vec2 a_pos{};
+        glm::vec2 b_pos{};
         glm::vec4 color;
         Circle circle[2];
 
@@ -40,6 +40,7 @@ public:
 
     struct line* lineDrawable;
     std::vector<Line> lines;
+    IVec2 screenSize{};
 };
 
 #endif //LINHOP_LINES_HPP

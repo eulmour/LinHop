@@ -1,25 +1,27 @@
 #include "SettingsScene.hpp"
 
-extern "C" spige *spige_instance;
+#define PROLOG(e) \
+    float screenW = static_cast<float>(e.window->getLogicalSize()[0]); \
+    float screenH = static_cast<float>(e.window->getLogicalSize()[1]);
 
-#define CX (static_cast<float>(spige_instance->width) / 2.f) /* center x */
-#define CY (static_cast<float>(spige_instance->height) / 2.f) /* center y */
+SettingsScene::SettingsScene(Engine& e) {
 
-SettingsScene::SettingsScene() {
+    PROLOG(e)
+
     this->labelSettingsTitle = std::make_unique<Label>(&this->large_text, "Settings", glm::vec2 {
-            CX - 170, static_cast<float>(spige_instance->height) / 2.f - 280.f
+            screenW/2 - 170, screenH / 2.f - 280.f
     });
 
     this->labelSettingsFx = std::make_unique<Label>(&this->medium_text, "FX: ", glm::vec2 {
-            CX - 165, static_cast<float>(spige_instance->height) / 2.f - 60.f
+            screenW/2 - 165, screenH / 2.f - 60.f
     });
 
     this->labelSettingsMusicVolume = std::make_unique<Label>(&this->medium_text, "Volume: ", glm::vec2 {
-            CX - 150, static_cast<float>(spige_instance->height) / 2.f
+            screenW/2 - 150, screenH / 2.f
     });
 
     this->labelSettingsUnlockResizing = std::make_unique<Label>(&this->medium_text, "Resizing: ", glm::vec2 {
-            CX - 182, static_cast<float>(spige_instance->height) / 2.f + 60.f
+            screenW/2 - 182, screenH / 2.f + 60.f
     });
 
 #if defined(ANDROID)
@@ -27,11 +29,11 @@ SettingsScene::SettingsScene() {
 #endif
 
     this->labelSettingsResetStatistics = std::make_unique<Label>(&this->medium_text, "Reset", glm::vec2 {
-            CX - 76, static_cast<float>(spige_instance->height) / 2.f + 120.f
+            screenW/2 - 76, screenH / 2.f + 120.f
     });
 
     this->labelSettingsBack = std::make_unique<Label>(&this->medium_text, "Back", glm::vec2 {
-            CX - 58, static_cast<float>(spige_instance->height) / 2.f + 280.f
+            screenW/2 - 58, screenH / 2.f + 280.f
     });
 
     struct file saveDataFile = {}; if (file_load(&saveDataFile, "savedata.dat")) {
@@ -40,28 +42,23 @@ SettingsScene::SettingsScene() {
     }
 }
 
-SettingsScene::~SettingsScene() {
-
-}
-
-void SettingsScene::resume(Engine& engine) {
+void SettingsScene::resume(Engine&) {
     const char *const fontPath = "fonts/OCRAEXT.TTF";
     text_load(&this->small_text, fontPath, SettingsScene::smallTextSize);
     text_load(&this->medium_text, fontPath, SettingsScene::mediumTextSize);
     text_load(&this->large_text, fontPath, SettingsScene::largeTextSize);
 }
 
-void SettingsScene::suspend(Engine& engine) {
+void SettingsScene::suspend(Engine&) {
     text_unload(&small_text);
     text_unload(&medium_text);
     text_unload(&large_text);
 }
 
-bool SettingsScene::update(Engine& engine) {
-    return true;
+void SettingsScene::update(Engine&) {
 }
 
-void SettingsScene::render(Engine& engine) {
+void SettingsScene::render(Engine&) {
 
     this->labelSettingsTitle->draw();
 
@@ -127,9 +124,7 @@ void SettingsScene::onEventSelect() {
             break; /* end of RESET_STATISTICS */
 
         case SettingsSelected::BACK:
-
-//            gameState = GameState::PAUSED;
-
+            // TODO implement switching scenes
             break; /* end of BACK */
         default:
             break;

@@ -11,26 +11,20 @@ class Tail {
 
 public:
 
-    Tail(struct line* line, const float alpha);
+    Tail(struct line* line, float alpha);
 
-    struct Line
-    {
+    struct Line {
+        Line(glm::vec2 a, glm::vec2 b);
+        void update();
+
         glm::vec2 a_pos;
         glm::vec2 b_pos;
         unsigned int lifeTime = 50;
-
-        Line(glm::vec2 a, glm::vec2 b);
-
-        void Update();
-
-//        void Draw(const Tail& tail_ref) const;
     };
 
-    void Push(glm::vec2 a, glm::vec2 b);
-
-    void Draw();
-
-    void Reset();
+    void push(glm::vec2 a, glm::vec2 b);
+    void draw();
+    void reset();
 
 public:
     float alpha = 1.0f;
@@ -38,7 +32,7 @@ public:
 private:
     static constexpr std::size_t tailLength = 50;
     static constexpr float tailFuzz = 10.f;
-    std::list<Line> aTail;
+    std::list<Line> tail;
     struct line* line;
 };
 

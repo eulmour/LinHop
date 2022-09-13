@@ -31,11 +31,12 @@ public:
     bool isKeyDown(InputKey key);
     bool isKeyHold(InputKey key);
     bool isKeyUp(InputKey key);
-    InputState& get(InputKey key);
-    InputArray& getInputArray() { return inputs; }
-    PointerArray& getPointerArray() { return pointers; }
+    [[nodiscard]] InputState& get(InputKey key);
+    [[nodiscard]] InputArray& getInputArray() { return inputs; }
+    [[nodiscard]] PointerArray& getPointerArray() { return pointers; }
 
 #if defined(__ANDROID__) || defined(ANDROID)
+    static int32_t androidHandleInput(android_app* app, AInputEvent* event);
 #else
     static void glfwCursorCallback_(GLFWwindow* window, double xpos, double ypos);
     static void glfwInputCallback_(GLFWwindow* window, int key, int scancode, int action, int mods);
@@ -44,10 +45,8 @@ public:
 
 protected:
 
-    InputArray inputs {};
+    InputArray inputs{};
     PointerArray pointers{}; // pointer count
-    bool pressed {false};
-    bool pressedOnce {false};
 };
 
 #endif //SPIGE_INPUT_H

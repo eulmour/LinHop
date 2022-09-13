@@ -3,6 +3,8 @@
 
 extern float scroll;
 
+using namespace linhop::utils;
+
 Ball::Ball(IVec2 screenSize) : rectDrawable{} {
     this->pos = {static_cast<float>(screenSize[0]) / 2.f, static_cast<float>(screenSize[1]) / 2.f};
 }
@@ -29,13 +31,17 @@ void Ball::deactivate() {
     rect_unload(&this->rectDrawable);
 }
 
-bool Ball::Collision(const Lines& line_array, const glm::vec2 prev_position) {
-    for (const Lines::Line& line : reverse(line_array.lines)) {
+bool Ball::collision(const Lines& line_array, const glm::vec2 prev_position) {
+
+    return std::any_of(
+            line_array.lines.rbegin(),
+            line_array.lines.rend(),
+            [this, prev_position](const auto& line) {
 
         int side = checkLineSides(line.a_pos, line.b_pos, pos);
 
         if (intersect(
-            prev_position, pos, line.a_pos, line.b_pos) && sign(side) == 1 && bounceCooldown == 0) {
+                prev_position, pos, line.a_pos, line.b_pos) && sign(side) == 1 && bounceCoolDown == 0) {
 
             float angle = std::atan2(line.b_pos[1] - line.a_pos[1], line.b_pos[0] - line.a_pos[0]);
             float normal = angle - 3.1415926f * 0.5f;
@@ -46,30 +52,30 @@ bool Ball::Collision(const Lines& line_array, const glm::vec2 prev_position) {
             vel[1] = std::sin(bounce_angle) * (dis_func(vel[0], vel[1]) + 1);
             vel[1] -= 300 * bounceStrength;
 
-            bounceCooldown = 3;
+            bounceCoolDown = 3;
             return true;
+        } else {
+            return false;
         }
-    }
-
-    return false;
+    });
 }
 
-void Ball::Move(float dt) {
+void Ball::move(float dt) {
     this->prev_pos = this->pos;
 
     /* Update position */
     vel.y = std::min(500 + terminalVelocity / terminalVelocityMod, vel[1] + gravity);
     this->pos += vel * dt;
 
-    if (bounceCooldown > 0)
-        --bounceCooldown;
+    if (bounceCoolDown > 0)
+        --bounceCoolDown;
 }
 
-void Ball::Draw() const {
+void Ball::draw() const {
     rect_draw(&this->rectDrawable, &glm::vec2{ pos[0] - diameter, pos[1] - scroll - radius }[0]);
 }
 
-void Ball::Reset(IVec2 screenSize) {
+void Ball::reset(IVec2 screenSize) {
 
     this->pos = {
         static_cast<float>(screenSize[0]) / 2.f,
@@ -79,6 +85,6 @@ void Ball::Reset(IVec2 screenSize) {
     this->vel = { 0.f, 0.f };
 
     bounceStrength = 1;
-    bounceCooldown = 0;
+    bounceCoolDown = 0;
     terminalVelocity = 1;
 }

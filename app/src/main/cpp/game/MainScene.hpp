@@ -9,21 +9,20 @@
 #include "Ball.hpp"
 #include "Tail.hpp"
 #include "Sparks.hpp"
-#include "Lazers.hpp"
+#include "Lasers.hpp"
 #include "Label.hpp"
 
 class MainScene : public Scene {
 public:
     MainScene() = delete;
-    MainScene(Engine& e);
+    explicit MainScene(Engine& e);
 
     ~MainScene() override;
 
     void suspend(Engine& engine) override;
     void resume(Engine& engine) override;
-    bool update(Engine& engine) override;
+    void update(Engine& engine) override;
     void render(Engine& engine) override;
-    [[nodiscard]] Color getBackgroundColor() const { return this->backgroundColor; }
 
     struct audio audio_engine = {};
     struct audio_source audio_main = {};
@@ -42,7 +41,7 @@ public:
     // classes
     std::unique_ptr<Lines> lines, rand_lines;
     std::unique_ptr<Ball> ball;
-    std::unique_ptr<Lazers> lazers;
+    std::unique_ptr<Lasers> lasers;
     std::unique_ptr<Sparks> sparks;
     std::unique_ptr<Tail> ballTail, cursorTail;
 
@@ -92,7 +91,7 @@ public:
     void onEventLeft();
     void onEventDown();
     void onEventRight();
-    bool onEventBack();
+    void onEventBack(Engine& engine);
 
 private:
 

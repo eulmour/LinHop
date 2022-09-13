@@ -9,11 +9,11 @@
 class SettingsScene : public Scene {
 
 public:
-    SettingsScene();
-    ~SettingsScene();
+    explicit SettingsScene(Engine& e);
+    ~SettingsScene() override = default;
     void resume(Engine& engine) override;
     void suspend(Engine& engine) override;
-    bool update(Engine& engine) override;
+    void update(Engine& engine) override;
     void render(Engine& engine) override;
     Color getBackgroundColor() const { return { 0.f, 0.f, 0.f, 1.f }; }
     void onEventPointerMove();
@@ -31,7 +31,6 @@ private:
     static constexpr float mediumTextSize = 50.f;
     static constexpr float largeTextSize = 72.f;
 
-    struct line line = {};
     struct text small_text = {};
     struct text medium_text = {};
     struct text large_text = {};
