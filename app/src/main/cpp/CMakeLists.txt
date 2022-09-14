@@ -11,19 +11,6 @@ add_definitions(-D_CRT_NONSTDC_NO_WARNINGS)
 add_subdirectory("spige")
 add_subdirectory("game/vendor")
 
-# build native_app_glue as a static lib
-if (ANDROID)
-    set(${CMAKE_C_FLAGS}, "${CMAKE_C_FLAGS}")
-    add_library(native_app_glue STATIC
-        ${ANDROID_NDK}/sources/android/native_app_glue/android_native_app_glue.c)
-    
-    # Export ANativeActivity_onCreate(),
-    # Refer to: https://github.com/android-ndk/ndk/issues/381.
-    set(CMAKE_SHARED_LINKER_FLAGS
-        "${CMAKE_SHARED_LINKER_FLAGS} -u ANativeActivity_onCreate")
-
-endif()
-
 file (GLOB linhop_src CONFIGURE_DEPENDS "game/*.hpp" "game/*.cpp")
 
 # Default target
@@ -31,6 +18,13 @@ if (WIN32)
 	add_executable(linhop WIN32 Main.hpp Main.cpp ${linhop_src})
 else()
 	add_executable(linhop Main.hpp Main.cpp ${linhop_src})
+endif()
+
+if (ANDROID)
+	# Export ANativeActivity_onCreate(),
+	# Refer to: https://github.com/android-ndk/ndk/issues/381.
+	set(CMAKE_SHARED_LINKER_FLAGS
+			"${CMAKE_SHARED_LINKER_FLAGS} -u ANativeActivity_onCreate")
 endif()
 
 target_include_directories(linhop PRIVATE
@@ -45,15 +39,14 @@ target_link_libraries(linhop spige glm)
 add_library(linhop_android SHARED Main.hpp Main.cpp ${linhop_src})
 
 target_include_directories(linhop_android PRIVATE
-    ${ANDROID_NDK}/sources/android/native_app_glue
     ${CMAKE_SOURCE_DIR}/spige
+	${CMAKE_SOURCE_DIR}/spige/vendor/android
     ${CMAKE_SOURCE_DIR}/game/vendor/glm
 )
 
 target_link_libraries(linhop_android
     spige
     android
-    native_app_glue
     log
 )
 

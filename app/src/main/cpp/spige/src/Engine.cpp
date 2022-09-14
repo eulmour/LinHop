@@ -1,18 +1,20 @@
 #include "Engine.h"
 
 #include <utility>
+#include <stdexcept>
 #include "EmptyScene.h"
 
 Engine *Engine::instance = nullptr;
 
 Engine::~Engine()
 {
-    spige_destroy(&this->engine);
+    if (this->state != STATE_OFF)
+        this->unload();
 }
 
 void Engine::setScene(Scene *scene) {
     if (scene) {
-        this->currentScene->suspend(*this);
+        if (this->currentScene) this->currentScene->suspend(*this);
         this->currentScene = scene;
         this->currentScene->resume(*this);
     }
@@ -21,9 +23,7 @@ void Engine::setScene(Scene *scene) {
 void Engine::load()
 {
     if (this->state != STATE_OFF)
-        return;
-
-    this->currentScene = new EmptyScene(); // TODO dangling ptr
+        throw std::domain_error("Engine: engine is already loaded");
 
     auto builder = this->mainApp.config();
 
@@ -45,13 +45,29 @@ void Engine::load()
         static_cast<int>(this->window->getLogicalSize()[1]));
 
     this->state = STATE_READY;
+
+#if defined(__ANDROID__) || defined(ANDROID)
     this->engine.asset_mgr = this->androidApp->activity->assetManager;
-    this->mainApp.init(*this);
+#endif
+
+    if (!this->currentScene) { // TODO manage how to load app once
+        this->mainApp.init(*this);
+    }
+
+    if (!this->currentScene) {
+        LOGW("Unable to run engine: No scene available\n");
+        this->window->close();
+    }
 }
 
 void Engine::unload()
 {
-    currentScene->suspend(*this);
+    if (this->state == STATE_OFF)
+        throw std::domain_error("Engine: engine is already off");
+
+    this->state = STATE_OFF;
+    this->window.reset();
+    spige_destroy(&this->engine);
 }
 
 void Engine::render()
@@ -62,6 +78,14 @@ void Engine::render()
 
     /* Swap front and back buffers */
     this->window->swapBuffers();
+}
+
+void Engine::resume() {
+    this->paused = false;
+}
+
+void Engine::pause() {
+    this->paused = true;
 }
 
 #if defined(__ANDROID__) || defined(ANDROID)
@@ -76,7 +100,6 @@ Engine::Engine(SpigeApplication& mainApp, android_app* androidApp)
     this->androidApp->onInputEvent = Input::androidHandleInput;
 
     // Prepare to monitor accelerometer
-//    this->sensorManager = ASensorManager_getInstance();
     this->sensorManager = acquireASensorManagerInstance(androidApp);
     this->accelerometerSensor = ASensorManager_getDefaultSensor(this->sensorManager,
          ASENSOR_TYPE_ACCELEROMETER);
@@ -91,6 +114,8 @@ Engine::Engine(SpigeApplication& mainApp, android_app* androidApp)
 }
 
 void Engine::run() {
+
+    Engine::androidSetActivityDecor(this->androidApp);
 
     // loop waiting for stuff to do.
     for (;;) {
@@ -125,7 +150,6 @@ void Engine::run() {
             // Check if we are exiting.
             if (this->androidApp->destroyRequested != 0) {
                 spige_destroy(&this->engine);
-                this->window.reset();
                 return;
             }
         }
@@ -140,29 +164,6 @@ void Engine::run() {
         }
     }
 }
-
-//void Engine::render() {
-//
-//    if (this->display == nullptr) {
-//        // No display.
-//        return;
-//    }
-//
-//    float* backgroundColor = this->currentScene->getBackgroundColor();
-//
-//    glClearColor(
-//        backgroundColor[0],
-//        backgroundColor[1],
-//        backgroundColor[2],
-//        backgroundColor[3]);
-//
-//    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-//
-//    if (!this->currentScene->render(*this)) {
-//        ANativeActivity_finish(this->androidApp->activity);
-//    }
-//
-//}
 
 /*
 * AcquireASensorManagerInstance(void)
@@ -220,72 +221,101 @@ ASensorManager* Engine::acquireASensorManagerInstance(android_app* app) {
 */
 void Engine::androidHandleCmd(struct android_app* app, int32_t cmd) {
 
-    auto* myApp = (Engine*)app->userData;
+    auto* pEngine = (Engine*)app->userData;
 
     switch (cmd) {
 
         case APP_CMD_SAVE_STATE:
-
-            // The system has asked us to save our current state.  Do so.
-            myApp->androidApp->savedState = malloc(sizeof(Engine::SavedState));
-            *((Engine::SavedState*)myApp->androidApp->savedState) = myApp->savedState;
-            myApp->androidApp->savedStateSize = sizeof(Engine::SavedState);
-
+            // The system has asked us to save our current state. Do so.
+            pEngine->androidApp->savedState = malloc(sizeof(Engine::SavedState));
+            *((Engine::SavedState*)pEngine->androidApp->savedState) = pEngine->savedState;
+            pEngine->androidApp->savedStateSize = sizeof(Engine::SavedState);
             break;
 
         case APP_CMD_INIT_WINDOW:
-
             // The window is being shown, get it ready.
-            if (myApp->androidApp->window != nullptr) {
-                myApp->load();
-                myApp->resume();
-
-                if (!myApp->currentScene) {
-                    LOGW("Unable to run engine: No scene available\n");
-                }
-
-                myApp->currentScene->resume(*myApp);
+            if (pEngine->androidApp->window != nullptr) {
+                pEngine->load();
             }
-
             break;
 
         case APP_CMD_TERM_WINDOW:
             // The window is being hidden or closed, clean it up.
-            myApp->window.reset();
-
+            pEngine->unload();
             break;
 
         case APP_CMD_GAINED_FOCUS:
             // When our app gains focus, we start monitoring the accelerometer.
-            if (myApp->accelerometerSensor != nullptr) {
-                ASensorEventQueue_enableSensor(myApp->sensorEventQueue,
-                                               myApp->accelerometerSensor);
+            if (pEngine->accelerometerSensor != nullptr) {
+                ASensorEventQueue_enableSensor(pEngine->sensorEventQueue,
+                                               pEngine->accelerometerSensor);
                 // We'd like to get 60 events per second (in microseconds).
-                ASensorEventQueue_setEventRate(myApp->sensorEventQueue,
-                                               myApp->accelerometerSensor, (1000L / 60) * 1000);
+                ASensorEventQueue_setEventRate(pEngine->sensorEventQueue,
+                                               pEngine->accelerometerSensor, (1000L / 60) * 1000);
             }
 
-            myApp->currentScene->resume(*myApp);
-            myApp->resume();
-
+            pEngine->currentScene->resume(*pEngine);
+            pEngine->resume();
+            pEngine->state = STATE_BUSY;
             break;
 
         case APP_CMD_LOST_FOCUS:
             // When our app loses focus, we stop monitoring the accelerometer.
             // This is to avoid consuming battery while not being used.
-            if (myApp->accelerometerSensor != nullptr) {
-                ASensorEventQueue_disableSensor(myApp->sensorEventQueue,
-                                                myApp->accelerometerSensor);
+            if (pEngine->accelerometerSensor != nullptr) {
+                ASensorEventQueue_disableSensor(pEngine->sensorEventQueue,
+                                                pEngine->accelerometerSensor);
             }
 
             // Also stop animating.
-            myApp->currentScene->suspend(*myApp);
-            myApp->pause();
+            pEngine->currentScene->suspend(*pEngine);
+            pEngine->pause();
+            pEngine->state = STATE_READY;
+            break;
 
+        case APP_CMD_WINDOW_RESIZED:
+            if (pEngine->state == STATE_BUSY) {
+                pEngine->currentScene->suspend(*pEngine);
+                pEngine->unload();
+                pEngine->load();
+                pEngine->currentScene->resume(*pEngine);
+            }
             break;
 
         default: return;
     }
+}
+
+void Engine::androidSetActivityDecor(struct android_app* app) {
+
+    JNIEnv* env{};
+    app->activity->vm->AttachCurrentThread(&env, NULL);
+
+    jclass activityClass = env->FindClass("android/app/NativeActivity");
+    jmethodID getWindow = env->GetMethodID(activityClass, "getWindow", "()Landroid/view/Window;");
+
+    jclass windowClass = env->FindClass("android/view/Window");
+    jmethodID getDecorView = env->GetMethodID(windowClass, "getDecorView", "()Landroid/view/View;");
+
+    jclass viewClass = env->FindClass("android/view/View");
+    jmethodID setSystemUiVisibility = env->GetMethodID(viewClass, "setSystemUiVisibility", "(I)V");
+
+    jobject window = env->CallObjectMethod(app->activity->clazz, getWindow);
+
+    jobject decorView = env->CallObjectMethod(window, getDecorView);
+
+    jfieldID flagFullscreenID = env->GetStaticFieldID(viewClass, "SYSTEM_UI_FLAG_FULLSCREEN", "I");
+    jfieldID flagHideNavigationID = env->GetStaticFieldID(viewClass, "SYSTEM_UI_FLAG_HIDE_NAVIGATION", "I");
+    jfieldID flagImmersiveStickyID = env->GetStaticFieldID(viewClass, "SYSTEM_UI_FLAG_IMMERSIVE_STICKY", "I");
+
+    const int flagFullscreen = env->GetStaticIntField(viewClass, flagFullscreenID);
+    const int flagHideNavigation = env->GetStaticIntField(viewClass, flagHideNavigationID);
+    const int flagImmersiveSticky = env->GetStaticIntField(viewClass, flagImmersiveStickyID);
+    const int flag = flagFullscreen | flagHideNavigation | flagImmersiveSticky;
+
+    env->CallVoidMethod(decorView, setSystemUiVisibility, flag);
+
+    app->activity->vm->DetachCurrentThread();
 }
 
 #else

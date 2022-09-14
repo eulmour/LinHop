@@ -43,45 +43,45 @@ public:
     std::unique_ptr<Ball> ball;
     std::unique_ptr<Lasers> lasers;
     std::unique_ptr<Sparks> sparks;
-    std::unique_ptr<Tail> ballTail, cursorTail;
+    std::unique_ptr<Tail> ball_tail, cursor_tail;
 
     // labels
-    std::unique_ptr<Label> labelMenuTitle;
-    std::unique_ptr<Label> labelMenuContinue;
-    std::unique_ptr<Label> labelMenuStart;
-    std::unique_ptr<Label> labelMenuSettings;
-    std::unique_ptr<Label> labelMenuExit;
-    std::unique_ptr<Label> labelMenuHint;
-    std::unique_ptr<Label> labelMenuMode;
+    std::unique_ptr<Label> label_menu_title;
+    std::unique_ptr<Label> label_menu_continue;
+    std::unique_ptr<Label> label_menu_start;
+    std::unique_ptr<Label> label_menu_settings;
+    std::unique_ptr<Label> label_menu_exit;
+    std::unique_ptr<Label> label_menu_hint;
+    std::unique_ptr<Label> label_menu_mode;
 
-    std::unique_ptr<Label> labelEndgameRestart;
-    std::unique_ptr<Label> labelEndgameScore;
+    std::unique_ptr<Label> label_endgame_restart;
+    std::unique_ptr<Label> label_endgame_score;
 
-    std::unique_ptr<Label> labelSettingsTitle;
-    std::unique_ptr<Label> labelSettingsFx;
-    std::unique_ptr<Label> labelSettingsMusicVolume;
-    std::unique_ptr<Label> labelSettingsUnlockResizing;
-    std::unique_ptr<Label> labelSettingsResetStatistics;
-    std::unique_ptr<Label> labelSettingsBack;
+    std::unique_ptr<Label> label_settings_title;
+    std::unique_ptr<Label> label_settings_fx;
+    std::unique_ptr<Label> label_settings_music_volume;
+    std::unique_ptr<Label> label_settings_unlock_resizing;
+    std::unique_ptr<Label> label_settings_reset_statistics;
+    std::unique_ptr<Label> label_settings_back;
 
-    std::unique_ptr<Label> labelGameScore;
-    std::unique_ptr<Label> labelGameFps;
+    std::unique_ptr<Label> label_game_score;
+    std::unique_ptr<Label> label_game_fps;
 
     enum class GameState {
         MENU, SETTINGS, INGAME, PAUSED, ENDGAME, EXITING, END
-    } gameState = GameState::MENU;
+    } game_state = GameState::MENU;
 
     enum class GameMode {
         CLASSIC, HIDDEN, END
-    } gameMode = GameMode::CLASSIC;
+    } game_mode = GameMode::CLASSIC;
 
     enum class MenuSelected {
         CONTINUE, START, SETTINGS, EXIT, END
-    } menuSelected = MenuSelected::START;
+    } menu_selected = MenuSelected::START;
 
     enum class SettingsSelected {
         FX_ENABLED, MUSIC_VOLUME, UNLOCK_RESIZE, RESET_STATISTICS, BACK, END
-    } settingsSelected = SettingsSelected::FX_ENABLED;
+    } settings_selected = SettingsSelected::FX_ENABLED;
 
     void onEventPointerMove(Engine& engine);
     void onEventPointerDown();
@@ -94,12 +94,11 @@ public:
     void onEventBack(Engine& engine);
 
 private:
-
     void reset(Engine& engine);
 
-    glm::vec2 prevMousePos {0};
-    glm::vec2 lastClick {0};
-    Color backgroundColor{0.0f, 0.1f, 0.2f, 1.f};
+    glm::vec2 prev_mouse_pos {0};
+    glm::vec2 last_click {0};
+    Color background_color{0.0f, 0.1f, 0.2f, 1.f};
 
     struct SaveData {
         long maxScoreClassic;
@@ -107,21 +106,21 @@ private:
         long fxEnabled;
         long unlockResizing;
         float musicVolumeFloat;
-    } saveData { 0, 0, 1, 0, .8f };
+    } save_data {0, 0, 1, 0, .8f };
 
-    static constexpr int ballStrengthMod = 25000;
-    static constexpr int ballGravityMod = 8000;
-    static constexpr float randLinesDensity = 350.0f; /* lower = higher */
-    static constexpr float smallTextSize = 28.f;
-    static constexpr float mediumTextSize = 50.f;
-    static constexpr float largeTextSize = 72.f;
+    static constexpr int ball_strength_mod = 25000;
+    static constexpr int ball_gravity_mod = 8000;
+    static constexpr float rand_lines_density = 350.0f; /* lower = higher */
+    static constexpr float small_text_size = 28.f;
+    static constexpr float medium_text_size = 64.f;
+    static constexpr float large_text_size = 90.f;
 
-    float last_place = randLinesDensity;
-    long gameScore = 0L;
+    float last_place = rand_lines_density;
+    long game_score = 0L;
 
 protected:
     bool pressed {false};
-    bool pressedOnce {false};
+    bool pressed_once {false};
 };
 
 // for each type you want the operator(s) to be enabled, do this:

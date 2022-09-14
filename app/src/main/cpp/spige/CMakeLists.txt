@@ -13,12 +13,10 @@ else()
     add_library(spige STATIC ${FILES_SRC})
 endif()
 
-#set_target_properties(spige PROPERTIES LINKER_LANGUAGE C)
-
 add_subdirectory("vendor")
 
 target_include_directories(spige PRIVATE
-    ${ANDROID_NDK}/sources/android/native_app_glue
+    ${CMAKE_CURRENT_LIST_DIR}/vendor/android
     ${CMAKE_CURRENT_LIST_DIR}/vendor/cglm/include
     ${CMAKE_CURRENT_LIST_DIR}/vendor/stb_image
     ${CMAKE_CURRENT_LIST_DIR}/vendor/freetype/include
@@ -38,6 +36,7 @@ if (ANDROID)
         freetype
         android
         log
+        native_app_glue
     )
 elseif(WIN32)
     target_link_libraries(spige

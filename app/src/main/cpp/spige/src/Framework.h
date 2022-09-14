@@ -8,57 +8,71 @@
 #define SPIGE_POINTER_COUNT_MAX 16
 
 #if defined(__ANDROID__) || defined(ANDROID)
+#   include <GLES3/gl31.h>
+#   include <android/log.h>
+#   include <android_native_app_glue.h>
+#   include <android/sensor.h>
+#   include <android/native_activity.h>
 
-    #include <GLES3/gl31.h>
-    #include <android_native_app_glue.h>
-    #include <android/log.h>
-    #include <android/sensor.h>
+#   define LOGV_PRINT(fmt, ...)\
+        ((void)__android_log_print(ANDROID_LOG_VERBOSE, "threaded_app", "[VERBOSE] " fmt, ##__VA_ARGS__))
+#   define LOGI_PRINT(fmt, ...)\
+        ((void)__android_log_print(ANDROID_LOG_INFO, "threaded_app", "[INFO] " fmt, ##__VA_ARGS__))
+#   define LOGW_PRINT(fmt, ...)\
+        ((void)__android_log_print(ANDROID_LOG_WARN, "threaded_app", "[WARNING] " fmt, ##__VA_ARGS__))
+#   define LOGE_PRINT(fmt, ...)\
+        ((void)__android_log_print(ANDROID_LOG_ERROR, "threaded_app", "[ERROR] " fmt, ##__VA_ARGS__))
 
-    #define LOGI_PRINT(fmt, ...)\
-        ((void)__android_log_print(ANDROID_LOG_INFO, "AndroidProject1.NativeActivity", "[INFO] " fmt, ##__VA_ARGS__))
-    #define LOGW_PRINT(fmt, ...)\
-        ((void)__android_log_print(ANDROID_LOG_WARN, "AndroidProject1.NativeActivity", "[WARNING] " fmt, ##__VA_ARGS__))
-    #define LOGE_PRINT(fmt, ...)\
-        ((void)__android_log_print(ANDROID_LOG_ERROR, "AndroidProject1.NativeActivity", "[ERROR] " fmt, ##__VA_ARGS__))
-
-    #define LOGI_WRITE LOGI_PRINT
-    #define LOGW_WRITE LOGW_PRINT
-    #define LOGE_WRITE LOGE_PRINT
+#   define LOGV_WRITE LOGV_PRINT
+#   define LOGI_WRITE LOGI_PRINT
+#   define LOGW_WRITE LOGW_PRINT
+#   define LOGE_WRITE LOGE_PRINT
 
 #elif defined (WIN32) || defined (_WIN32)
+#   define strncasecmp(s1, s2, n) _strnicmp(s1, s2, n)
+#   define LOGV_PRINT(fmt, ...) ((void)printf("[VERBOSE] " fmt, ##__VA_ARGS__))
+#   define LOGI_PRINT(fmt, ...) ((void)printf("[INFO] " fmt, ##__VA_ARGS__))
+#   define LOGW_PRINT(fmt, ...) ((void)printf("[WARNING] " fmt, ##__VA_ARGS__))
+#   define LOGE_PRINT(fmt, ...) ((void)fprintf(stderr, "[ERROR] " fmt, ##__VA_ARGS__))
 
-    #define strncasecmp(s1, s2, n) _strnicmp(s1, s2, n)
-
-	#define LOGI_PRINT(fmt, ...) ((void)printf("[INFO] " fmt, ##__VA_ARGS__))
-	#define LOGW_PRINT(fmt, ...) ((void)printf("[WARNING] " fmt, ##__VA_ARGS__))
-	#define LOGE_PRINT(fmt, ...) ((void)fprintf(stderr, "[ERROR] " fmt, ##__VA_ARGS__))
-	#define LOGI_WRITE(fmt, ...) spige_log_message("[INFO] " fmt, ##__VA_ARGS__)
-    #define LOGW_WRITE(fmt, ...)\
+#   define LOGV_WRITE(fmt, ...) spige_log_message("[VERBOSE] " fmt, ##__VA_ARGS__)
+#   define LOGI_WRITE(fmt, ...) spige_log_message("[INFO] " fmt, ##__VA_ARGS__)
+#   define LOGW_WRITE(fmt, ...)\
         spige_log_message("[WARNING] %s\n" fmt "File %s, line %d\n", strerror(errno), ##__VA_ARGS__, __FILE__, __LINE__)
-    #define LOGE_WRITE(fmt, ...)\
+#   define LOGE_WRITE(fmt, ...)\
         spige_log_message("[ERROR] %s\n" fmt "File %s, line %d\n", strerror(errno), ##__VA_ARGS__, __FILE__, __LINE__)
-
 #else
+#   define LOGV_PRINT(fmt, ...) ((void)printf("[VERBOSE] " fmt, ##__VA_ARGS__))
+#   define LOGI_PRINT(fmt, ...) ((void)printf("[INFO] " fmt, ##__VA_ARGS__))
+#   define LOGW_PRINT(fmt, ...) ((void)printf("[WARNING] " fmt, ##__VA_ARGS__))
+#   define LOGE_PRINT(fmt, ...) ((void)fprintf(stderr, "[ERROR] " fmt, ##__VA_ARGS__))
 
-	#define LOGI_PRINT(fmt, ...) ((void)printf("[INFO] " fmt, ##__VA_ARGS__))
-	#define LOGW_PRINT(fmt, ...) ((void)printf("[WARNING] " fmt, ##__VA_ARGS__))
-	#define LOGE_PRINT(fmt, ...) ((void)fprintf(stderr, "[ERROR] " fmt, ##__VA_ARGS__))
-
-	#define LOGI_WRITE(fmt, ...) spige_log_message("[INFO] " fmt, ##__VA_ARGS__)
-    #define LOGW_WRITE(fmt, ...)\
+#   define LOGV_WRITE(fmt, ...) spige_log_message("[VERBOSE] " fmt, ##__VA_ARGS__)
+#   define LOGI_WRITE(fmt, ...) spige_log_message("[INFO] " fmt, ##__VA_ARGS__)
+#   define LOGW_WRITE(fmt, ...)\
         spige_log_message("[WARNING] %s\n" fmt "File %s, line %d\n", strerror(errno), ##__VA_ARGS__, __FILE__, __LINE__)
-    #define LOGE_WRITE(fmt, ...)\
+#   define LOGE_WRITE(fmt, ...)\
         spige_log_message("[ERROR] %s\n" fmt "File %s, line %d\n", strerror(errno), ##__VA_ARGS__, __FILE__, __LINE__)
 #endif
 
 #ifdef SPIGE_WRITE_LOGS
-    #define LOGI LOGI_WRITE
-    #define LOGW LOGW_WRITE
-    #define LOGE LOGE_WRITE
+#   ifndef NDEBUG
+#       define LOGV LOGV_WRITE
+#   else
+#       define LOGV(...)  ((void)0)
+#   endif
+#   define LOGI LOGI_WRITE
+#   define LOGW LOGW_WRITE
+#   define LOGE LOGE_WRITE
 #else
-    #define LOGI LOGI_PRINT
-    #define LOGW LOGW_PRINT
-    #define LOGE LOGE_PRINT
+#   ifndef NDEBUG
+#       define LOGV LOGV_PRINT
+#   else
+#       define LOGV(...)  ((void)0)
+#   endif
+#   define LOGI LOGI_PRINT
+#   define LOGW LOGW_PRINT
+#   define LOGE LOGE_PRINT
 #endif
 
 using Color = std::array<float, 4>;
@@ -85,7 +99,6 @@ struct spige {
     int width;
     int height;
     // float scale;
-    float cursor[SPIGE_POINTER_COUNT_MAX][2]; // pointer count
 
 #ifdef SPIGE_WRITE_LOGS
     FILE* log;

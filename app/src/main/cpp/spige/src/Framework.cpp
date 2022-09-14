@@ -1,8 +1,8 @@
 #include "Framework.h"
 #include <memory.h>
-#include <string.h>
-#include <errno.h>
-#include <stdio.h>
+#include <cstring>
+#include <cerrno>
+#include <cstdio>
 #include "stb_image.h"
 
 #if !defined(__ANDROID__) && !defined(ANDROID)
@@ -372,8 +372,7 @@ void file_unload(struct file* file) {
 }
 
 #if defined(__ANDROID__) || defined(ANDROID)
-
-#include "unistd.h"
+#include <unistd.h>
 
 int file_load_asset(struct file* file, const char* path) {
 

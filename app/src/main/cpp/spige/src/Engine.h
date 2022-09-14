@@ -54,8 +54,8 @@ public:
     void load();
     void unload();
     void run();
-    void resume() { paused = false; }
-    void pause() { paused = true; }
+    void resume();
+    void pause();
     void render();
 
     Scene* getScene() { return this->currentScene; }
@@ -88,6 +88,7 @@ private:
     private:
         static void androidHandleCmd(android_app* app, int32_t cmd);
         static ASensorManager* acquireASensorManagerInstance(android_app* app);
+        static void androidSetActivityDecor(struct android_app* app);
 #else
 public:
     Engine(SpigeApplication& mainApp, int argc, char* argv[]);

@@ -177,6 +177,8 @@ Window::Window(const Config& config) {
     LOGI("GL Init: %d\n", GL_VERSION);
 }
 
+Window::~Window() = default;
+
 void Window::close() {
     m_ShouldClose = true;
     glfwSetWindowShouldClose(this->glfwWindow, 1);

@@ -17,6 +17,8 @@ public:
         glm::vec2 pos, vel{0.f, 0.f}, size;
         glm::vec4 color{};
         unsigned int life{50};
+        static constexpr float max_size{15.f};
+        static constexpr float min_size{3.f};
 
         explicit Spark(glm::vec2 pos);
         void update();
@@ -30,10 +32,10 @@ public:
     std::list<Spark> sparks;
 
 private:
-    static constexpr std::size_t sparkLife{50};
-    static constexpr std::size_t sparkAmount{6};
-    static constexpr float sparkGravity{2.5f};
-    struct rect rectDrawable{};
+    static constexpr std::size_t spark_life{50};
+    static constexpr std::size_t spark_amount{6};
+    static constexpr float spark_gravity{2.5f};
+    struct rect rect_drawable{};
 };
 
 #endif //LINHOP_SPARKS_HPP

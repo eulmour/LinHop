@@ -35,99 +35,91 @@ MainScene::MainScene(Engine& e) {
         LOGE("Failed to load audio sources\n");
 
     struct file saveDataFile = {}; if (file_load(&saveDataFile, "savedata.dat")) {
-        memcpy((void*)&this->saveData, saveDataFile.data, sizeof(SaveData));
+        memcpy((void*)&this->save_data, saveDataFile.data, sizeof(SaveData));
         file_unload(&saveDataFile);
     }
 
     /* init clicks */
-    pointerX = lastClick[0] = screenW / 2.f;
-    pointerY = lastClick[1] = screenH;
-    this->prevMousePos = {pointerX, pointerY};
+    pointerX = last_click[0] = screenW / 2.f;
+    pointerY = last_click[1] = screenH;
+    this->prev_mouse_pos = {pointerX, pointerY};
 
     // class
     lines       = std::make_unique<Lines>(e, &line);
     rand_lines  = std::make_unique<Lines>(e, &line);
     sparks      = std::make_unique<Sparks>();
     lasers      = std::make_unique<Lasers>(e, &line);
-    ballTail    = std::make_unique<Tail>(&line, .7f);
-    cursorTail  = std::make_unique<Tail>(&line, .08f);
+    ball_tail   = std::make_unique<Tail>(&line, .7f);
+    cursor_tail = std::make_unique<Tail>(&line, .08f);
     ball        = std::make_unique<Ball>(e.window->getLogicalSize());
 
     lines->Reset();
 
     // labels
-    this->labelMenuTitle = std::make_unique<Label>(&this->large_text, "LinHop", glm::vec2 {
-            screenW / 2.f - 124.f, screenH / 2.f - 180.f
+    this->label_menu_title = std::make_unique<Label>(&this->large_text, "LinHop", glm::vec2 {
+            screenW / 2.f - 162.f, screenH / 2.f - 180.f
     });
-    this->labelMenuTitle->setColor(glm::vec4 {0.6f, 0.8f, 1.0f, 1.f});
+    this->label_menu_title->setColor(glm::vec4 {0.6f, 0.8f, 1.0f, 1.f});
 
-    this->labelMenuContinue = std::make_unique<Label>(&this->medium_text, "Continue", glm::vec2 {
-            screenW / 2.f - 120.f, screenH / 2.f - 40.f
-    });
-
-    this->labelMenuStart = std::make_unique<Label>(&this->medium_text, "Start", glm::vec2 {
-            screenW / 2.f - 72.f, screenH / 2.f + 20.f
+    this->label_menu_continue = std::make_unique<Label>(&this->medium_text, "Continue", glm::vec2 {
+            screenW / 2.f - 152.f, screenH / 2.f - 40.f
     });
 
-    this->labelMenuSettings = std::make_unique<Label>(&this->medium_text, "Settings", glm::vec2 {
-            screenW / 2.f - 118.f, screenH / 2.f + 80.f
+    this->label_menu_start = std::make_unique<Label>(&this->medium_text, "Start", glm::vec2 {
+            screenW / 2.f - 98.f, screenH / 2.f + 20.f
     });
 
-    this->labelMenuExit = std::make_unique<Label>(&this->medium_text, "Exit", glm::vec2 {
-            screenW / 2.f - 56.f, screenH / 2.f + 140.f
+    this->label_menu_settings = std::make_unique<Label>(&this->medium_text, "Settings", glm::vec2 {
+            screenW / 2.f - 152.f, screenH / 2.f + 80.f
     });
 
-    this->labelMenuHint = std::make_unique<Label>(&this->small_text, "Left or right to change mode", glm::vec2 {
+    this->label_menu_exit = std::make_unique<Label>(&this->medium_text, "Exit", glm::vec2 {
+            screenW / 2.f - 78.f, screenH / 2.f + 140.f
+    });
+
+    this->label_menu_hint = std::make_unique<Label>(&this->small_text, "Left or right to change mode", glm::vec2 {
             screenW / 2.f - 238.f, screenH - 40.f
     });
-    this->labelMenuHint->setColor(glm::vec4 {0.4f, 0.55f, 0.6f, 1.f});
+    this->label_menu_hint->setColor(glm::vec4 {0.4f, 0.55f, 0.6f, 1.f});
 
-    this->labelMenuMode = std::make_unique<Label>(&this->small_text, "Classic", glm::vec2 {
+    this->label_menu_mode = std::make_unique<Label>(&this->small_text, "Classic", glm::vec2 {
             screenW / 2.f - 74.f, screenH / 2.f - 110.f
     });
 
-    this->labelEndgameRestart = std::make_unique<Label>(&this->medium_text, "Retry", glm::vec2 {
-            screenW / 2.f + 55.f, screenH / 2.f
+    this->label_endgame_restart = std::make_unique<Label>(&this->medium_text, "Retry", glm::vec2 {
+            screenW / 2.f + 35.f, screenH / 2.f
     });
 
-    this->labelEndgameScore = std::make_unique<Label>(&this->medium_text, "Score: ", glm::vec2 {
-            screenW / 2.f - 205.f, screenH / 2.f - 60.f
+    this->label_endgame_score = std::make_unique<Label>(&this->medium_text, "Score: ", glm::vec2 {
+            screenW / 2.f - 230.f, screenH / 2.f - 60.f
     });
 
-    this->labelSettingsTitle = std::make_unique<Label>(&this->large_text, "Settings", glm::vec2 {
-            screenW / 2.f - 170.f, screenH / 2.f - 280.f
+    this->label_settings_title = std::make_unique<Label>(&this->large_text, "Settings", glm::vec2 {
+            screenW / 2.f - 216.f, screenH / 2.f - 280.f
     });
 
-    this->labelSettingsFx = std::make_unique<Label>(&this->medium_text, "FX: ", glm::vec2 {
-            screenW / 2.f - 165.f, screenH / 2.f - 60.f
+    this->label_settings_fx = std::make_unique<Label>(&this->medium_text, "FX: ", glm::vec2 {
+            screenW / 2.f - 120.f, screenH / 2.f - 60.f
     });
 
-    this->labelSettingsMusicVolume = std::make_unique<Label>(&this->medium_text, "Volume: ", glm::vec2 {
-            screenW / 2.f - 150.f, screenH / 2.f
+    this->label_settings_music_volume = std::make_unique<Label>(&this->medium_text, "Volume: ", glm::vec2 {
+            screenW / 2.f - 196.f, screenH / 2.f
     });
 
-    this->labelSettingsUnlockResizing = std::make_unique<Label>(&this->medium_text, "Resizing: ", glm::vec2 {
-            screenW / 2.f - 182.f, screenH / 2.f + 60.f
+    this->label_settings_reset_statistics = std::make_unique<Label>(&this->medium_text, "Reset", glm::vec2 {
+            screenW / 2.f - 90.f, screenH / 2.f + 60.f
     });
 
-#if defined(ANDROID)
-    this->labelSettingsUnlockResizing->setColor(COLOR_DISABLED);
-#endif
-
-    this->labelSettingsResetStatistics = std::make_unique<Label>(&this->medium_text, "Reset", glm::vec2 {
-            screenW / 2.f - 76.f, screenH / 2.f + 120.f
+    this->label_settings_back = std::make_unique<Label>(&this->medium_text, "Back", glm::vec2 {
+            screenW / 2.f - 70.f, screenH / 2.f + 280.f
     });
 
-    this->labelSettingsBack = std::make_unique<Label>(&this->medium_text, "Back", glm::vec2 {
-            screenW / 2.f - 58.f, screenH / 2.f + 280.f
+    this->label_game_score = std::make_unique<Label>(&this->medium_text, "Score: ", glm::vec2 {
+            0.f, 5.f
     });
 
-    this->labelGameScore = std::make_unique<Label>(&this->medium_text, "Score: ", glm::vec2 {
-            0.0f, MainScene::mediumTextSize
-    });
-
-    this->labelGameFps = std::make_unique<Label>(&this->medium_text, " fps", glm::vec2 {
-            screenW - 80.0f, MainScene::mediumTextSize
+    this->label_game_fps = std::make_unique<Label>(&this->medium_text, " fps", glm::vec2 {
+            screenW - 80.f, 5.f
     });
 
     if (!audio_init(&audio_engine))
@@ -136,7 +128,7 @@ MainScene::MainScene(Engine& e) {
 
 MainScene::~MainScene() {
 
-    file_save("savedata.dat", (void*)&this->saveData, sizeof(SaveData));
+    file_save("savedata.dat", (void*)&this->save_data, sizeof(SaveData));
 
     audio_destroy(&this->audio_engine);
     audio_source_unload(&this->audio_main);
@@ -165,12 +157,12 @@ void MainScene::suspend(Engine&) {
 void MainScene::resume(Engine&) {
 
     line_load(&this->line);
-    line.width = 4.f;
+    line.width = 5.f;
 
     const char *const fontPath = "fonts/OCRAEXT.TTF";
-    text_load(&this->small_text, fontPath, MainScene::smallTextSize);
-    text_load(&this->medium_text, fontPath, MainScene::mediumTextSize);
-    text_load(&this->large_text, fontPath, MainScene::largeTextSize);
+    text_load(&this->small_text, fontPath, MainScene::small_text_size);
+    text_load(&this->medium_text, fontPath, MainScene::medium_text_size);
+    text_load(&this->large_text, fontPath, MainScene::large_text_size);
 
     this->ball->activate();
     this->lasers->activate();
@@ -185,12 +177,12 @@ void MainScene::update(Engine& engine) {
 
     // update background color
     static float bgColorDirection = 0.005f * engine.window->getDeltaTime();
-    if (backgroundColor[0] > 0.2f || backgroundColor[0] < 0.0f)
+    if (background_color[0] > 0.2f || background_color[0] < 0.0f)
         bgColorDirection = -bgColorDirection;
 
-    backgroundColor[0] += -bgColorDirection / 2;
-    backgroundColor[1] += bgColorDirection / 3;
-    backgroundColor[2] += bgColorDirection / 2;
+    background_color[0] += -bgColorDirection / 2;
+    background_color[1] += bgColorDirection / 3;
+    background_color[2] += bgColorDirection / 2;
 
     // handle input
     if (engine.input.isKeyHold(InputKey::PointerMove))
@@ -213,16 +205,16 @@ void MainScene::update(Engine& engine) {
         this->onEventRight();
 
     // game logic
-    switch (this->gameState) {
+    switch (this->game_state) {
         case GameState::MENU:
         case GameState::ENDGAME:
         case GameState::INGAME:
 
-            gameScore = std::max(gameScore, -static_cast<long>(
+            game_score = std::max(game_score, -static_cast<long>(
                 ball->pos[1] - screenH / 2.f));
 
-            ball->bounceStrength = 1 + static_cast<float>(gameScore) / ballStrengthMod;
-            ball->gravity = 9.8f + static_cast<float>(gameScore) / ballGravityMod;
+            ball->bounce_strength = 1 + static_cast<float>(game_score) / ball_strength_mod;
+            ball->gravity = 9.8f + static_cast<float>(game_score) / ball_gravity_mod;
 
             ball->move(engine.window->getDeltaTime());
 
@@ -242,7 +234,7 @@ void MainScene::update(Engine& engine) {
             }
 
             /* If game was over turn global scroll back */
-            if (gameState == GameState::ENDGAME) {
+            if (game_state == GameState::ENDGAME) {
                 scroll += (-scroll) / 100;
             }
 
@@ -250,18 +242,18 @@ void MainScene::update(Engine& engine) {
             if (ball->pos[0] < 0 || ball->pos[0] > screenW ||
                 ball->pos[1] - scroll > screenH + ball->radius)
             {
-                if (gameState == GameState::INGAME) {
+                if (game_state == GameState::INGAME) {
                     if (t_rand(0, 1) == 0)
                         audio_play(&this->audio_engine, &this->audio_fail_a);
                     else
                         audio_play(&this->audio_engine, &this->audio_fail_b);
 
-                    gameState = GameState::ENDGAME;
+                    game_state = GameState::ENDGAME;
                 }
             }
 
             /* Random platforms */
-            if ((-scroll) - last_place > randLinesDensity) {
+            if ((-scroll) - last_place > rand_lines_density) {
                 if (t_rand(0, 1) <= 1) {
                     auto base_y = scroll - 80.0f;
                     auto base_x = t_rand(-(screenW/3.f), screenW);
@@ -281,30 +273,30 @@ void MainScene::update(Engine& engine) {
                     }
                 }
 
-                last_place += randLinesDensity;
+                last_place += rand_lines_density;
             }
 
             /* Push for tail */
-            if (this->saveData.fxEnabled) {
+            if (this->save_data.fxEnabled) {
 
-                ballTail->push(glm::vec2{
-                                       ball->pos[0] + ball->diameter,
-                                       ball->pos[1] + ball->diameter
-                               }, glm::vec2{
-                                       ball->prev_pos[0] + ball->diameter,
-                                       ball->prev_pos[1] + ball->diameter
-                               }
+                ball_tail->push(glm::vec2{
+                       ball->pos[0],
+                       ball->pos[1]
+                   }, glm::vec2{
+                       ball->prev_pos[0],
+                       ball->prev_pos[1]
+                   }
                 );
 
                 if (pressed) {
-                    cursorTail->push(
-                            glm::vec2{pointerX, pointerY + scroll},
-                            prevMousePos);
+                    cursor_tail->push(
+                        glm::vec2{pointerX, pointerY + scroll},
+                        prev_mouse_pos);
                 }
             }
 
             /* lasers */
-            if (gameScore > 1000L) {
+            if (game_score > 1000L) {
                 if (t_rand(0, 600) == 1) {
                     audio_play(&this->audio_engine, &this->audio_warning);
 
@@ -337,7 +329,7 @@ void MainScene::render(Engine& engine) {
 
     PROLOG(engine)
 
-    engine.graphics.clear(backgroundColor);
+    engine.graphics.clear(background_color);
 
     lasers->draw();
 
@@ -347,8 +339,8 @@ void MainScene::render(Engine& engine) {
         if (ball->pos[0] > lasers->lasers.front().a[0] &&
             ball->pos[0] < lasers->lasers.back().a[0]) {
 
-            if (gameState == GameState::INGAME)
-                gameState = GameState::ENDGAME;
+            if (game_state == GameState::INGAME)
+                game_state = GameState::ENDGAME;
 
             if (t_rand(0, 1) == 0)
                 audio_play(&this->audio_engine, &this->audio_fail_a);
@@ -364,52 +356,52 @@ void MainScene::render(Engine& engine) {
         }
     }
 
-    if (saveData.fxEnabled) {
-        cursorTail->draw();
+    if (save_data.fxEnabled) {
+        cursor_tail->draw();
         sparks->draw();
-        ballTail->draw();
+        ball_tail->draw();
     }
 
-    if (gameMode == GameMode::CLASSIC)
+    if (game_mode == GameMode::CLASSIC)
         lines->Draw();
 
     ball->draw();
     rand_lines->Draw();
 
     // gui text
-    switch (gameState) {
+    switch (game_state) {
         case GameState::PAUSED:
         case GameState::MENU:
 
-            this->labelMenuTitle->draw();
+            this->label_menu_title->draw();
 
-            this->labelMenuContinue
-                ->setColor(menuSelected == MenuSelected::CONTINUE ? COLOR_SELECTED : COLOR_IDLE)
+            this->label_menu_continue
+                ->setColor(menu_selected == MenuSelected::CONTINUE ? COLOR_SELECTED : COLOR_IDLE)
                 .draw();
 
-            this->labelMenuStart
-                ->setColor(menuSelected == MenuSelected::START ? COLOR_SELECTED : COLOR_IDLE)
+            this->label_menu_start
+                ->setColor(menu_selected == MenuSelected::START ? COLOR_SELECTED : COLOR_IDLE)
                 .draw();
 
-            this->labelMenuSettings
-                ->setColor(menuSelected == MenuSelected::SETTINGS ? COLOR_SELECTED : COLOR_IDLE)
+            this->label_menu_settings
+                ->setColor(menu_selected == MenuSelected::SETTINGS ? COLOR_SELECTED : COLOR_IDLE)
                 .draw();
 
-            this->labelMenuExit
-                ->setColor(menuSelected == MenuSelected::EXIT ? COLOR_SELECTED : COLOR_IDLE)
+            this->label_menu_exit
+                ->setColor(menu_selected == MenuSelected::EXIT ? COLOR_SELECTED : COLOR_IDLE)
                 .draw();
 
-            this->labelMenuHint->draw();
+            this->label_menu_hint->draw();
 
-            switch (gameMode) {
+            switch (game_mode) {
                 case GameMode::CLASSIC:
 
-                    this->labelGameScore
-                        ->setText("Highest: " + std::to_string(saveData.maxScoreClassic))
+                    this->label_game_score
+                        ->setText("Score: " + std::to_string(save_data.maxScoreClassic))
                         .setColor(COLOR_IDLE)
                         .draw();
 
-                    this->labelMenuMode
+                    this->label_menu_mode
                         ->setText("Classic")
                         .setPos(glm::vec2{ screenW/2.f - 60.f, screenH / 2.f - 110.f })
                         .setColor(COLOR_IDLE)
@@ -419,12 +411,12 @@ void MainScene::render(Engine& engine) {
 
                 case GameMode::HIDDEN:
 
-                    this->labelGameScore
-                        ->setText("Highest: " + std::to_string(saveData.maxScoreClassic))
+                    this->label_game_score
+                        ->setText("Score: " + std::to_string(save_data.maxScoreClassic))
                         .setColor(COLOR_IDLE)
                         .draw();
 
-                    this->labelMenuMode
+                    this->label_menu_mode
                         ->setText("Hidden")
                         .setPos(glm::vec2{ screenW/2.f - 52.f, screenH / 2.f - 110.f })
                         .setColor(COLOR_IDLE)
@@ -440,69 +432,64 @@ void MainScene::render(Engine& engine) {
 
         case GameState::SETTINGS:
 
-            this->labelSettingsTitle->draw();
+            this->label_settings_title->draw();
 
-            this->labelSettingsFx
-                ->setText(CCAT("FX: ", saveData.fxEnabled, "enabled", "disabled"))
-                .setColor(settingsSelected == SettingsSelected::FX_ENABLED ? COLOR_SELECTED : COLOR_IDLE)
+            this->label_settings_fx
+                ->setText(CCAT("FX: ", save_data.fxEnabled, "on", "off"))
+                .setColor(settings_selected == SettingsSelected::FX_ENABLED ? COLOR_SELECTED : COLOR_IDLE)
                 .draw();
 
-            this->labelSettingsMusicVolume
-                ->setText("Volume: " + std::to_string(static_cast<int>(saveData.musicVolumeFloat * 100)))
-                .setColor(settingsSelected == SettingsSelected::MUSIC_VOLUME ? COLOR_SELECTED : COLOR_IDLE)
+            this->label_settings_music_volume
+                ->setText("Volume: " + std::to_string(static_cast<int>(save_data.musicVolumeFloat * 100)))
+                .setColor(settings_selected == SettingsSelected::MUSIC_VOLUME ? COLOR_SELECTED : COLOR_IDLE)
                 .draw();
 
-            this->labelSettingsUnlockResizing
-                ->setText(CCAT("Resizing: ", saveData.unlockResizing, "yes", "no"))
-                .setColor(settingsSelected == SettingsSelected::UNLOCK_RESIZE ? COLOR_SELECTED : COLOR_IDLE)
+            this->label_settings_reset_statistics
+                ->setColor(settings_selected == SettingsSelected::RESET_STATISTICS ? COLOR_SELECTED : COLOR_IDLE)
                 .draw();
 
-            this->labelSettingsResetStatistics
-                ->setColor(settingsSelected == SettingsSelected::RESET_STATISTICS ? COLOR_SELECTED : COLOR_IDLE)
-                .draw();
-
-            this->labelSettingsBack
-                ->setColor(settingsSelected == SettingsSelected::BACK ? COLOR_SELECTED : COLOR_IDLE)
+            this->label_settings_back
+                ->setColor(settings_selected == SettingsSelected::BACK ? COLOR_SELECTED : COLOR_IDLE)
                 .draw();
 
             break;
 
         case GameState::INGAME:
 
-            if (pressed && gameMode == GameMode::CLASSIC) {
+            if (pressed && game_mode == GameMode::CLASSIC) {
 
                 this->line.color[0] = .5f;
                 this->line.color[1] = .5f;
                 this->line.color[2] = .5f;
                 this->line.color[3] = 1.f;
 
-                line_draw(&this->line, &glm::vec4 {lastClick[0], lastClick[1] - scroll, pointerX, pointerY}[0]);
+                line_draw(&this->line, &glm::vec4 {last_click[0], last_click[1] - scroll, pointerX, pointerY}[0]);
             }
 
 #ifndef NDEBUG
 
-            this->labelGameFps
-                ->setText(std::to_string(static_cast<int>(1 / engine.window->getDeltaTime())) + std::string(" fps"))
-                .setColor(gameMode == GameMode::CLASSIC ? COLOR_SELECTED : COLOR_HIDDEN)
-                .draw();
+//            this->labelGameFps
+//                ->setText(std::to_string(static_cast<int>(1 / engine.window->getDeltaTime())) + std::string(" fps"))
+//                .setColor(gameMode == GameMode::CLASSIC ? COLOR_SELECTED : COLOR_HIDDEN)
+//                .draw();
 
 #endif
 
-            this->labelGameScore
-                ->setText("Score: " + std::to_string(gameScore))
-                .setColor(gameMode == GameMode::CLASSIC ? COLOR_SELECTED : COLOR_HIDDEN)
+            this->label_game_score
+                ->setText("Score: " + std::to_string(game_score))
+                .setColor(game_mode == GameMode::CLASSIC ? COLOR_SELECTED : COLOR_HIDDEN)
                 .draw();
 
             break;
 
         case GameState::ENDGAME:
 
-            this->labelEndgameScore
-                ->setText("Score: " + std::to_string(gameScore))
-                .setColor(gameMode == GameMode::CLASSIC ? COLOR_SELECTED : COLOR_HIDDEN)
+            this->label_endgame_score
+                ->setText("Score: " + std::to_string(game_score))
+                .setColor(game_mode == GameMode::CLASSIC ? COLOR_SELECTED : COLOR_HIDDEN)
                 .draw();
 
-            this->labelEndgameRestart->draw();
+            this->label_endgame_restart->draw();
 
             break;
 
@@ -510,39 +497,52 @@ void MainScene::render(Engine& engine) {
             break;
     }
 
-    this->prevMousePos = {
+    std::memcpy(this->line.color, (float[4]){1.f, 1.f, 1.f, 1.f}, sizeof(float[4]));
+
+//    float debugLine[4] = {
+//        screenW/2.f, 0.f,
+//        screenW/2.f, screenH
+//    };
+//    float debugLineHor[4] = {
+//        0.f, screenH/2.f,
+//        screenW, screenH/2.f
+//    };
+//    line_draw(&this->line, debugLine);
+//    line_draw(&this->line, debugLineHor);
+
+    this->prev_mouse_pos = {
         pointerX,
         pointerY + scroll,
     };
 
-    this->pressedOnce = false;
+    this->pressed_once = false;
 }
 
 void MainScene::reset(Engine& engine) {
 
-    cursorTail->reset();
+    cursor_tail->reset();
 
-    this->prevMousePos = {
+    this->prev_mouse_pos = {
         static_cast<float>(engine.window->getLogicalSize()[0]) / 2.f,
         static_cast<float>(engine.window->getLogicalSize()[1])
     };
 
-    this->lastClick = this->prevMousePos;
+    this->last_click = this->prev_mouse_pos;
 
     scroll = 0.0f;
 
-    if (gameMode == GameMode::CLASSIC)
-        if (gameScore > saveData.maxScoreClassic)
-            saveData.maxScoreClassic = gameScore;
+    if (game_mode == GameMode::CLASSIC)
+        if (game_score > save_data.maxScoreClassic)
+            save_data.maxScoreClassic = game_score;
 
-    if (gameMode == GameMode::HIDDEN)
-        if (gameScore > saveData.maxScoreHidden)
-            saveData.maxScoreHidden = gameScore;
+    if (game_mode == GameMode::HIDDEN)
+        if (game_score > save_data.maxScoreHidden)
+            save_data.maxScoreHidden = game_score;
 
-    gameScore = 0L;
+    game_score = 0L;
 
-    gameState = GameState::INGAME;
-    last_place = randLinesDensity;
+    game_state = GameState::INGAME;
+    last_place = rand_lines_density;
 
     ball->reset(engine.window->getLogicalSize());
     rand_lines->Reset();
@@ -554,51 +554,51 @@ void MainScene::onEventPointerMove(Engine& engine) {
     auto& pointerPos = engine.input.getPointerArray()[0];
 
     // gestures
-    switch (this->gameState) {
+    switch (this->game_state) {
 
         case GameState::MENU:
         case GameState::PAUSED:
-            if (this->labelMenuContinue->isCollide(glm::make_vec2(pointerPos.data()))) {
+            if (this->label_menu_continue->isCollide(glm::make_vec2(pointerPos.data()))) {
 
-                this->menuSelected = MenuSelected::CONTINUE;
-                if (this->pressedOnce) {
+                this->menu_selected = MenuSelected::CONTINUE;
+                if (this->pressed_once) {
                     this->onEventSelect(engine);
                 }
             }
 
-            if (this->labelMenuStart->isCollide(glm::make_vec2(pointerPos.data()))) {
+            if (this->label_menu_start->isCollide(glm::make_vec2(pointerPos.data()))) {
 
-                this->menuSelected = MenuSelected::START;
-                if (this->pressedOnce) {
+                this->menu_selected = MenuSelected::START;
+                if (this->pressed_once) {
                     this->onEventSelect(engine);
                 }
             }
-            if (this->labelMenuSettings->isCollide(glm::make_vec2(pointerPos.data()))) {
+            if (this->label_menu_settings->isCollide(glm::make_vec2(pointerPos.data()))) {
 
-                this->menuSelected = MenuSelected::SETTINGS;
-                if (this->pressedOnce) {
-                    this->onEventSelect(engine);
-                }
-            }
-
-            if (this->labelMenuExit->isCollide(glm::make_vec2(pointerPos.data()))) {
-
-                this->menuSelected = MenuSelected::EXIT;
-                if (this->pressedOnce) {
+                this->menu_selected = MenuSelected::SETTINGS;
+                if (this->pressed_once) {
                     this->onEventSelect(engine);
                 }
             }
 
-            if (this->labelMenuHint->isCollide(glm::make_vec2(pointerPos.data()))) {
-                if (this->pressedOnce) {
-                    this->labelMenuHint->setColor(glm::vec4 {
+            if (this->label_menu_exit->isCollide(glm::make_vec2(pointerPos.data()))) {
+
+                this->menu_selected = MenuSelected::EXIT;
+                if (this->pressed_once) {
+                    this->onEventSelect(engine);
+                }
+            }
+
+            if (this->label_menu_hint->isCollide(glm::make_vec2(pointerPos.data()))) {
+                if (this->pressed_once) {
+                    this->label_menu_hint->setColor(glm::vec4 {
                             t_rand(.0f, 1.f), t_rand(.0f, 1.f), t_rand(.0f, 1.f), 1.f
                     });
                 }
             }
 
-            if (this->labelMenuMode->isCollide(glm::make_vec2(pointerPos.data()))) {
-                if (this->pressedOnce) {
+            if (this->label_menu_mode->isCollide(glm::make_vec2(pointerPos.data()))) {
+                if (this->pressed_once) {
                     this->onEventRight();
                 }
             }
@@ -607,50 +607,42 @@ void MainScene::onEventPointerMove(Engine& engine) {
 
         case GameState::ENDGAME:
 
-            if (this->labelEndgameRestart->isCollide(glm::make_vec2(pointerPos.data()))) {
-                if (this->pressedOnce)
+            if (this->label_endgame_restart->isCollide(glm::make_vec2(pointerPos.data()))) {
+                if (this->pressed_once)
                     this->onEventSelect(engine);
             }
             break;
 
         case GameState::SETTINGS:
 
-            if (this->labelSettingsFx->isCollide(glm::make_vec2(pointerPos.data()))) {
+            if (this->label_settings_fx->isCollide(glm::make_vec2(pointerPos.data()))) {
 
-                this->settingsSelected = SettingsSelected::FX_ENABLED;
-                if (this->pressedOnce) {
+                this->settings_selected = SettingsSelected::FX_ENABLED;
+                if (this->pressed_once) {
                     this->onEventSelect(engine);
                 }
             }
 
-            if (this->labelSettingsMusicVolume->isCollide(glm::make_vec2(pointerPos.data()))) {
+            if (this->label_settings_music_volume->isCollide(glm::make_vec2(pointerPos.data()))) {
 
-                this->settingsSelected = SettingsSelected::MUSIC_VOLUME;
-                if (this->pressedOnce) {
+                this->settings_selected = SettingsSelected::MUSIC_VOLUME;
+                if (this->pressed_once) {
                     this->onEventLeft();
                 }
             }
 
-            if (this->labelSettingsUnlockResizing->isCollide(glm::make_vec2(pointerPos.data()))) {
+            if (this->label_settings_reset_statistics->isCollide(glm::make_vec2(pointerPos.data()))) {
 
-                this->settingsSelected = SettingsSelected::UNLOCK_RESIZE;
-                if (this->pressedOnce) {
+                this->settings_selected = SettingsSelected::RESET_STATISTICS;
+                if (this->pressed_once) {
                     this->onEventSelect(engine);
                 }
             }
 
-            if (this->labelSettingsResetStatistics->isCollide(glm::make_vec2(pointerPos.data()))) {
+            if (this->label_settings_back->isCollide(glm::make_vec2(pointerPos.data()))) {
 
-                this->settingsSelected = SettingsSelected::RESET_STATISTICS;
-                if (this->pressedOnce) {
-                    this->onEventSelect(engine);
-                }
-            }
-
-            if (this->labelSettingsBack->isCollide(glm::make_vec2(pointerPos.data()))) {
-
-                this->settingsSelected = SettingsSelected::BACK;
-                if (this->pressedOnce) {
+                this->settings_selected = SettingsSelected::BACK;
+                if (this->pressed_once) {
                     this->onEventSelect(engine);
                 }
             }
@@ -665,30 +657,30 @@ void MainScene::onEventPointerDown() {
 
 void MainScene::onEventPointerUp(Engine& engine) {
 
-    if (this->gameState == GameState::INGAME) {
+    if (this->game_state == GameState::INGAME) {
         glm::vec2 newPos = {
             engine.input.getPointerArray()[0][0], engine.input.getPointerArray()[0][1] + scroll
         };
         
-        this->lines->Push(newPos, lastClick);
-        this->lastClick = newPos;
+        this->lines->Push(newPos, last_click);
+        this->last_click = newPos;
     }
 
     this->pressed = false;
-    this->pressedOnce = true;
+    this->pressed_once = true;
 
     onEventPointerMove(engine);
 }
 
 void MainScene::onEventSelect(Engine& engine) {
 
-    switch (gameState) {
+    switch (game_state) {
         case GameState::SETTINGS:
 
-            switch (settingsSelected) {
+            switch (settings_selected) {
                 case SettingsSelected::FX_ENABLED:
 
-                    saveData.fxEnabled = saveData.fxEnabled == 0;
+                    save_data.fxEnabled = save_data.fxEnabled == 0;
 
                     break; /* end of FX_ENABLED */
 
@@ -707,15 +699,15 @@ void MainScene::onEventSelect(Engine& engine) {
 
                 case SettingsSelected::RESET_STATISTICS:
 
-                    saveData.maxScoreClassic = 0L;
-                    saveData.maxScoreHidden = 0L;
+                    save_data.maxScoreClassic = 0L;
+                    save_data.maxScoreHidden = 0L;
                     file_remove("savedata.dat");
 
                     break; /* end of RESET_STATISTICS */
 
                 case SettingsSelected::BACK:
 
-                    gameState = GameState::PAUSED;
+                    game_state = GameState::PAUSED;
 
                     break; /* end of BACK */
                 default:
@@ -727,23 +719,23 @@ void MainScene::onEventSelect(Engine& engine) {
         case GameState::PAUSED:
         case GameState::MENU:
 
-            switch (menuSelected) {
+            switch (menu_selected) {
                 case MenuSelected::START:
-                    gameState = GameState::INGAME;
+                    game_state = GameState::INGAME;
                     reset(engine);
                     break;
 
                 case MenuSelected::CONTINUE:
-                    if (gameState == GameState::PAUSED)
-                        gameState = GameState::INGAME;
+                    if (game_state == GameState::PAUSED)
+                        game_state = GameState::INGAME;
                     break;
 
                 case MenuSelected::SETTINGS:
-                    gameState = GameState::SETTINGS;
+                    game_state = GameState::SETTINGS;
                     break;
 
                 case MenuSelected::EXIT: {
-                    this->gameState = GameState::EXITING;
+                    this->game_state = GameState::EXITING;
                     engine.window->close();
                     break;
                 }
@@ -763,27 +755,27 @@ void MainScene::onEventSelect(Engine& engine) {
 }
 
 void MainScene::onEventBack(Engine& engine) {
-    switch (gameState) {
+    switch (game_state) {
 
         case GameState::MENU:
             engine.window->close();
             return;
 
         case GameState::SETTINGS:
-            gameState = GameState::PAUSED;
+            game_state = GameState::PAUSED;
             break;
 
         case GameState::INGAME:
-            menuSelected = MenuSelected::CONTINUE;
-            gameState = GameState::PAUSED;
+            menu_selected = MenuSelected::CONTINUE;
+            game_state = GameState::PAUSED;
             break;
 
         case GameState::PAUSED:
-            gameState = GameState::INGAME;
+            game_state = GameState::INGAME;
             break;
 
         case GameState::ENDGAME:
-            gameState = GameState::MENU;
+            game_state = GameState::MENU;
             reset(engine);
             break;
 
@@ -794,63 +786,63 @@ void MainScene::onEventBack(Engine& engine) {
 
 void MainScene::onEventUp() {
 
-    if (gameState == GameState::MENU)
-        --menuSelected;
-    if (gameState == GameState::PAUSED)
-        --menuSelected;
-    if (gameState == GameState::SETTINGS)
-        --settingsSelected;
+    if (game_state == GameState::MENU)
+        --menu_selected;
+    if (game_state == GameState::PAUSED)
+        --menu_selected;
+    if (game_state == GameState::SETTINGS)
+        --settings_selected;
 }
 
 void MainScene::onEventLeft() {
 
-    if (gameState == GameState::MENU) {
-        --gameMode;
-        cursorTail->alpha = cursorTail->alpha == 0.15f ? 0.4f : 0.15f;
+    if (game_state == GameState::MENU) {
+        --game_mode;
+        cursor_tail->alpha = cursor_tail->alpha == 0.15f ? 0.4f : 0.15f;
     }
 
-    if (gameState == GameState::SETTINGS) {
-        if (settingsSelected == SettingsSelected::MUSIC_VOLUME) {
+    if (game_state == GameState::SETTINGS) {
+        if (settings_selected == SettingsSelected::MUSIC_VOLUME) {
 
-            if (saveData.musicVolumeFloat > 0.0f) {
-                saveData.musicVolumeFloat -= 0.1f;
+            if (save_data.musicVolumeFloat > 0.0f) {
+                save_data.musicVolumeFloat -= 0.1f;
             } else {
-                saveData.musicVolumeFloat = 1.f;
+                save_data.musicVolumeFloat = 1.f;
             }
 
-            this->audio_engine.master_vol = std::min(saveData.musicVolumeFloat, 1.f);
+            this->audio_engine.master_vol = std::min(save_data.musicVolumeFloat, 1.f);
         }
     }
 }
 
 void MainScene::onEventDown() {
 
-    if (gameState == GameState::MENU)
-        ++menuSelected;
-    if (gameState == GameState::PAUSED)
-        ++menuSelected;
-    if (gameState == GameState::SETTINGS)
-        ++settingsSelected;
+    if (game_state == GameState::MENU)
+        ++menu_selected;
+    if (game_state == GameState::PAUSED)
+        ++menu_selected;
+    if (game_state == GameState::SETTINGS)
+        ++settings_selected;
 }
 
 void MainScene::onEventRight() {
 
-    if (gameState == GameState::MENU) {
-        ++gameMode;
-        cursorTail->alpha = cursorTail->alpha == 0.08f ? 0.4f : 0.08f;
+    if (game_state == GameState::MENU) {
+        ++game_mode;
+        cursor_tail->alpha = cursor_tail->alpha == 0.08f ? 0.4f : 0.08f;
     }
 
-    if (gameState == GameState::SETTINGS) {
+    if (game_state == GameState::SETTINGS) {
 
-        if (settingsSelected == SettingsSelected::MUSIC_VOLUME) {
+        if (settings_selected == SettingsSelected::MUSIC_VOLUME) {
 
-            if (saveData.musicVolumeFloat <= 1.0f) {
-                saveData.musicVolumeFloat += 0.1f;
+            if (save_data.musicVolumeFloat <= 1.0f) {
+                save_data.musicVolumeFloat += 0.1f;
             } else {
-                saveData.musicVolumeFloat = 0.f;
+                save_data.musicVolumeFloat = 0.f;
             }
 
-            this->audio_engine.master_vol = std::min(saveData.musicVolumeFloat, 1.f);
+            this->audio_engine.master_vol = std::min(save_data.musicVolumeFloat, 1.f);
         }
     }
 }
