@@ -1,7 +1,6 @@
 #include "Object.h"
 #include "Internal.h"
-#include "memory.h"
-#include <errno.h>
+#include <cstring>
 
 #if !defined(__ANDROID__) && !defined(ANDROID)
 #include "GL/glew.h"
@@ -13,10 +12,9 @@ extern struct spige* spige_instance;
 // line
 void line_load(struct line* line) {
 
-    memset(line, 0, sizeof(struct line));
+    std::memset(line, 0, sizeof(struct line));
 
     line->width = 1.f;
-    //memcpy(line->color, (vec4){1.f, 1.f, 1.f, 1.f}, sizeof(vec4));
     line->color = { 1.f, 1.f, 1.f, 1.f };
 
     const char* vertex_src =
@@ -44,10 +42,10 @@ void line_load(struct line* line) {
     glBindVertexArray(line->vao);
 
     glBindBuffer(GL_ARRAY_BUFFER, line->vbo[0]);
-    glBufferData(GL_ARRAY_BUFFER, 4 * sizeof(float), NULL, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, 4 * sizeof(float), nullptr, GL_DYNAMIC_DRAW);
 
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), nullptr);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
@@ -339,10 +337,10 @@ void text_load(struct text* text, const char* font, float size) {
     glBindVertexArray(text->vao);
 
     glBindBuffer(GL_ARRAY_BUFFER, text->vbo[0]);
-    glBufferData(GL_ARRAY_BUFFER, 6 * 4 * sizeof(float), NULL, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, 6 * 4 * sizeof(float), nullptr, GL_DYNAMIC_DRAW);
 
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), nullptr);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
@@ -429,7 +427,6 @@ void text_load(struct text* text, const char* font, float size) {
             { face->glyph->bitmap_left, face->glyph->bitmap_top } // bearing
         };
 
-//        text->width += (float)face->glyph->bitmap.width;
         text->width += (float)(face->glyph->advance.x >> 6) * text->scale; // TODO find text width and height
         float height = (float)(face->glyph->advance.y >> 6) * text->scale;
 
