@@ -34,11 +34,11 @@ Window::Window(const Config& config) {
     EGLint numConfigs;
     EGLConfig eglConfig;
 
-    m_AndroidApp = config.m_AndroidApp;
+    this->android_app_ptr = config.androidApp();
 
-    display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+    this->display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
 
-    eglInitialize(display, nullptr, nullptr);
+    eglInitialize(this->display, nullptr, nullptr);
 
     /* Here, the application chooses the configuration it desires. In this
     * sample, we have a very simplified selection process, where we pick
@@ -51,18 +51,18 @@ Window::Window(const Config& config) {
     * ANativeWindow buffers to match, using EGL_NATIVE_VISUAL_ID. */
     eglGetConfigAttrib(display, eglConfig, EGL_NATIVE_VISUAL_ID, &format);
 
-    ANativeWindow_setBuffersGeometry(m_AndroidApp->window, 0, 0, format);
+    ANativeWindow_setBuffersGeometry(this->android_app_ptr->window, 0, 0, format);
 
-    surface = eglCreateWindowSurface(display, eglConfig, m_AndroidApp->window, nullptr);
-    context = eglCreateContext(display, eglConfig, EGL_NO_CONTEXT, context_attribs);
+    this->surface = eglCreateWindowSurface(this->display, eglConfig, this->android_app_ptr->window, nullptr);
+    this->context = eglCreateContext(this->display, eglConfig, EGL_NO_CONTEXT, context_attribs);
 
-    if (eglMakeCurrent(display, surface, surface, context) == EGL_FALSE) {
+    if (eglMakeCurrent(this->display, this->surface, this->surface, this->context) == EGL_FALSE) {
         LOGW("Unable to eglMakeCurrent");
         return;
     }
 
-    eglQuerySurface(display, surface, EGL_WIDTH, &w);
-    eglQuerySurface(display, surface, EGL_HEIGHT, &h);
+    eglQuerySurface(this->display, this->surface, EGL_WIDTH, &w);
+    eglQuerySurface(this->display, this->surface, EGL_HEIGHT, &h);
 
     this->setLogicalSize({w, h});
 
@@ -88,12 +88,12 @@ Window::~Window() {
 }
 
 void Window::close() {
-    m_ShouldClose = true;
-    ANativeActivity_finish(m_AndroidApp->activity);
+    this->should_close = true;
+    ANativeActivity_finish(android_app_ptr->activity);
 }
 
 bool Window::isShouldClose() {
-    return m_ShouldClose;
+    return this->should_close;
 }
 
 void Window::swapBuffers() {
@@ -101,7 +101,7 @@ void Window::swapBuffers() {
 }
 
 float Window::getDeltaTime() {
-    return this->frameInfo.deltaTime;
+    return this->frameInfo.delta_time;
 }
 
 Window::Config &Window::Config::androidApp(android_app *androidApp) {
@@ -122,16 +122,16 @@ Window::Window(const Config& config) {
     if (!glfwInit())
         exit(-1);
 
-    this->setLogicalSize(config.m_InnerSize);
+    this->setLogicalSize(config.innerSize());
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
-    glfwWindowHint(GLFW_RESIZABLE, config.m_Resizeable ? GLFW_TRUE : GLFW_FALSE);
-    glfwWindowHint(GLFW_MAXIMIZED, config.m_Maximized ? GLFW_TRUE : GLFW_FALSE);
-    glfwWindowHint(GLFW_VISIBLE, config.m_Visible ? GLFW_TRUE : GLFW_FALSE);
-    glfwWindowHint(GLFW_DECORATED, config.m_Decorated ? GLFW_TRUE : GLFW_FALSE);
+    glfwWindowHint(GLFW_RESIZABLE, config.resizeable() ? GLFW_TRUE : GLFW_FALSE);
+    glfwWindowHint(GLFW_MAXIMIZED, config.maximized() ? GLFW_TRUE : GLFW_FALSE);
+    glfwWindowHint(GLFW_VISIBLE, config.visible() ? GLFW_TRUE : GLFW_FALSE);
+    glfwWindowHint(GLFW_DECORATED, config.decorated() ? GLFW_TRUE : GLFW_FALSE);
 
 #if defined(__linux__)
     if (glfwPlatformSupported(GLFW_PLATFORM_WAYLAND))
@@ -141,35 +141,35 @@ Window::Window(const Config& config) {
 #endif
 
     /* Create a windowed mode window and its OpenGL context */
-    if (!config.m_Fullscreen) {
-        this->glfwWindow = glfwCreateWindow(
-            config.m_InnerSize[0],
-            config.m_InnerSize[1],
-            config.m_Title.c_str(), nullptr, nullptr);
+    if (!config.fullscreen()) {
+        this->glfw_window = glfwCreateWindow(
+            config.innerSize()[0],
+            config.innerSize()[1],
+            config.title().c_str(), nullptr, nullptr);
     } else {
 
         GLFWmonitor* monitor =  glfwGetPrimaryMonitor();
         const GLFWvidmode* mode = glfwGetVideoMode(monitor);
 
-        this->glfwWindow = glfwCreateWindow(
+        this->glfw_window = glfwCreateWindow(
             mode->width,
             mode->height,
-            config.m_Title.c_str(), nullptr, nullptr);
+            config.title().c_str(), nullptr, nullptr);
     }
 
-    if (!this->glfwWindow)
+    if (!this->glfw_window)
     {
         glfwTerminate();
         exit(-1);
     }
 
     /* Make the window's context current */
-    glfwMakeContextCurrent(this->glfwWindow);
-    glfwSetFramebufferSizeCallback(this->glfwWindow, Window::glfwSizeCallback_);
-    glfwSwapInterval(config.m_Vsync ? 1 : 0);
-    glfwSetCursorPosCallback(this->glfwWindow, Input::glfwCursorCallback_);
-    glfwSetKeyCallback(this->glfwWindow, Input::glfwInputCallback_);
-    glfwSetMouseButtonCallback(this->glfwWindow, Input::glfwMouseCallback_);
+    glfwMakeContextCurrent(this->glfw_window);
+    glfwSetFramebufferSizeCallback(this->glfw_window, Window::glfwSizeCallback_);
+    glfwSwapInterval(config.vsync() ? 1 : 0);
+    glfwSetCursorPosCallback(this->glfw_window, Input::glfwCursorCallback_);
+    glfwSetKeyCallback(this->glfw_window, Input::glfwInputCallback_);
+    glfwSetMouseButtonCallback(this->glfw_window, Input::glfwMouseCallback_);
 
     if (glewInit() != GLEW_OK)
         exit(-1);
@@ -180,16 +180,16 @@ Window::Window(const Config& config) {
 Window::~Window() = default;
 
 void Window::close() {
-    m_ShouldClose = true;
-    glfwSetWindowShouldClose(this->glfwWindow, 1);
+    should_close = true;
+    glfwSetWindowShouldClose(this->glfw_window, 1);
 }
 
 bool Window::isShouldClose() {
-    return glfwWindowShouldClose(this->glfwWindow);
+    return glfwWindowShouldClose(this->glfw_window);
 }
 
 void Window::swapBuffers() {
-    glfwSwapBuffers(this->glfwWindow);
+    glfwSwapBuffers(this->glfw_window);
 }
 
 float Window::getDeltaTime() {
@@ -197,49 +197,49 @@ float Window::getDeltaTime() {
 //    this->frameInfo.deltaTime = currentFrame - this->frameInfo.lastFrameTime;
 //    this->frameInfo.lastFrameTime = currentFrame;
 //    this->frameInfo.deltaTime = this->frameInfo.lastFrameTime = 1.f / 60.f;
-    return this->frameInfo.deltaTime;
+    return this->frameInfo.delta_time;
 }
 
 #endif
 
-float Window::getDeltaTimeLast() const { return this->frameInfo.lastFrameTime; }
+float Window::getDeltaTimeLast() const { return this->frameInfo.last_frame_time; }
 
 Window::Config &Window::Config::title(std::string title) {
-    this->m_Title = std::move(title);
+    this->title_ = std::move(title);
     return *this;
 }
 
 Window::Config &Window::Config::innerSize(int width, int height) {
-    this->m_InnerSize = {width, height};
+    this->inner_size_ = {width, height};
     return *this;
 }
 
 Window::Config &Window::Config::resizeable(bool resizeable) {
-    this->m_Resizeable = resizeable;
+    this->resizeable_ = resizeable;
     return *this;
 }
 
 Window::Config &Window::Config::fullscreen(bool fullscreen) {
-    this->m_Fullscreen = fullscreen;
+    this->fullscreen_ = fullscreen;
     return *this;
 }
 
 Window::Config &Window::Config::maximized(bool maximized) {
-    this->m_Maximized = maximized;
+    this->maximized_ = maximized;
     return *this;
 }
 
 Window::Config &Window::Config::vsync(bool vsync) {
-    this->m_Vsync = vsync;
+    this->vsync_ = vsync;
     return *this;
 }
 
 Window::Config &Window::Config::visible(bool visible) {
-    this->m_Visible = visible;
+    this->visible_ = visible;
     return *this;
 }
 
 Window::Config &Window::Config::decorated(bool decorated) {
-    this->m_Decorated = decorated;
+    this->decorated_ = decorated;
     return *this;
 }

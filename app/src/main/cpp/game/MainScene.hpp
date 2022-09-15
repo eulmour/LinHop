@@ -101,11 +101,11 @@ private:
     Color background_color{0.0f, 0.1f, 0.2f, 1.f};
 
     struct SaveData {
-        long maxScoreClassic;
-        long maxScoreHidden;
-        long fxEnabled;
-        long unlockResizing;
-        float musicVolumeFloat;
+        long max_score_classic;
+        long max_score_hidden;
+        long fx_enabled;
+        long unlock_resizing;
+        float music_volume_float;
     } save_data {0, 0, 1, 0, .8f };
 
     static constexpr int ball_strength_mod = 25000;

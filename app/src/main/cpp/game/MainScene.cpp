@@ -277,7 +277,7 @@ void MainScene::update(Engine& engine) {
             }
 
             /* Push for tail */
-            if (this->save_data.fxEnabled) {
+            if (this->save_data.fx_enabled) {
 
                 ball_tail->push(glm::vec2{
                        ball->pos[0],
@@ -301,10 +301,10 @@ void MainScene::update(Engine& engine) {
                     audio_play(&this->audio_engine, &this->audio_warning);
 
                     lasers->trigger(
-                            t_rand(0.0f, screenW - this->lasers->areaWidth));
+                            t_rand(0.0f, screenW - this->lasers->area_width));
                 }
 
-                if (lasers->liveTime == 59)
+                if (lasers->live_time == 59)
                     audio_play(&this->audio_engine, &this->audio_warning);
             }
 
@@ -333,7 +333,7 @@ void MainScene::render(Engine& engine) {
 
     lasers->draw();
 
-    if (lasers->liveTime == 0 && !lasers->lasers.empty()) {
+    if (lasers->live_time == 0 && !lasers->lasers.empty()) {
 
         // laser destroys ball
         if (ball->pos[0] > lasers->lasers.front().a[0] &&
@@ -356,7 +356,7 @@ void MainScene::render(Engine& engine) {
         }
     }
 
-    if (save_data.fxEnabled) {
+    if (save_data.fx_enabled) {
         cursor_tail->draw();
         sparks->draw();
         ball_tail->draw();
@@ -397,7 +397,7 @@ void MainScene::render(Engine& engine) {
                 case GameMode::CLASSIC:
 
                     this->label_game_score
-                        ->setText("Score: " + std::to_string(save_data.maxScoreClassic))
+                        ->setText("Score: " + std::to_string(save_data.max_score_classic))
                         .setColor(COLOR_IDLE)
                         .draw();
 
@@ -412,7 +412,7 @@ void MainScene::render(Engine& engine) {
                 case GameMode::HIDDEN:
 
                     this->label_game_score
-                        ->setText("Score: " + std::to_string(save_data.maxScoreClassic))
+                        ->setText("Score: " + std::to_string(save_data.max_score_classic))
                         .setColor(COLOR_IDLE)
                         .draw();
 
@@ -435,12 +435,12 @@ void MainScene::render(Engine& engine) {
             this->label_settings_title->draw();
 
             this->label_settings_fx
-                ->setText(CCAT("FX: ", save_data.fxEnabled, "on", "off"))
+                ->setText(CCAT("FX: ", save_data.fx_enabled, "on", "off"))
                 .setColor(settings_selected == SettingsSelected::FX_ENABLED ? COLOR_SELECTED : COLOR_IDLE)
                 .draw();
 
             this->label_settings_music_volume
-                ->setText("Volume: " + std::to_string(static_cast<int>(save_data.musicVolumeFloat * 100)))
+                ->setText("Volume: " + std::to_string(static_cast<int>(save_data.music_volume_float * 100)))
                 .setColor(settings_selected == SettingsSelected::MUSIC_VOLUME ? COLOR_SELECTED : COLOR_IDLE)
                 .draw();
 
@@ -532,12 +532,12 @@ void MainScene::reset(Engine& engine) {
     scroll = 0.0f;
 
     if (game_mode == GameMode::CLASSIC)
-        if (game_score > save_data.maxScoreClassic)
-            save_data.maxScoreClassic = game_score;
+        if (game_score > save_data.max_score_classic)
+            save_data.max_score_classic = game_score;
 
     if (game_mode == GameMode::HIDDEN)
-        if (game_score > save_data.maxScoreHidden)
-            save_data.maxScoreHidden = game_score;
+        if (game_score > save_data.max_score_hidden)
+            save_data.max_score_hidden = game_score;
 
     game_score = 0L;
 
@@ -680,7 +680,7 @@ void MainScene::onEventSelect(Engine& engine) {
             switch (settings_selected) {
                 case SettingsSelected::FX_ENABLED:
 
-                    save_data.fxEnabled = save_data.fxEnabled == 0;
+                    save_data.fx_enabled = save_data.fx_enabled == 0;
 
                     break; /* end of FX_ENABLED */
 
@@ -699,8 +699,8 @@ void MainScene::onEventSelect(Engine& engine) {
 
                 case SettingsSelected::RESET_STATISTICS:
 
-                    save_data.maxScoreClassic = 0L;
-                    save_data.maxScoreHidden = 0L;
+                    save_data.max_score_classic = 0L;
+                    save_data.max_score_hidden = 0L;
                     file_remove("savedata.dat");
 
                     break; /* end of RESET_STATISTICS */
@@ -804,13 +804,13 @@ void MainScene::onEventLeft() {
     if (game_state == GameState::SETTINGS) {
         if (settings_selected == SettingsSelected::MUSIC_VOLUME) {
 
-            if (save_data.musicVolumeFloat > 0.0f) {
-                save_data.musicVolumeFloat -= 0.1f;
+            if (save_data.music_volume_float > 0.0f) {
+                save_data.music_volume_float -= 0.1f;
             } else {
-                save_data.musicVolumeFloat = 1.f;
+                save_data.music_volume_float = 1.f;
             }
 
-            this->audio_engine.master_vol = std::min(save_data.musicVolumeFloat, 1.f);
+            this->audio_engine.master_vol = std::min(save_data.music_volume_float, 1.f);
         }
     }
 }
@@ -836,13 +836,13 @@ void MainScene::onEventRight() {
 
         if (settings_selected == SettingsSelected::MUSIC_VOLUME) {
 
-            if (save_data.musicVolumeFloat <= 1.0f) {
-                save_data.musicVolumeFloat += 0.1f;
+            if (save_data.music_volume_float <= 1.0f) {
+                save_data.music_volume_float += 0.1f;
             } else {
-                save_data.musicVolumeFloat = 0.f;
+                save_data.music_volume_float = 0.f;
             }
 
-            this->audio_engine.master_vol = std::min(save_data.musicVolumeFloat, 1.f);
+            this->audio_engine.master_vol = std::min(save_data.music_volume_float, 1.f);
         }
     }
 }

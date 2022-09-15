@@ -25,17 +25,17 @@ public:
         Laser(glm::vec2 a, glm::vec2 b);
     };
 
-    unsigned int liveTime = 0U;
-    IVec2 screenSize{};
-    float areaWidth = 480.f / 3.f;
+    unsigned int live_time = 0U;
+    IVec2 screen_size{};
+    float area_width = 480.f / 3.f;
     float pos{};
 
-    static constexpr std::size_t lasersLives = 240;
+    static constexpr std::size_t lasers_lives = 240;
 
     std::list<Laser> lasers;
 private:
-    struct line* lineDrawable = nullptr;
-    struct rect rectDrawable{};
+    struct line* line_drawable = nullptr;
+    struct rect rect_drawable{};
 };
 
 #endif //LINHOP_LASERS_HPP

@@ -18,12 +18,12 @@ void Tail::draw()
 
     while (current != end)
     {
-        randColor(&this->line->color[0], (static_cast<float>(current->lifeTime) / tailLength) * alpha, 0.15f);
+        randColor(&this->line->color[0], (static_cast<float>(current->life_time) / tail_length) * alpha, 0.15f);
         line_draw(this->line, &glm::vec4{ current->a_pos[0], current->a_pos[1] - scroll, current->b_pos[0], current->b_pos[1] - scroll }[0]);
 
         current->update();
 
-        if (current->lifeTime == 0)
+        if (current->life_time == 0)
         {
             tail.erase(current++);
             continue;
@@ -42,12 +42,12 @@ Tail::Line::Line(glm::vec2 a, glm::vec2 b) : a_pos(a), b_pos(b) {}
 
 void Tail::Line::update()
 {
-    float amount = (((tailLength - static_cast<float>(lifeTime)) * tailFuzz) / tailLength) / 2;
+    float amount = (((tail_length - static_cast<float>(life_time)) * tail_fuzz) / tail_length) / 2;
 
     a_pos[0] += t_rand(-amount, amount);
     a_pos[1] += t_rand(-amount, amount);
     b_pos[0] += t_rand(-amount, amount);
     b_pos[1] += t_rand(-amount, amount);
 
-    --lifeTime;
+    --life_time;
 }

@@ -29,18 +29,18 @@ public:
 
     struct Line
     {
-        bool bCollinear;
+        bool collinear;
         glm::vec2 a_pos{};
         glm::vec2 b_pos{};
         glm::vec4 color;
         Circle circle[2];
 
-        Line(glm::vec2 a_pos, glm::vec2 b_pos, glm::vec4 color, bool isCol = true);
+        Line(glm::vec2 a_pos, glm::vec2 b_pos, glm::vec4 color, bool is_col = true);
     };
 
-    struct line* lineDrawable;
+    struct line* line_drawable;
     std::vector<Line> lines;
-    IVec2 screenSize{};
+    IVec2 screen_size{};
 };
 
 #endif //LINHOP_LINES_HPP

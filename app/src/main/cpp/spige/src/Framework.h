@@ -98,7 +98,6 @@ struct file {
 struct spige {
     int width;
     int height;
-    // float scale;
 
 #ifdef SPIGE_WRITE_LOGS
     FILE* log;

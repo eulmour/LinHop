@@ -14,9 +14,9 @@ Engine::~Engine()
 
 void Engine::setScene(Scene *scene) {
     if (scene) {
-        if (this->currentScene) this->currentScene->suspend(*this);
-        this->currentScene = scene;
-        this->currentScene->resume(*this);
+        if (this->current_scene) this->current_scene->suspend(*this);
+        this->current_scene = scene;
+        this->current_scene->resume(*this);
     }
 }
 
@@ -25,13 +25,13 @@ void Engine::load()
     if (this->state != STATE_OFF)
         throw std::domain_error("Engine: engine is already loaded");
 
-    auto builder = this->mainApp.config();
+    auto builder = this->main_app.config();
 
 #if defined(__ANDROID__) || defined(ANDROID)
-    builder->m_WindowConfig.androidApp(this->androidApp);
+    builder->window_config.androidApp(this->androidApp);
 #endif
 
-    this->window = std::make_unique<Window>(builder->m_WindowConfig);
+    this->window = std::make_unique<Window>(builder->window_config);
 
     graphics
         .init()
@@ -50,11 +50,11 @@ void Engine::load()
     this->engine.asset_mgr = this->androidApp->activity->assetManager;
 #endif
 
-    if (!this->currentScene) { // TODO manage how to load app once
-        this->mainApp.init(*this);
+    if (!this->current_scene) { // TODO manage how to load app once
+        this->main_app.init(*this);
     }
 
-    if (!this->currentScene) {
+    if (!this->current_scene) {
         LOGW("Unable to run engine: No scene available\n");
         this->window->close();
     }
@@ -73,8 +73,8 @@ void Engine::unload()
 void Engine::render()
 {
     /* Rendering scene */
-    this->currentScene->update(*this);
-    this->currentScene->render(*this);
+    this->current_scene->update(*this);
+    this->current_scene->render(*this);
 
     /* Swap front and back buffers */
     this->window->swapBuffers();
@@ -92,15 +92,15 @@ void Engine::pause() {
 
 #include <dlfcn.h>
 
-Engine::Engine(SpigeApplication& mainApp, android_app* androidApp)
-    : mainApp(mainApp), androidApp(androidApp) {
+Engine::Engine(SpigeApplication& main_app, android_app* android_app_ptr)
+    : main_app(main_app), androidApp(android_app_ptr) {
 
     this->androidApp->userData = this;
     this->androidApp->onAppCmd = Engine::androidHandleCmd;
     this->androidApp->onInputEvent = Input::androidHandleInput;
 
     // Prepare to monitor accelerometer
-    this->sensorManager = acquireASensorManagerInstance(androidApp);
+    this->sensorManager = acquireASensorManagerInstance(android_app_ptr);
     this->accelerometerSensor = ASensorManager_getDefaultSensor(this->sensorManager,
          ASENSOR_TYPE_ACCELEROMETER);
     this->sensorEventQueue = ASensorManager_createEventQueue(this->sensorManager,
@@ -254,7 +254,7 @@ void Engine::androidHandleCmd(struct android_app* app, int32_t cmd) {
                                                pEngine->accelerometerSensor, (1000L / 60) * 1000);
             }
 
-            pEngine->currentScene->resume(*pEngine);
+            pEngine->current_scene->resume(*pEngine);
             pEngine->resume();
             pEngine->state = STATE_BUSY;
             break;
@@ -268,17 +268,17 @@ void Engine::androidHandleCmd(struct android_app* app, int32_t cmd) {
             }
 
             // Also stop animating.
-            pEngine->currentScene->suspend(*pEngine);
+            pEngine->current_scene->suspend(*pEngine);
             pEngine->pause();
             pEngine->state = STATE_READY;
             break;
 
         case APP_CMD_WINDOW_RESIZED:
             if (pEngine->state == STATE_BUSY) {
-                pEngine->currentScene->suspend(*pEngine);
+                pEngine->current_scene->suspend(*pEngine);
                 pEngine->unload();
                 pEngine->load();
-                pEngine->currentScene->resume(*pEngine);
+                pEngine->current_scene->resume(*pEngine);
             }
             break;
 
@@ -322,7 +322,7 @@ void Engine::androidSetActivityDecor(struct android_app* app) {
 
 Engine::Engine(SpigeApplication& mainApp, int argc, char *argv[]) :
     data{argc, argv},
-    mainApp(mainApp),
+    main_app(mainApp),
     window(nullptr),
     input()
 {
@@ -334,12 +334,12 @@ void Engine::run()
     this->load();
     this->resume();
 
-    if (!this->currentScene) {
+    if (!this->current_scene) {
         LOGW("Unable to run engine: No scene available\n");
         return;
     }
 
-    this->currentScene->resume(*this);
+    this->current_scene->resume(*this);
 
     while (!this->window->isShouldClose()) {
 
@@ -354,7 +354,7 @@ void Engine::run()
 
 #endif
 
-EngineConfig& EngineConfig::windowConfig(Window::Config windowConfig) {
-    this->m_WindowConfig = std::move(windowConfig);
+EngineConfig& EngineConfig::windowConfig(Window::Config config) {
+    this->window_config = std::move(config);
     return *this;
 }

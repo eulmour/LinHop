@@ -35,9 +35,9 @@ public:
 class EngineConfig {
 
 public:
-    EngineConfig& windowConfig(Window::Config windowConfig);
+    EngineConfig& windowConfig(Window::Config config);
 
-    Window::Config m_WindowConfig;
+    Window::Config window_config;
 };
 
 class SpigeApplication {
@@ -58,7 +58,7 @@ public:
     void pause();
     void render();
 
-    Scene* getScene() { return this->currentScene; }
+    Scene* getScene() { return this->current_scene; }
     void setScene(Scene* scene);
 
     std::unique_ptr<Window> window;
@@ -71,12 +71,12 @@ private:
     bool paused{true};
     spige engine{};
     enum state state{STATE_OFF};
-    SpigeApplication& mainApp;
-    Scene* currentScene{nullptr};
+    SpigeApplication& main_app;
+    Scene* current_scene{nullptr};
 
 #if defined(__ANDROID__) || defined(ANDROID)
     public:
-        Engine(SpigeApplication& mainApp, android_app* androidApp);
+        Engine(SpigeApplication& main_app, android_app* android_app_ptr);
 
         android_app* androidApp;
 

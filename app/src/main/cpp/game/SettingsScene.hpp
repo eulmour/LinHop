@@ -27,32 +27,32 @@ public:
     bool onEventBack();
 
 private:
-    static constexpr float smallTextSize = 28.f;
-    static constexpr float mediumTextSize = 50.f;
-    static constexpr float largeTextSize = 72.f;
+    static constexpr float small_text_size = 28.f;
+    static constexpr float medium_text_size = 50.f;
+    static constexpr float large_text_size = 72.f;
 
     struct text small_text = {};
     struct text medium_text = {};
     struct text large_text = {};
 
-    std::unique_ptr<Label> labelSettingsTitle;
-    std::unique_ptr<Label> labelSettingsFx;
-    std::unique_ptr<Label> labelSettingsMusicVolume;
-    std::unique_ptr<Label> labelSettingsUnlockResizing;
-    std::unique_ptr<Label> labelSettingsResetStatistics;
-    std::unique_ptr<Label> labelSettingsBack;
+    std::unique_ptr<Label> label_settings_title;
+    std::unique_ptr<Label> label_settings_fx;
+    std::unique_ptr<Label> label_settings_music_volume;
+    std::unique_ptr<Label> label_settings_unlock_resizing;
+    std::unique_ptr<Label> label_settings_reset_statistics;
+    std::unique_ptr<Label> label_settings_back;
 
     struct SaveData {
-        long maxScoreClassic;
-        long maxScoreHidden;
-        long fxEnabled;
-        long unlockResizing;
-        float musicVolumeFloat;
-    } saveData { 0, 0, 1, 0, .8f };
+        long max_score_classic;
+        long max_score_hidden;
+        long fx_enabled;
+        long unlock_resizing;
+        float music_volume_float;
+    } save_data {0, 0, 1, 0, .8f };
 
     enum class SettingsSelected {
         FX_ENABLED, MUSIC_VOLUME, UNLOCK_RESIZE, RESET_STATISTICS, BACK, END
-    } settingsSelected = SettingsSelected::FX_ENABLED;
+    } settings_selected = SettingsSelected::FX_ENABLED;
 
     static constexpr glm::vec4 COLOR_SELECTED { 0.6f, 0.9f, 1.0f, 1.f };
     static constexpr glm::vec4 COLOR_HIDDEN { 0.5f, 0.35f, 0.6f, 1.f };

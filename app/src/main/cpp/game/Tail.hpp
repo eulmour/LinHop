@@ -19,7 +19,7 @@ public:
 
         glm::vec2 a_pos;
         glm::vec2 b_pos;
-        unsigned int lifeTime = 50;
+        unsigned int life_time = 50;
     };
 
     void push(glm::vec2 a, glm::vec2 b);
@@ -30,8 +30,8 @@ public:
     float alpha = 1.0f;
 
 private:
-    static constexpr std::size_t tailLength = 50;
-    static constexpr float tailFuzz = 10.f;
+    static constexpr std::size_t tail_length = 50;
+    static constexpr float tail_fuzz = 10.f;
     std::list<Line> tail;
     struct line* line;
 };
