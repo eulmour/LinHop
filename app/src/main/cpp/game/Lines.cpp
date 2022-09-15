@@ -11,8 +11,8 @@ Lines::Lines(Engine& e, struct line* lineDrawable) :
 
 void Lines::Push(glm::vec2 second, glm::vec2 first, bool isCol /* = true */)
 {
-    glm::vec4 newColor;
-    randColor(&newColor[0], 1.f);
+    Color newColor{};
+    randColor(newColor.data(), 1.f);
     lines.emplace_back(first, second, newColor, isCol);
 }
 
@@ -28,7 +28,8 @@ void Lines::Draw()
             float new_x = circle.pos[0] + circle.radius * sinf(circle.angle * i);
             float new_y = circle.pos[1] + -circle.radius * cosf(circle.angle * i);
 
-            std::memcpy(line_drawable->color, &circle.color[0], sizeof(circle.color));
+            //std::memcpy(line_drawable->color, &circle.color[0], sizeof(circle.color));
+            line_drawable->color = circle.color;
             line_draw(line_drawable, &glm::vec4{old_x, old_y - scroll, new_x, new_y - scroll }[0]);
 
             old_x = new_x;
@@ -42,7 +43,8 @@ void Lines::Draw()
         if (line.a_pos[1] - scroll > static_cast<float>(screen_size[1]) && line.b_pos[1] - scroll > static_cast<float>(screen_size[1]))
             continue;
 
-        std::memcpy(line_drawable->color, &line.color[0], sizeof(line.color));
+        //std::memcpy(line_drawable->color, &line.color[0], sizeof(line.color));
+        line_drawable->color = line.color;
         line_draw(line_drawable, &glm::vec4{line.a_pos[0], line.a_pos[1] - scroll, line.b_pos[0], line.b_pos[1] - scroll }[0]);
 
         if (!line.collinear)
@@ -59,12 +61,12 @@ void Lines::Reset()
     lines.emplace_back( /* First line */
         glm::vec2{ 0.f, static_cast<float>(screen_size[1]) },
         glm::vec2{static_cast<float>(screen_size[0]), static_cast<float>(screen_size[1]) },
-        glm::vec4{ 1.0f, 1.0f, 1.0f, 1.0f },
+        Color{ 1.0f, 1.0f, 1.0f, 1.0f },
         false
     );
 }
 
-Lines::Line::Line(glm::vec2 a_pos, glm::vec2 b_pos, glm::vec4 color, bool is_col /* = true */) :
+Lines::Line::Line(glm::vec2 a_pos, glm::vec2 b_pos, Color color, bool is_col /* = true */) :
     collinear(is_col),
     color(color),
     circle{ { a_pos, color }, { b_pos, color } }
@@ -82,7 +84,4 @@ Lines::Circle::Circle() {
     this->pos = { 0.f, 0.f };
 }
 
-Lines::Circle::Circle(glm::vec2 pos, glm::vec4 color) {
-    this->pos = pos;
-    this->color = color;
-}
+Lines::Circle::Circle(glm::vec2 pos, Color color) : pos(pos), color(color) {}

@@ -16,7 +16,8 @@ void line_load(struct line* line) {
     memset(line, 0, sizeof(struct line));
 
     line->width = 1.f;
-    memcpy(line->color, (vec4){1.f, 1.f, 1.f, 1.f}, sizeof(vec4));
+    //memcpy(line->color, (vec4){1.f, 1.f, 1.f, 1.f}, sizeof(vec4));
+    line->color = { 1.f, 1.f, 1.f, 1.f };
 
     const char* vertex_src =
         "#version 300 es\n"
@@ -63,7 +64,7 @@ void line_draw(const struct line *line, float ab[4]) {
     glm_ortho(0.0f, (GLfloat)spige_instance->width, (GLfloat)spige_instance->height, 0.0f, -1.0f, 1.0f, projection);
 
     set_uniform_mat4(line->shader, "projection", (GLfloat *) &projection[0][0]);
-    set_uniform4f(line->shader, "color", line->color);
+    set_uniform4f(line->shader, "color", line->color.data());
 
     glBindBuffer(GL_ARRAY_BUFFER, line->vbo[0]);
     glBufferSubData(GL_ARRAY_BUFFER, 0, 4 * sizeof(float), ab);
@@ -158,8 +159,8 @@ void tri_draw(const struct tri *tri, float pos[2]) {
 
     mat4 model;
     glm_mat4_identity(model);
-    glm_translate(model, (vec3){ pos[0], pos[1], 0.0f });
-    glm_scale(model, (vec3){tri->scale[0], tri->scale[1], 1.0f });
+    glm_translate(model, vec3{ pos[0], pos[1], 0.0f });
+    glm_scale(model, vec3{tri->scale[0], tri->scale[1], 1.0f });
 
     set_uniform_mat4(tri->shader, "projection", (GLfloat *) &projection[0][0]);
     set_uniform_mat4(tri->shader, "model", (GLfloat *) &model[0][0]);
@@ -265,8 +266,8 @@ void rect_draw(const struct rect *rect, float pos[2]) {
 
     mat4 model;
     glm_mat4_identity(model);
-    glm_translate(model, (vec3){ pos[0], pos[1], 0.0f });
-    glm_scale(model, (vec3){rect->scale[0], rect->scale[1], 1.0f });
+    glm_translate(model, vec3{ pos[0], pos[1], 0.0f });
+    glm_scale(model, vec3{rect->scale[0], rect->scale[1], 1.0f });
 
     set_uniform_mat4(rect->shader, "projection", (GLfloat *) &projection[0][0]);
     set_uniform_mat4(rect->shader, "model", (GLfloat *) &model[0][0]);
@@ -306,7 +307,7 @@ void text_load(struct text* text, const char* font, float size) {
 
     text->scale = 1.f;
     text->size = size;
-    memcpy(text->color, (vec4){1.f, 1.f, 1.f, 1.f}, sizeof(vec4));
+    text->color = { 1.f, 1.f, 1.f, 1.f };
 
     const char* vertex_src =
         "#version 300 es\n"
@@ -394,7 +395,7 @@ void text_load(struct text* text, const char* font, float size) {
     {
         // load character glyph
         if (FT_Load_Char(face, c, FT_LOAD_RENDER)) {
-            LOGE("FREETYTPE: Failed to load Glyph\n");
+            LOGE("FREETYPE: Failed to load Glyph\n");
             continue;
         }
 
@@ -421,11 +422,11 @@ void text_load(struct text* text, const char* font, float size) {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
         // now store character for later use
-        text->characters[c] = (struct character) {
-            .texture = texture,
-            .advance = static_cast<unsigned int>(face->glyph->advance.x),
-            .size = { (int)face->glyph->bitmap.width, (int)face->glyph->bitmap.rows },
-            .bearing = { face->glyph->bitmap_left, face->glyph->bitmap_top }
+        text->characters[c] = character {
+            texture, // texture
+            static_cast<unsigned int>(face->glyph->advance.x), // advance
+            { (int)face->glyph->bitmap.width, (int)face->glyph->bitmap.rows }, // size
+            { face->glyph->bitmap_left, face->glyph->bitmap_top } // bearing
         };
 
 //        text->width += (float)face->glyph->bitmap.width;
@@ -457,7 +458,7 @@ float text_draw(const struct text *text, const char* str, const float pos[2]) {
     glm_ortho(0.0f, (GLfloat)spige_instance->width, (GLfloat)spige_instance->height, 0.0f, -1.0f, 1.0f, projection);
 
     set_uniform_mat4(text->shader, "projection", (GLfloat *) &projection[0][0]);
-    set_uniform4f(text->shader, "color", text->color);
+    set_uniform4f(text->shader, "color", text->color.data());
 
     // iterate through all characters
     for (const char* c = str; *c != '\0'; c++) {
@@ -466,13 +467,11 @@ float text_draw(const struct text *text, const char* str, const float pos[2]) {
 
         float xpos = shift + (float)ch.bearing[0] * text->scale;
         float ypos = pos[1] + (float)(text->characters['H'].bearing[1] - ch.bearing[1]) * text->scale;
-//        float ypos = pos[1] + (float)(ch.size[1] - ch.bearing[1]) * text->scale;
 
         float w = (float)ch.size[0] * text->scale;
         float h = (float)ch.size[1] * text->scale;
 
         // update VBO for each character
-
         float vertices[6][4] = {
             { xpos,     ypos + h,   0.0f, 1.0f },
             { xpos + w, ypos,       1.0f, 0.0f },

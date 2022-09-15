@@ -12,7 +12,7 @@ public:
     void draw() override;
     Label& setText(std::string newText) { this->text = std::move(newText); return *this; }
     Label& setPos(glm::vec2 newPos) { this->pos = newPos; return *this; }
-    Label& setColor(glm::vec4 newColor) { this->color = newColor; return *this; }
+    Label& setColor(Color newColor) { this->color = newColor; return *this; }
     bool isCollide(glm::vec2 position);
 
     void activate() override { /* text_load(this->drawable); */ }

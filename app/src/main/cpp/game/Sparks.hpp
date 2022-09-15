@@ -14,7 +14,8 @@ public:
     ~Sparks();
 
     struct Spark {
-        glm::vec2 pos, vel{0.f, 0.f}, size;
+        glm::vec2 pos, vel{0.f, 0.f};
+        Vec2 size;
         glm::vec4 color{};
         unsigned int life{50};
         static constexpr float max_size{15.f};

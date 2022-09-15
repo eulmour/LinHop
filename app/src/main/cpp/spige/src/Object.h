@@ -11,7 +11,7 @@ struct line {
     unsigned ebo;
     int vbc;
     float width;
-    vec4 color;
+    Color color;
 };
 
 struct tri {
@@ -22,8 +22,8 @@ struct tri {
     unsigned ebo;
     int vbc;
     float rot;
-    vec2 scale;
-    vec4 color;
+    Vec2 scale;
+    Color color;
 };
 
 struct rect {
@@ -35,8 +35,8 @@ struct rect {
     unsigned ebo;
     int vbc;
     float rot;
-    vec2 scale;
-    vec4 color;
+    Vec2 scale;
+    Color color;
 };
 
 struct character {
@@ -59,7 +59,7 @@ struct text {
     float size;
     float width;
     float height;
-    vec4 color;
+    Color color;
     struct character* characters;
 };
 

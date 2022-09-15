@@ -54,6 +54,6 @@ target_compile_options(linhop PRIVATE
     $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>:
     -Werror -Wall -Wextra>
     $<$<CXX_COMPILER_ID:MSVC>:
-    /W4>)
+    /W3>)
 
 target_compile_options(linhop_android PRIVATE -Werror -Wall -Wextra)

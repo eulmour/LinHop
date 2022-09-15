@@ -2,10 +2,10 @@
 #include <memory>
 
 /* colors --- I used macros because cglm don't deal with consts */
-#define COLOR_SELECTED glm::vec4{ 0.6f, 0.9f, 1.0f, 1.f }
-#define COLOR_HIDDEN glm::vec4{ 0.5f, 0.35f, 0.6f, 1.f }
-#define COLOR_IDLE glm::vec4{ 0.4f, 0.55f, 0.6f, 1.f }
-#define COLOR_DISABLED glm::vec4{ 0.2f, 0.35f, 0.4f, 1.f }
+#define COLOR_SELECTED Color{ 0.6f, 0.9f, 1.0f, 1.f }
+#define COLOR_HIDDEN Color{ 0.5f, 0.35f, 0.6f, 1.f }
+#define COLOR_IDLE Color{ 0.4f, 0.55f, 0.6f, 1.f }
+#define COLOR_DISABLED Color{ 0.2f, 0.35f, 0.4f, 1.f }
 
 #define PROLOG(e) float& pointerX = e.input.getPointerArray()[0][0]; \
     float& pointerY = e.input.getPointerArray()[0][1]; \
@@ -23,16 +23,16 @@ MainScene::MainScene(Engine& e) {
 
     srand((unsigned)time(nullptr) + 228);
 
-    int ret = 0;
-    ret += audio_source_load(&audio_main, "audio/a.wav", .5f);
-    ret += audio_source_load(&audio_alt, "audio/b.wav", .5f);
-    ret += audio_source_load(&audio_bounce, "audio/bounce.wav", 1.f);
-    ret += audio_source_load(&audio_fail_a, "audio/fail.wav", 1.f);
-    ret += audio_source_load(&audio_fail_b, "audio/fail2.wav", 1.f);
-    ret += audio_source_load(&audio_warning, "audio/warning.wav", 1.f);
+    //int ret = 0;
+    //ret += audio_source_load(&audio_main, "audio/a.wav", .5f);
+    //ret += audio_source_load(&audio_alt, "audio/b.wav", .5f);
+    //ret += audio_source_load(&audio_bounce, "audio/bounce.wav", 1.f);
+    //ret += audio_source_load(&audio_fail_a, "audio/fail.wav", 1.f);
+    //ret += audio_source_load(&audio_fail_b, "audio/fail2.wav", 1.f);
+    //ret += audio_source_load(&audio_warning, "audio/warning.wav", 1.f);
 
-    if (ret < 6)
-        LOGE("Failed to load audio sources\n");
+    //if (ret < 6)
+        //LOGE("Failed to load audio sources\n");
 
     struct file saveDataFile = {}; if (file_load(&saveDataFile, "savedata.dat")) {
         memcpy((void*)&this->save_data, saveDataFile.data, sizeof(SaveData));
@@ -59,7 +59,7 @@ MainScene::MainScene(Engine& e) {
     this->label_menu_title = std::make_unique<Label>(&this->large_text, "LinHop", glm::vec2 {
             screenW / 2.f - 162.f, screenH / 2.f - 180.f
     });
-    this->label_menu_title->setColor(glm::vec4 {0.6f, 0.8f, 1.0f, 1.f});
+    this->label_menu_title->setColor({0.6f, 0.8f, 1.0f, 1.f});
 
     this->label_menu_continue = std::make_unique<Label>(&this->medium_text, "Continue", glm::vec2 {
             screenW / 2.f - 152.f, screenH / 2.f - 40.f
@@ -80,7 +80,7 @@ MainScene::MainScene(Engine& e) {
     this->label_menu_hint = std::make_unique<Label>(&this->small_text, "Left or right to change mode", glm::vec2 {
             screenW / 2.f - 238.f, screenH - 40.f
     });
-    this->label_menu_hint->setColor(glm::vec4 {0.4f, 0.55f, 0.6f, 1.f});
+    this->label_menu_hint->setColor({0.4f, 0.55f, 0.6f, 1.f});
 
     this->label_menu_mode = std::make_unique<Label>(&this->small_text, "Classic", glm::vec2 {
             screenW / 2.f - 74.f, screenH / 2.f - 110.f
@@ -122,21 +122,21 @@ MainScene::MainScene(Engine& e) {
             screenW - 80.f, 5.f
     });
 
-    if (!audio_init(&audio_engine))
-        LOGE("Failed to initialize audio engine.\n");
+    //if (!audio_init(&audio_engine))
+        //LOGE("Failed to initialize audio engine.\n");
 }
 
 MainScene::~MainScene() {
 
     file_save("savedata.dat", (void*)&this->save_data, sizeof(SaveData));
 
-    audio_destroy(&this->audio_engine);
-    audio_source_unload(&this->audio_main);
-    audio_source_unload(&this->audio_alt);
-    audio_source_unload(&this->audio_bounce);
-    audio_source_unload(&this->audio_fail_a);
-    audio_source_unload(&this->audio_fail_b);
-    audio_source_unload(&this->audio_warning);
+    //audio_destroy(&this->audio_engine);
+    //audio_source_unload(&this->audio_main);
+    //audio_source_unload(&this->audio_alt);
+    //audio_source_unload(&this->audio_bounce);
+    //audio_source_unload(&this->audio_fail_a);
+    //audio_source_unload(&this->audio_fail_b);
+    //audio_source_unload(&this->audio_warning);
 }
 
 void MainScene::suspend(Engine&) {
@@ -151,7 +151,7 @@ void MainScene::suspend(Engine&) {
     text_unload(&medium_text);
     text_unload(&large_text);
 
-    audio_pause_all(&audio_engine);
+    //audio_pause_all(&audio_engine);
 }
 
 void MainScene::resume(Engine&) {
@@ -168,7 +168,7 @@ void MainScene::resume(Engine&) {
     this->lasers->activate();
     this->sparks->activate();
 
-    audio_play_all(&audio_engine);
+    //audio_play_all(&audio_engine);
 }
 
 void MainScene::update(Engine& engine) {
@@ -220,12 +220,12 @@ void MainScene::update(Engine& engine) {
 
             if (ball->collision(*lines, ball->prev_pos)) {
                 sparks->push(ball->pos);
-                audio_play(&this->audio_engine, &this->audio_bounce);
+                //audio_play(&this->audio_engine, &this->audio_bounce);
             }
 
             if (ball->collision(*rand_lines, ball->prev_pos)) {
                 sparks->push(ball->pos);
-                audio_play(&this->audio_engine, &this->audio_bounce);
+                //audio_play(&this->audio_engine, &this->audio_bounce);
             }
 
             /* If ball reaches half of the screen then update scroll */
@@ -243,10 +243,10 @@ void MainScene::update(Engine& engine) {
                 ball->pos[1] - scroll > screenH + ball->radius)
             {
                 if (game_state == GameState::INGAME) {
-                    if (t_rand(0, 1) == 0)
-                        audio_play(&this->audio_engine, &this->audio_fail_a);
-                    else
-                        audio_play(&this->audio_engine, &this->audio_fail_b);
+                    //if (t_rand(0, 1) == 0)
+                        //audio_play(&this->audio_engine, &this->audio_fail_a);
+                    //else
+                        //audio_play(&this->audio_engine, &this->audio_fail_b);
 
                     game_state = GameState::ENDGAME;
                 }
@@ -298,14 +298,14 @@ void MainScene::update(Engine& engine) {
             /* lasers */
             if (game_score > 1000L) {
                 if (t_rand(0, 600) == 1) {
-                    audio_play(&this->audio_engine, &this->audio_warning);
+                    //audio_play(&this->audio_engine, &this->audio_warning);
 
                     lasers->trigger(
                             t_rand(0.0f, screenW - this->lasers->area_width));
                 }
 
-                if (lasers->live_time == 59)
-                    audio_play(&this->audio_engine, &this->audio_warning);
+                //if (lasers->live_time == 59)
+                    //audio_play(&this->audio_engine, &this->audio_warning);
             }
 
             break;
@@ -315,14 +315,14 @@ void MainScene::update(Engine& engine) {
     }
 
     // play random music
-    if (this->audio_main.state != STATE_BUSY
-        && this->audio_alt.state != STATE_BUSY)
-    {
-        if (rand() % 2 == 0)
-            audio_play(&audio_engine, &audio_main);
-        else
-            audio_play(&audio_engine, &audio_alt);
-    }
+    //if (this->audio_main.state != STATE_BUSY
+    //    && this->audio_alt.state != STATE_BUSY)
+    //{
+    //    if (rand() % 2 == 0)
+    //        audio_play(&audio_engine, &audio_main);
+    //    else
+    //        audio_play(&audio_engine, &audio_alt);
+    //}
 }
 
 void MainScene::render(Engine& engine) {
@@ -342,10 +342,10 @@ void MainScene::render(Engine& engine) {
             if (game_state == GameState::INGAME)
                 game_state = GameState::ENDGAME;
 
-            if (t_rand(0, 1) == 0)
-                audio_play(&this->audio_engine, &this->audio_fail_a);
-            else
-                audio_play(&this->audio_engine, &this->audio_fail_b);
+            //if (t_rand(0, 1) == 0)
+                //audio_play(&this->audio_engine, &this->audio_fail_a);
+            //else
+                //audio_play(&this->audio_engine, &this->audio_fail_b);
         }
 
         sparks->push(glm::vec2{0.0f, 0.0f});
@@ -497,7 +497,7 @@ void MainScene::render(Engine& engine) {
             break;
     }
 
-    std::memcpy(this->line.color, (float[4]){1.f, 1.f, 1.f, 1.f}, sizeof(float[4]));
+	//std::memcpy(this->line.color, (float[4]){1.f, 1.f, 1.f, 1.f}, sizeof(float[4]));
 
 //    float debugLine[4] = {
 //        screenW/2.f, 0.f,
@@ -591,7 +591,7 @@ void MainScene::onEventPointerMove(Engine& engine) {
 
             if (this->label_menu_hint->isCollide(glm::make_vec2(pointerPos.data()))) {
                 if (this->pressed_once) {
-                    this->label_menu_hint->setColor(glm::vec4 {
+                    this->label_menu_hint->setColor({
                             t_rand(.0f, 1.f), t_rand(.0f, 1.f), t_rand(.0f, 1.f), 1.f
                     });
                 }
@@ -810,7 +810,7 @@ void MainScene::onEventLeft() {
                 save_data.music_volume_float = 1.f;
             }
 
-            this->audio_engine.master_vol = std::min(save_data.music_volume_float, 1.f);
+            //this->audio_engine.master_vol = std::min(save_data.music_volume_float, 1.f);
         }
     }
 }
@@ -842,7 +842,7 @@ void MainScene::onEventRight() {
                 save_data.music_volume_float = 0.f;
             }
 
-            this->audio_engine.master_vol = std::min(save_data.music_volume_float, 1.f);
+            //this->audio_engine.master_vol = std::min(save_data.music_volume_float, 1.f);
         }
     }
 }

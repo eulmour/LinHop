@@ -8,7 +8,8 @@ Label::Label(struct text* drawable, std::string text, glm::vec2 pos) : text(std:
 }
 
 void Label::draw() {
-    std::memcpy(this->drawable->color, &this->color[0], sizeof(glm::vec4));
+    //std::memcpy(this->drawable->color, &this->color[0], sizeof(glm::vec4));
+    this->drawable->color = this->color;
     this->width = text_draw(this->drawable, text.c_str(), &this->pos[0]) - this->pos[0];
 }
 

@@ -13,8 +13,8 @@ public:
     virtual void deactivate() = 0;
 
 protected:
-    glm::vec2 pos {0.f};
-    glm::vec4 color {1.f};
+    glm::vec2 pos{0.f};
+    Color color{1.f, 1.f, 1.f, 1.f};
 };
 
 #endif //LINHOP_GAMEOBJECT_HPP

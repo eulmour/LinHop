@@ -4,8 +4,8 @@
 
 #include "glm/vec4.hpp"
 
-#define LASERS_LINES_DEFAULT_COLOR glm::vec4{ 1.0f, 0.0f, 0.0f, 0.85f }
-#define LASERS_INNER_DEFAULT_COLOR glm::vec4{ 1.0f, 0.0f, 0.0f, 0.5f }
+#define LASERS_LINES_DEFAULT_COLOR Color{ 1.0f, 0.0f, 0.0f, 0.85f }
+#define LASERS_INNER_DEFAULT_COLOR Color{ 1.0f, 0.0f, 0.0f, 0.5f }
 
 Lasers::Lasers(Engine& e, struct line* lineDrawable) :
     screen_size(e.window->getLogicalSize()),
@@ -43,7 +43,8 @@ void Lasers::draw()
         } else {
 
             for (const Lasers::Laser& laser : lasers) {
-                std::memcpy(this->line_drawable->color, &LASERS_LINES_DEFAULT_COLOR[0], sizeof(glm::vec4));
+                //std::memcpy(this->line_drawable->color, &LASERS_LINES_DEFAULT_COLOR[0], sizeof(glm::vec4));
+                this->line_drawable->color = LASERS_LINES_DEFAULT_COLOR;
                 line_draw(this->line_drawable, &glm::vec4{laser.a[0], laser.a[1], laser.b[0], laser.b[1] }[0]);
             }
 
@@ -51,7 +52,8 @@ void Lasers::draw()
 
                 this->rect_drawable.rot = 0.f;
 
-                std::memcpy(this->rect_drawable.color, &LASERS_INNER_DEFAULT_COLOR[0], sizeof(glm::vec4));
+                //std::memcpy(this->rect_drawable.color, &LASERS_INNER_DEFAULT_COLOR[0], sizeof(glm::vec4));
+                this->line_drawable->color = LASERS_INNER_DEFAULT_COLOR;
 
                 this->rect_drawable.scale[0] = lasers.back().a[0] - lasers.front().a[0];
                 this->rect_drawable.scale[1] = static_cast<float>(this->screen_size[1]);

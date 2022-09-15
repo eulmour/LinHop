@@ -23,7 +23,7 @@ void Sparks::draw() {
         this->rect_drawable.color[2] = current->color[2];
         this->rect_drawable.color[3] = (static_cast<float>(current->life) / spark_life);
 
-        glm_vec2_copy(&current->size[0], this->rect_drawable.scale);
+        this->rect_drawable.scale = current->size;
         rect_draw(&this->rect_drawable, &glm::vec2{current->pos[0], current->pos[1] - scroll }[0]);
 
         if (current->life == 0) {

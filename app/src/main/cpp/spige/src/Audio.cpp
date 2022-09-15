@@ -312,7 +312,7 @@ static void* loop_for_events(void* soundio) {
 static void write_callback(struct SoundIoOutStream* outstream, int frame_count_min, int frame_count_max)
 {
     const struct SoundIoChannelLayout* layout = &outstream->layout;
-    float float_sample_rate = outstream->sample_rate;
+    auto float_sample_rate = static_cast<float>(outstream->sample_rate);
     float seconds_per_frame = 1.0f / float_sample_rate;
     struct SoundIoChannelArea* areas;
 
@@ -331,8 +331,8 @@ static void write_callback(struct SoundIoOutStream* outstream, int frame_count_m
 			continue;
 
 		int smpls_to_copy = frame_count_max < (source->samples - source->position)
-			? frame_count_max
-			: (source->samples - source->position);
+			? static_cast<int>(frame_count_max)
+			: static_cast<int>(source->samples - source->position);
 
 		if (source->position >= source->samples) {
 			e->free_slot = source->id;

@@ -9,7 +9,7 @@
 #include "GLFW/glfw3.h"
 #endif
 
-#if not defined(__ANDROID__) && not defined(ANDROID)
+#ifndef ANDROID
 static void GLAPIENTRY errorOccurredGL(
         GLenum source, GLenum type, GLuint id, GLenum severity,
         GLsizei length, const GLchar *message, const void *userParam)
@@ -116,8 +116,6 @@ static void GLAPIENTRY errorOccurredGL(
     printf("%s\n", message);
 
     if (type == GL_DEBUG_SEVERITY_HIGH) {
-//        const auto* app = reinterpret_cast<const Engine*>(userParam);
-//        app->~Engine();
         exit(-1);
     }
 }

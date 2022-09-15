@@ -54,10 +54,10 @@ private:
         FX_ENABLED, MUSIC_VOLUME, UNLOCK_RESIZE, RESET_STATISTICS, BACK, END
     } settings_selected = SettingsSelected::FX_ENABLED;
 
-    static constexpr glm::vec4 COLOR_SELECTED { 0.6f, 0.9f, 1.0f, 1.f };
-    static constexpr glm::vec4 COLOR_HIDDEN { 0.5f, 0.35f, 0.6f, 1.f };
-    static constexpr glm::vec4 COLOR_IDLE { 0.4f, 0.55f, 0.6f, 1.f };
-    static constexpr glm::vec4 COLOR_DISABLED { 0.2f, 0.35f, 0.4f, 1.f };
+    static constexpr Color COLOR_SELECTED { 0.6f, 0.9f, 1.0f, 1.f };
+    static constexpr Color COLOR_HIDDEN { 0.5f, 0.35f, 0.6f, 1.f };
+    static constexpr Color COLOR_IDLE { 0.4f, 0.55f, 0.6f, 1.f };
+    static constexpr Color COLOR_DISABLED { 0.2f, 0.35f, 0.4f, 1.f };
 };
 
 template<>

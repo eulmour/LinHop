@@ -426,7 +426,7 @@ int file_load_asset(struct file* file, const char* path) {
 }
 
 int spige_get_cwd(char* buf, size_t max_size) {
-    return GetCurrentDirectoryA(max_size, buf) != 0;
+    return GetCurrentDirectoryA(static_cast<DWORD>(max_size), buf) != 0;
 }
 
 #endif

@@ -18,13 +18,13 @@ public:
     struct Circle
     {
         glm::vec2 pos{};
-        glm::vec2 color{};
+        Color color{};
         const unsigned int steps{static_cast<unsigned int>(3 + rand() % 7)};
         const float angle{3.1415926f * 2.0f / static_cast<float>(steps)};
         const float radius{20.0f};
 
         Circle();
-        Circle(glm::vec2 pos, glm::vec4 color);
+        Circle(glm::vec2 pos, Color color);
     };
 
     struct Line
@@ -32,10 +32,10 @@ public:
         bool collinear;
         glm::vec2 a_pos{};
         glm::vec2 b_pos{};
-        glm::vec4 color;
+        Vec4 color;
         Circle circle[2];
 
-        Line(glm::vec2 a_pos, glm::vec2 b_pos, glm::vec4 color, bool is_col = true);
+        Line(glm::vec2 a_pos, glm::vec2 b_pos, Color color, bool is_col = true);
     };
 
     struct line* line_drawable;
