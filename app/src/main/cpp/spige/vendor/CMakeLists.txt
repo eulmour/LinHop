@@ -7,6 +7,7 @@ if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID STREQUAL "GNU")
 elseif(CMAKE_C_COMPILER_ID STREQUAL "MSVC")
 endif()
 
+add_subdirectory ("miniaudio")
 add_subdirectory ("freetype")
 add_subdirectory ("stb_image")
 
@@ -30,5 +31,5 @@ else()
 	SET_OPTION(ENABLE_ALSA OFF)
 	SET_OPTION(ENABLE_COREAUDIO ON)
 
-	add_subdirectory ("soundio")
+	# add_subdirectory ("soundio")
 endif()

@@ -23,16 +23,16 @@ MainScene::MainScene(Engine& e) {
 
     srand((unsigned)time(nullptr) + 228);
 
-    //int ret = 0;
-    //ret += audio_source_load(&audio_main, "audio/a.wav", .5f);
-    //ret += audio_source_load(&audio_alt, "audio/b.wav", .5f);
-    //ret += audio_source_load(&audio_bounce, "audio/bounce.wav", 1.f);
-    //ret += audio_source_load(&audio_fail_a, "audio/fail.wav", 1.f);
-    //ret += audio_source_load(&audio_fail_b, "audio/fail2.wav", 1.f);
-    //ret += audio_source_load(&audio_warning, "audio/warning.wav", 1.f);
-
-    //if (ret < 6)
-        //LOGE("Failed to load audio sources\n");
+    try {
+        this->audio_main = std::make_unique<AudioSource>("audio/a.wav", .5f);
+        this->audio_alt = std::make_unique<AudioSource>("audio/b.wav", .5f);
+        this->audio_bounce = std::make_unique<AudioSource>("audio/bounce.wav", 1.f);
+        this->audio_fail_a = std::make_unique<AudioSource>("audio/fail.wav", 1.f);
+        this->audio_fail_b = std::make_unique<AudioSource>("audio/fail2.wav", 1.f);
+        this->audio_warning = std::make_unique<AudioSource>("audio/warning.wav", 1.f);
+    } catch (std::exception& e) {
+        LOGE("Failed to load audio sources: %s\n", e.what());
+    }
 
     struct file saveDataFile = {}; if (file_load(&saveDataFile, "savedata.dat")) {
         memcpy((void*)&this->save_data, saveDataFile.data, sizeof(SaveData));
@@ -122,8 +122,11 @@ MainScene::MainScene(Engine& e) {
             screenW - 80.f, 5.f
     });
 
-    //if (!audio_init(&audio_engine))
-        //LOGE("Failed to initialize audio engine.\n");
+    try {
+        this->audio_engine = std::make_unique<Audio>();
+    } catch (std::exception& e) {
+        LOGE("Failed to initialize audio engine: %s\n", e.what());
+    }
 }
 
 MainScene::~MainScene() {
@@ -151,7 +154,7 @@ void MainScene::suspend(Engine&) {
     text_unload(&medium_text);
     text_unload(&large_text);
 
-    //audio_pause_all(&audio_engine);
+    this->audio_engine->pauseAll();
 }
 
 void MainScene::resume(Engine&) {
@@ -168,7 +171,7 @@ void MainScene::resume(Engine&) {
     this->lasers->activate();
     this->sparks->activate();
 
-    //audio_play_all(&audio_engine);
+    this->audio_engine->playAll();
 }
 
 void MainScene::update(Engine& engine) {
@@ -220,12 +223,12 @@ void MainScene::update(Engine& engine) {
 
             if (ball->collision(*lines, ball->prev_pos)) {
                 sparks->push(ball->pos);
-                //audio_play(&this->audio_engine, &this->audio_bounce);
+                this->audio_engine->play(*this->audio_bounce.get());
             }
 
             if (ball->collision(*rand_lines, ball->prev_pos)) {
                 sparks->push(ball->pos);
-                //audio_play(&this->audio_engine, &this->audio_bounce);
+                this->audio_engine->play(*this->audio_bounce.get());
             }
 
             /* If ball reaches half of the screen then update scroll */
@@ -243,10 +246,10 @@ void MainScene::update(Engine& engine) {
                 ball->pos[1] - scroll > screenH + ball->radius)
             {
                 if (game_state == GameState::INGAME) {
-                    //if (t_rand(0, 1) == 0)
-                        //audio_play(&this->audio_engine, &this->audio_fail_a);
-                    //else
-                        //audio_play(&this->audio_engine, &this->audio_fail_b);
+                    if (t_rand(0, 1) == 0)
+                        this->audio_engine->play(*this->audio_fail_a.get());
+                    else
+                        this->audio_engine->play(*this->audio_fail_b.get());
 
                     game_state = GameState::ENDGAME;
                 }
@@ -298,14 +301,14 @@ void MainScene::update(Engine& engine) {
             /* lasers */
             if (game_score > 1000L) {
                 if (t_rand(0, 600) == 1) {
-                    //audio_play(&this->audio_engine, &this->audio_warning);
+                    this->audio_engine->play(*this->audio_warning.get());
 
                     lasers->trigger(
                             t_rand(0.0f, screenW - this->lasers->area_width));
                 }
 
-                //if (lasers->live_time == 59)
-                    //audio_play(&this->audio_engine, &this->audio_warning);
+                if (lasers->live_time == 59)
+                    this->audio_engine->play(*this->audio_warning.get());
             }
 
             break;
@@ -315,14 +318,14 @@ void MainScene::update(Engine& engine) {
     }
 
     // play random music
-    //if (this->audio_main.state != STATE_BUSY
-    //    && this->audio_alt.state != STATE_BUSY)
-    //{
-    //    if (rand() % 2 == 0)
-    //        audio_play(&audio_engine, &audio_main);
-    //    else
-    //        audio_play(&audio_engine, &audio_alt);
-    //}
+    if (this->audio_main->state != STATE_BUSY
+       && this->audio_alt->state != STATE_BUSY)
+    {
+       if (rand() % 2 == 0)
+            this->audio_engine->play(*this->audio_main.get());
+       else
+            this->audio_engine->play(*this->audio_alt.get());
+    }
 }
 
 void MainScene::render(Engine& engine) {
@@ -342,10 +345,10 @@ void MainScene::render(Engine& engine) {
             if (game_state == GameState::INGAME)
                 game_state = GameState::ENDGAME;
 
-            //if (t_rand(0, 1) == 0)
-                //audio_play(&this->audio_engine, &this->audio_fail_a);
-            //else
-                //audio_play(&this->audio_engine, &this->audio_fail_b);
+            if (t_rand(0, 1) == 0)
+                this->audio_engine->play(*this->audio_fail_a.get());
+            else
+                this->audio_engine->play(*this->audio_fail_b.get());
         }
 
         sparks->push(glm::vec2{0.0f, 0.0f});
@@ -810,7 +813,7 @@ void MainScene::onEventLeft() {
                 save_data.music_volume_float = 1.f;
             }
 
-            //this->audio_engine.master_vol = std::min(save_data.music_volume_float, 1.f);
+            // this->audio_engine->master_vol = std::min(save_data.music_volume_float, 1.f);
         }
     }
 }

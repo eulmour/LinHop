@@ -20,7 +20,7 @@ target_include_directories(spige PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}/vendor/cglm/include
     ${CMAKE_CURRENT_LIST_DIR}/vendor/stb_image
     ${CMAKE_CURRENT_LIST_DIR}/vendor/freetype/include
-    ${CMAKE_CURRENT_LIST_DIR}/vendor/soundio/soundio
+    ${CMAKE_CURRENT_LIST_DIR}/vendor/miniaudio
     ${CMAKE_CURRENT_LIST_DIR}/vendor/glew
     ${CMAKE_CURRENT_LIST_DIR}/vendor/glwf/include
 )
@@ -31,6 +31,7 @@ if (ANDROID)
         GLESv1_CM
         GLESv3
         OpenSLES
+        miniaudio
         cglm
         stb_image
         freetype
@@ -46,7 +47,7 @@ elseif(WIN32)
         cglm
         stb_image
         freetype
-		libsoundio_static
+        miniaudio
     )
 elseif(UNIX AND NOT APPLE)
     target_link_libraries(spige
@@ -57,7 +58,7 @@ elseif(UNIX AND NOT APPLE)
         cglm
         stb_image
         freetype
-		libsoundio_static
+        miniaudio
         pulse
     )
 endif()

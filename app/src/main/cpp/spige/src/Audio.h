@@ -4,11 +4,14 @@
 #define AUDIO_MAX_SOURCES 10
 
 #include "Framework.h"
+#include <vector>
+#include <memory>
 
-struct audio_source {
-    enum state state;
+struct AudioSource {
+
+    enum state state{STATE_OFF};
     float vol;
-    struct file wav_file;
+    struct file file_data;
     int16_t* data;
 
     size_t id;
@@ -18,63 +21,38 @@ struct audio_source {
     size_t num_of_ch;
     size_t samples_per_s;
     size_t bits;
+    std::shared_ptr<void> internal;
+
+    AudioSource() = delete;
+    AudioSource(const char* path, float vol);
+    ~AudioSource();
 };
 
-#if defined(__ANDROID__) || defined(ANDROID)
-#include <SLES/OpenSLES.h>
-#include <SLES/OpenSLES_Android.h>
+class Audio {
 
-struct audio {
+public:
+
+    using Playlist = std::vector<AudioSource*>;
+
+    Audio();
+    ~Audio();
+    void play(AudioSource& source);
+    void pause(AudioSource& source);
+    void stop(AudioSource& source);
+    void playAll();
+    void pauseAll();
+    void stopAll();
+    Playlist& getPlaylist() { return this->playlist; }
+    void* getInternal() { return this->internal.get(); }
+
+protected:
+    std::shared_ptr<void> internal;
     enum state state;
-
-    size_t free_slot;
-    struct audio_source sources[AUDIO_MAX_SOURCES];
-
+    // size_t free_slot;
+    Playlist playlist;
+    // AudioSource* sources[AUDIO_MAX_SOURCES];
     float master_vol;
-    short buffer[512][2];
-
-    SLObjectItf sl_engine;
-    SLEngineItf sl_engine_interface;
-    SLObjectItf sl_output_mix;
-    SLObjectItf sl_audio_player;
-    SLPlayItf sl_audio_player_interface;
-    SLBufferQueueItf sl_buffer_queue_interface;
-    SLVolumeItf sl_volume_interface;
+    // short buffer[512][2];
 };
-#else
-
-struct audio {
-    enum state state;
-
-    size_t free_slot;
-    struct audio_source sources[AUDIO_MAX_SOURCES];
-
-    float master_vol;
-    short buffer[512][2];
-    void* soundio;
-    void* device;
-    void* outstream;
-};
-#endif
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-int  audio_init(struct audio* engine);
-void audio_play(struct audio* engine, struct audio_source* source);
-void audio_pause(struct audio* engine, struct audio_source* source);
-void audio_stop(struct audio* engine, struct audio_source* source);
-void audio_play_all(struct audio* engine);
-void audio_pause_all(struct audio* engine);
-void audio_stop_all(struct audio* engine);
-void audio_destroy(struct audio* engine);
-
-int audio_source_load(struct audio_source* source, const char* path, float vol);
-void audio_source_unload(struct audio_source* source);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif //SPIGE_AUDIO_H

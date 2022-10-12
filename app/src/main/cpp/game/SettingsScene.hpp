@@ -51,7 +51,7 @@ private:
     } save_data {0, 0, 1, 0, .8f };
 
     enum class SettingsSelected {
-        FX_ENABLED, MUSIC_VOLUME, UNLOCK_RESIZE, RESET_STATISTICS, BACK, END
+        FX_ENABLED, MUSIC_VOLUME, RESET_STATISTICS, BACK, END
     } settings_selected = SettingsSelected::FX_ENABLED;
 
     static constexpr Color COLOR_SELECTED { 0.6f, 0.9f, 1.0f, 1.f };

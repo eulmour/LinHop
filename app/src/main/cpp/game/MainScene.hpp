@@ -24,13 +24,13 @@ public:
     void update(Engine& engine) override;
     void render(Engine& engine) override;
 
-    struct audio audio_engine = {};
-    struct audio_source audio_main = {};
-    struct audio_source audio_alt = {};
-    struct audio_source audio_bounce = {};
-    struct audio_source audio_fail_a = {};
-    struct audio_source audio_fail_b = {};
-    struct audio_source audio_warning = {};
+    std::unique_ptr<Audio> audio_engine;
+    std::unique_ptr<AudioSource> audio_main;
+    std::unique_ptr<AudioSource> audio_alt;
+    std::unique_ptr<AudioSource> audio_bounce;
+    std::unique_ptr<AudioSource> audio_fail_a;
+    std::unique_ptr<AudioSource> audio_fail_b;
+    std::unique_ptr<AudioSource> audio_warning;
 
     // drawables
     struct line line = {};
@@ -80,7 +80,7 @@ public:
     } menu_selected = MenuSelected::START;
 
     enum class SettingsSelected {
-        FX_ENABLED, MUSIC_VOLUME, UNLOCK_RESIZE, RESET_STATISTICS, BACK, END
+        FX_ENABLED, MUSIC_VOLUME, RESET_STATISTICS, BACK, END
     } settings_selected = SettingsSelected::FX_ENABLED;
 
     void onEventPointerMove(Engine& engine);
