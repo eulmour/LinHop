@@ -4,18 +4,17 @@
 #include "engine/engine.h"
 #include <list>
 #include "glm/vec2.hpp"
-#include "GameObject.hpp"
 
-class Lasers : IGameObject {
+class Lasers {
 
 public:
-    explicit Lasers(Engine& e, struct line* lineDrawable);
-    ~Lasers() override;
+    explicit Lasers(IVec2 screen_size);
+    ~Lasers();
 
     void trigger(float position);
-    void draw() override;
-    void activate() override;
-    void deactivate() override;
+    void draw(const Line& drawable);
+    void activate(IVec2 screen_size);
+    void deactivate();
 
     class Laser
     {
@@ -34,8 +33,7 @@ public:
 
     std::list<Laser> lasers;
 private:
-    struct line* line_drawable = nullptr;
-    struct rect rect_drawable{};
+    std::unique_ptr<Rect> rect_drawable;
 };
 
 #endif //LINHOP_LASERS_HPP

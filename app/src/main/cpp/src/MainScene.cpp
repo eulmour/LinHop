@@ -45,12 +45,12 @@ MainScene::MainScene(Engine& e) {
     this->prev_mouse_pos = {pointerX, pointerY};
 
     // class
-    lines       = std::make_unique<Lines>(e, &line);
-    rand_lines  = std::make_unique<Lines>(e, &line);
+    lines       = std::make_unique<Lines>(e.window->getLogicalSize());
+    rand_lines  = std::make_unique<Lines>(e.window->getLogicalSize());
     sparks      = std::make_unique<Sparks>();
-    lasers      = std::make_unique<Lasers>(e, &line);
-    ball_tail   = std::make_unique<Tail>(&line, .7f);
-    cursor_tail = std::make_unique<Tail>(&line, .08f);
+    lasers      = std::make_unique<Lasers>(e.window->getLogicalSize());
+    ball_tail   = std::make_unique<Tail>(.7f);
+    cursor_tail = std::make_unique<Tail>(.08f);
     ball        = std::make_unique<Ball>(e.window->getLogicalSize());
 
     lines->Reset();
@@ -148,24 +148,23 @@ void MainScene::suspend(Engine&) {
     this->lasers->deactivate();
     this->sparks->deactivate();
 
-    line_unload(&line);
-
-    text_unload(&small_text);
-    text_unload(&medium_text);
-    text_unload(&large_text);
+    this->line.reset();
+    this->small_reset.reset();
+    this->medium_reset.reset();
+    this->large_reset.reset();
 
     this->audio_engine->pauseAll();
 }
 
 void MainScene::resume(Engine&) {
 
-    line_load(&this->line);
-    line.width = 5.f;
+    this->line = std::make_unique<Line>();
+    this->line->width = 5.f;
 
     const char *const fontPath = "fonts/OCRAEXT.TTF";
-    text_load(&this->small_text, fontPath, MainScene::small_text_size);
-    text_load(&this->medium_text, fontPath, MainScene::medium_text_size);
-    text_load(&this->large_text, fontPath, MainScene::large_text_size);
+    this->small_text = std::make_unique<Text>(fontPath, MainScene::small_text_size);
+    this->medium_text = std::make_unique<Text>(fontPath, MainScene::medium_text_size);
+    this->large_text = std::make_unique<Text>(fontPath, MainScene::large_text_size);
 
     this->ball->activate();
     this->lasers->activate();
@@ -466,7 +465,7 @@ void MainScene::render(Engine& engine) {
                 this->line.color[2] = .5f;
                 this->line.color[3] = 1.f;
 
-                line_draw(&this->line, &glm::vec4 {last_click[0], last_click[1] - scroll, pointerX, pointerY}[0]);
+                drawable.draw(&this->line, &glm::vec4 {last_click[0], last_click[1] - scroll, pointerX, pointerY}[0]);
             }
 
 #ifndef NDEBUG
@@ -510,8 +509,8 @@ void MainScene::render(Engine& engine) {
 //        0.f, screenH/2.f,
 //        screenW, screenH/2.f
 //    };
-//    line_draw(&this->line, debugLine);
-//    line_draw(&this->line, debugLineHor);
+//    drawable.draw(&this->line, debugLine);
+//    drawable.draw(&this->line, debugLineHor);
 
     this->prev_mouse_pos = {
         pointerX,

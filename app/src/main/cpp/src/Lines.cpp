@@ -5,9 +5,7 @@ using namespace linhop::utils;
 
 extern float scroll;
 
-Lines::Lines(Engine& e, struct line* lineDrawable) :
-    line_drawable(lineDrawable),
-    screen_size(e.window->getLogicalSize()) {}
+Lines::Lines(IVec2 screen_size) : screen_size(screen_size) {}
 
 void Lines::Push(glm::vec2 second, glm::vec2 first, bool isCol /* = true */)
 {
@@ -16,7 +14,7 @@ void Lines::Push(glm::vec2 second, glm::vec2 first, bool isCol /* = true */)
     lines.emplace_back(first, second, newColor, isCol);
 }
 
-void Lines::Draw()
+void Lines::Draw(const Line& drawable)
 {
     const auto drawCircle = [this](const Circle& circle) {
 
@@ -28,9 +26,7 @@ void Lines::Draw()
             float new_x = circle.pos[0] + circle.radius * sinf(circle.angle * i);
             float new_y = circle.pos[1] + -circle.radius * cosf(circle.angle * i);
 
-            //std::memcpy(line_drawable->color, &circle.color[0], sizeof(circle.color));
-            line_drawable->color = circle.color;
-            line_draw(line_drawable, &glm::vec4{old_x, old_y - scroll, new_x, new_y - scroll }[0]);
+            drawable.draw(&glm::vec4{old_x, old_y - scroll, new_x, new_y - scroll }[0], circle.color);
 
             old_x = new_x;
             old_y = new_y;
@@ -43,9 +39,7 @@ void Lines::Draw()
         if (line.a_pos[1] - scroll > static_cast<float>(screen_size[1]) && line.b_pos[1] - scroll > static_cast<float>(screen_size[1]))
             continue;
 
-        //std::memcpy(line_drawable->color, &line.color[0], sizeof(line.color));
-        line_drawable->color = line.color;
-        line_draw(line_drawable, &glm::vec4{line.a_pos[0], line.a_pos[1] - scroll, line.b_pos[0], line.b_pos[1] - scroll }[0]);
+        drawable.draw(drawable.drawable, &glm::vec4{line.a_pos[0], line.a_pos[1] - scroll, line.b_pos[0], line.b_pos[1] - scroll }[0], line.color);
 
         if (!line.collinear)
             drawCircle(line.circle[0]);

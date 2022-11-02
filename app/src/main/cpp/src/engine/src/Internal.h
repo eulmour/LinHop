@@ -1,3 +1,10 @@
+#ifndef ENGINE_INTERNAL
+#define ENGINE_INTERNAL
+
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtc/type_ptr.hpp"
+
 #ifdef __linux__
 #include <unistd.h>
 
@@ -16,3 +23,4 @@ int engine_file_exists_(const char* path)
 }
 
 #endif
+#endif // ENGINE_INTERNAL

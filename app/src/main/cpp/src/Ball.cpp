@@ -5,30 +5,21 @@ extern float scroll;
 
 using namespace linhop::utils;
 
-Ball::Ball(IVec2 screen_size) : rect_drawable{} {
+Ball::Ball(IVec2 screen_size) {
     this->pos = {static_cast<float>(screen_size[0]) / 2.f, static_cast<float>(screen_size[1]) / 2.f};
 }
 
-Ball::~Ball() {
-    if (rect_drawable.state != STATE_OFF)
-        this->deactivate();
-}
+Ball::~Ball() {}
 
-void Ball::activate() {
-
-    rect_load(&rect_drawable);
-    rect_use_texture(&rect_drawable, texture_load("textures/circle.png"));
-
-    rect_drawable.color[0] = 1.f;
-    rect_drawable.color[1] = 1.f;
-    rect_drawable.color[2] = 1.f;
-    rect_drawable.color[3] = 1.f;
-    rect_drawable.scale[0] = radius * 2;
-    rect_drawable.scale[1] = radius * 2;
+void Ball::activate(IVec2 screen_size) {
+    this->rect_drawable = std::make_unique<Rect>(screen_size);
+    this->rect_drawable->useTexture(texture_load("textures/circle.png"));
+    this->rect_drawable->scale[0] = radius * 2;
+    this->rect_drawable->scale[1] = radius * 2;
 }
 
 void Ball::deactivate() {
-    rect_unload(&this->rect_drawable);
+    this->rect_drawable.release();
 }
 
 bool Ball::collision(const Lines& line_array, const glm::vec2 prev_position) {
@@ -72,7 +63,7 @@ void Ball::move(float dt) {
 }
 
 void Ball::draw() const {
-    rect_draw(&this->rect_drawable, &glm::vec2{pos[0] - radius, pos[1] - scroll - radius}[0]);
+    this->rect_drawable->draw(&glm::vec2{pos[0] - radius, pos[1] - scroll - radius}[0], {1.f, 1.f, 1.f, 1.f});
 }
 
 void Ball::reset(IVec2 screen_size) {

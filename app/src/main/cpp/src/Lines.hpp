@@ -10,9 +10,9 @@
 class Lines {
 public:
 
-    Lines(Engine& e, struct line* lineDrawable);
+    Lines(IVec2 screen_size);
     void Push(glm::vec2 second, glm::vec2 first, bool isCol = true);
-    void Draw();
+    void Draw(const Line& drawable);
     void Reset();
 
     struct Circle
@@ -38,7 +38,6 @@ public:
         Line(glm::vec2 a_pos, glm::vec2 b_pos, Color color, bool is_col = true);
     };
 
-    struct line* line_drawable;
     std::vector<Line> lines;
     IVec2 screen_size{};
 };

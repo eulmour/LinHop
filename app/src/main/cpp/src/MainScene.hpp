@@ -33,10 +33,10 @@ public:
     std::unique_ptr<AudioSource> audio_warning;
 
     // drawables
-    struct line line = {};
-    struct text small_text = {};
-    struct text medium_text = {};
-    struct text large_text = {};
+    std::unique_ptr<Line> line;
+    std::unique_ptr<Text> small_text;
+    std::unique_ptr<Text> medium_text;
+    std::unique_ptr<Text> large_text;
 
     // classes
     std::unique_ptr<Lines> lines, rand_lines;

@@ -36,7 +36,7 @@ private:
     static constexpr std::size_t spark_life{50};
     static constexpr std::size_t spark_amount{6};
     static constexpr float spark_gravity{2.5f};
-    struct rect rect_drawable{};
+    Rect rect_drawable{};
 };
 
 #endif //LINHOP_SPARKS_HPP

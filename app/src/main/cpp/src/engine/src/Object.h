@@ -2,33 +2,58 @@
 #define ENGINE_OBJECT_H
 
 #include "Framework.h"
+#include "Window.h"
 #define CHARACTERS_CAP 128
 
 struct Drawable {
+    Drawable() = delete;
+    Drawable(Vec2 surface_size);
     enum state state;
+    Vec2 surface_size;
     unsigned shader;
     unsigned vao;
     unsigned ebo;
     int vbc;
-    float rot;
-    Vec2 scale;
-    Color color;
 };
 
-struct line : public Drawable {
+struct Line : public Drawable {
+
+    Line(Vec2 surface_size);
+    ~Line();
+
+    void draw(float ab[4], Color c);
+
     unsigned vbo[1];
     float width;
 };
 
-struct tri : public Drawable {
+struct Tri : public Drawable {
+
+    Tri(Vec2 surface_size);
+    ~Tri();
+
+    void draw(float pos[2], Color c);
+
     unsigned vbo[1];
+    float rot;
+    Vec2 scale;
 };
 
-struct rect : public Drawable {
+struct Rect : public Drawable {
+
+    Rect(Vec2 surface_size);
+    ~Rect();
+
+    void draw(float pos[2], Color c);
+    void useTexture(unsigned int texture);
+
+    unsigned texture;
     unsigned vbo[1];
+    float rot;
+    Vec2 scale;
 };
 
-struct text : public Drawable {
+struct Text : public Drawable {
 
     struct character {
         unsigned texture; // ID handle of the glyph texture
@@ -37,6 +62,12 @@ struct text : public Drawable {
         IVec2 bearing;  // offset from baseline to left/top of glyph
     };
 
+    Text() = delete;
+    Text(Vec2 surface_size, const char* font, float size);
+    ~Text();
+
+    float draw(const char* str, const float pos[2], Color c);
+
     unsigned vbo[1];
     float scale;
     float size;
@@ -44,22 +75,5 @@ struct text : public Drawable {
     float height;
     struct character* characters;
 };
-
-void line_load(struct line* line);
-void line_draw(const struct line *line, float ab[4]);
-void line_unload(struct line* line);
-
-void tri_load(struct tri* tri);
-void tri_draw(const struct tri *tri, float pos[2]);
-void tri_unload(struct tri* tri);
-
-void rect_load(struct rect* rect);
-void rect_draw(const struct rect *rect, float pos[2]);
-void rect_unload(struct rect* rect);
-void rect_use_texture(struct rect* rect, unsigned int texture);
-
-void text_load(struct text* text, const char* font, float size);
-float text_draw(const struct text *text, const char* str, const float pos[2]);
-void text_unload(struct text* text);
 
 #endif //ENGINE_OBJECT_H

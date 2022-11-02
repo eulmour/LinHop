@@ -27,11 +27,11 @@ public:
     void move(float dt);
     void draw() const;
     void reset(IVec2 screen_size);
-    void activate();
+    void activate(IVec2 screen_size);
     void deactivate();
 
 private:
-    struct rect rect_drawable;
+    std::unique_ptr<Rect> rect_drawable;
 };
 
 #endif //LINHOP_BALL_HPP

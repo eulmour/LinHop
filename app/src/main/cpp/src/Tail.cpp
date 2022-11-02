@@ -19,7 +19,7 @@ void Tail::draw()
     while (current != end)
     {
         randColor(&this->line->color[0], (static_cast<float>(current->life_time) / tail_length) * alpha, 0.15f);
-        line_draw(this->line, &glm::vec4{ current->a_pos[0], current->a_pos[1] - scroll, current->b_pos[0], current->b_pos[1] - scroll }[0]);
+        drawable.draw(this->line, &glm::vec4{ current->a_pos[0], current->a_pos[1] - scroll, current->b_pos[0], current->b_pos[1] - scroll }[0]);
 
         current->update();
 

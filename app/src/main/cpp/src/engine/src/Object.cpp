@@ -1,22 +1,16 @@
 #include "Object.h"
 #include "Internal.h"
 #include <cstring>
-#include "glm/glm.hpp"
-#include "glm/gtc/matrix_transform.hpp"
-#include "glm/gtc/type_ptr.hpp"
 
 #if !defined(__ANDROID__) && !defined(ANDROID)
 #include "GL/glew.h"
 #include "GLFW/glfw3.h"
 #endif
 
+Drawable::Drawable(Vec2 surface_size) : surface_size(surface_size) {}
+
 // line
-void line_load(struct line* line) {
-
-    std::memset(line, 0, sizeof(struct line));
-
-    line->width = 1.f;
-    line->color = { 1.f, 1.f, 1.f, 1.f };
+Line::Line(Vec2 surface_size) : Drawable(surface_size), width(1.f) {
 
     const char* vertex_src =
         "#version 300 es\n"
@@ -35,14 +29,14 @@ void line_load(struct line* line) {
         "   fragColor = color;\n"
         "}\0";
 
-    line->shader = create_program(vertex_src, fragment_src);
-    line->vbc = 2;
+    this->shader = create_program(vertex_src, fragment_src);
+    this->vbc = 2;
 
-    glGenVertexArrays(1, &line->vao);
-    glGenBuffers(sizeof(line->vbo) / sizeof(line->vbo[0]), line->vbo);
-    glBindVertexArray(line->vao);
+    glGenVertexArrays(1, &this->vao);
+    glGenBuffers(sizeof(this->vbo) / sizeof(this->vbo[0]), this->vbo);
+    glBindVertexArray(this->vao);
 
-    glBindBuffer(GL_ARRAY_BUFFER, line->vbo[0]);
+    glBindBuffer(GL_ARRAY_BUFFER, this->vbo[0]);
     glBufferData(GL_ARRAY_BUFFER, 4 * sizeof(float), nullptr, GL_DYNAMIC_DRAW);
 
     glEnableVertexAttribArray(0);
@@ -51,53 +45,51 @@ void line_load(struct line* line) {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
-    line->state = STATE_READY;
+    this->state = STATE_READY;
 }
 
-void line_draw(const struct line *line, float ab[4]) {
+void Line::draw(float ab[4], Color c) {
 
-    glUseProgram(line->shader);
+    glUseProgram(this->shader);
 
     glm::mat4 projection = glm::ortho(
         0.0f,
-        static_cast<GLfloat>(engine_instance->width),
-        static_cast<GLfloat>(engine_instance->height),
+        static_cast<GLfloat>(this->surface_size[0]),
+        static_cast<GLfloat>(this->surface_size[1]),
         0.0f,
         -1.0f,
         1.0f
     );
 
-    set_uniform_mat4(line->shader, "projection", (GLfloat *) &projection[0][0]);
-    set_uniform4f(line->shader, "color", line->color.data());
+    set_uniform_mat4(this->shader, "projection", (GLfloat *) &projection[0][0]);
+    set_uniform4f(this->shader, "color", c);
 
-    glBindBuffer(GL_ARRAY_BUFFER, line->vbo[0]);
+    glBindBuffer(GL_ARRAY_BUFFER, this->vbo[0]);
     glBufferSubData(GL_ARRAY_BUFFER, 0, 4 * sizeof(float), ab);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    glBindVertexArray(line->vao);
-    glLineWidth(line->width);
-    glDrawArrays(GL_LINES, 0, line->vbc);
+    glBindVertexArray(this->vao);
+    glLineWidth(this->width);
+    glDrawArrays(GL_LINES, 0, this->vbc);
 }
 
-void line_unload(struct line* line) {
+Line::~Line() {
 
-    if (line->state == STATE_OFF)
+    if (this->state == STATE_OFF)
         return;
 
-    if (line->vao)
-        glDeleteVertexArrays(1, &line->vao);
-    if (line->vbo[0])
-        glDeleteBuffers(1, &line->vbo[0]);
-    if (line->ebo)
-        glDeleteBuffers(1, &line->ebo);
-    if (line->shader)
-        glDeleteProgram(line->shader);
+    if (this->vao)
+        glDeleteVertexArrays(1, &this->vao);
+    if (this->vbo[0])
+        glDeleteBuffers(1, &this->vbo[0]);
+    if (this->ebo)
+        glDeleteBuffers(1, &this->ebo);
+    if (this->shader)
+        glDeleteProgram(this->shader);
 }
 
 // triangle
-void tri_load(struct tri* tri) {
-
-    memset(tri, 0, sizeof(struct tri));
+Tri::Tri(Vec2 surface_size) : Drawable(surface_size) {
 
     struct tri_vertex {
         GLfloat pos[2];
@@ -108,7 +100,7 @@ void tri_load(struct tri* tri) {
         {{0.5f, -0.5f}, {0xFF, 0x00, 0x00, 0xFF}},
     };
 
-    tri->vbc = sizeof(tri_vertices) / sizeof(tri_vertices[0]);
+    this->vbc = sizeof(tri_vertices) / sizeof(tri_vertices[0]);
 
     const char* vertex_src =
         "#version 300 es\n"
@@ -131,13 +123,13 @@ void tri_load(struct tri* tri) {
         "   fragColor = vColor;\n"
         "}\0";
 
-    tri->shader = create_program(vertex_src, fragment_src);
+    this->shader = create_program(vertex_src, fragment_src);
 
-    glGenVertexArrays(1, &tri->vao);
-    glGenBuffers(sizeof(tri->vbo) / sizeof(tri->vbo[0]), tri->vbo);
-    glBindVertexArray(tri->vao);
+    glGenVertexArrays(1, &this->vao);
+    glGenBuffers(sizeof(this->vbo) / sizeof(this->vbo[0]), this->vbo);
+    glBindVertexArray(this->vao);
 
-    glBindBuffer(GL_ARRAY_BUFFER, tri->vbo[0]);
+    glBindBuffer(GL_ARRAY_BUFFER, this->vbo[0]);
     glBufferData(GL_ARRAY_BUFFER, sizeof(tri_vertices), tri_vertices, GL_STATIC_DRAW);
 
     glEnableVertexAttribArray(0);
@@ -150,17 +142,18 @@ void tri_load(struct tri* tri) {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
-    tri->state = STATE_READY;
+    this->state = STATE_READY;
 }
 
-void tri_draw(const struct tri *tri, float pos[2]) {
+void Tri::draw(float pos[2], Color c) {
 
-    glUseProgram(tri->shader);
+    (void)c;
+    glUseProgram(this->shader);
 
     glm::mat4 projection = glm::ortho(
         0.0f,
-        static_cast<GLfloat>(engine_instance->width),
-        static_cast<GLfloat>(engine_instance->height),
+        static_cast<GLfloat>(this->surface_size[0]),
+        static_cast<GLfloat>(this->surface_size[1]),
         0.0f,
         -1.0f,
         1.0f
@@ -169,35 +162,33 @@ void tri_draw(const struct tri *tri, float pos[2]) {
     glm::mat4 model(1.0f);
 
     model = glm::translate(model, glm::vec3(pos[0], pos[1], 0.0f));
-    model = glm::rotate(model, glm::radians(tri->rot), glm::vec3(0.0f, 0.0f, 0.0f));
-    model = glm::scale(model, glm::vec3(tri->scale[0], tri->scale[1], 1.0f));
+    model = glm::rotate(model, glm::radians(this->rot), glm::vec3(0.0f, 0.0f, 0.0f));
+    model = glm::scale(model, glm::vec3(this->scale[0], this->scale[1], 1.0f));
 
-    set_uniform_mat4(tri->shader, "projection", (GLfloat *) &projection[0][0]);
-    set_uniform_mat4(tri->shader, "model", (GLfloat *) &model[0][0]);
+    set_uniform_mat4(this->shader, "projection", (GLfloat *) &projection[0][0]);
+    set_uniform_mat4(this->shader, "model", (GLfloat *) &model[0][0]);
 
-    glBindVertexArray(tri->vao);
-    glDrawArrays(GL_TRIANGLES, 0, tri->vbc);
+    glBindVertexArray(this->vao);
+    glDrawArrays(GL_TRIANGLES, 0, this->vbc);
 }
 
-void tri_unload(struct tri* tri) {
+Tri::~Tri() {
 
-    if (tri->state == STATE_OFF)
+    if (this->state == STATE_OFF)
         return;
 
-    if (tri->vao)
-        glDeleteVertexArrays(1, &tri->vao);
-    if (tri->vbo[0])
-        glDeleteBuffers(1, &tri->vbo[0]);
-    if (tri->ebo)
-        glDeleteBuffers(1, &tri->ebo);
-    if (tri->shader)
-        glDeleteProgram(tri->shader);
+    if (this->vao)
+        glDeleteVertexArrays(1, &this->vao);
+    if (this->vbo[0])
+        glDeleteBuffers(1, &this->vbo[0]);
+    if (this->ebo)
+        glDeleteBuffers(1, &this->ebo);
+    if (this->shader)
+        glDeleteProgram(this->shader);
 }
 
 // rectangle
-void rect_load(struct rect* rect) {
-
-    memset(rect, 0, sizeof(struct rect));
+Rect::Rect(Vec2 surface_size) : Drawable(surface_size) {
 
     struct rect_vertex {
         GLfloat pos[2];
@@ -212,7 +203,7 @@ void rect_load(struct rect* rect) {
         {{1.f, 0.f}, {1.f, 0.f}},
     };
 
-    rect->vbc = sizeof(rect_vertices) / sizeof(rect_vertices[0]);
+    this->vbc = sizeof(rect_vertices) / sizeof(rect_vertices[0]);
 
     const char* vertex_src =
         "#version 300 es\n"
@@ -244,13 +235,13 @@ void rect_load(struct rect* rect) {
         "   fragColor = color * texture(sprite, tex_coord);\n"
         "}\0";
 
-    rect->shader = create_program(vertex_src, fragment_src);
+    this->shader = create_program(vertex_src, fragment_src);
 
-    glGenVertexArrays(1, &rect->vao);
-    glGenBuffers(sizeof(rect->vbo) / sizeof(rect->vbo[0]), rect->vbo);
-    glBindVertexArray(rect->vao);
+    glGenVertexArrays(1, &this->vao);
+    glGenBuffers(sizeof(this->vbo) / sizeof(this->vbo[0]), this->vbo);
+    glBindVertexArray(this->vao);
 
-    glBindBuffer(GL_ARRAY_BUFFER, rect->vbo[0]);
+    glBindBuffer(GL_ARRAY_BUFFER, this->vbo[0]);
     glBufferData(GL_ARRAY_BUFFER, sizeof(rect_vertices), rect_vertices, GL_STATIC_DRAW);
 
     glEnableVertexAttribArray(0);
@@ -263,17 +254,17 @@ void rect_load(struct rect* rect) {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
-    rect->state = STATE_READY;
+    this->state = STATE_READY;
 }
 
-void rect_draw(const struct rect *rect, float pos[2]) {
+void Rect::draw(float pos[2], Color c) {
 
-    glUseProgram(rect->shader);
+    glUseProgram(this->shader);
 
     glm::mat4 projection = glm::ortho(
         0.0f,
-        static_cast<GLfloat>(engine_instance->width),
-        static_cast<GLfloat>(engine_instance->height),
+        static_cast<GLfloat>(this->surface_size[0]),
+        static_cast<GLfloat>(this->surface_size[1]),
         0.0f,
         -1.0f,
         1.0f
@@ -282,48 +273,45 @@ void rect_draw(const struct rect *rect, float pos[2]) {
     glm::mat4 model(1.0f);
 
     model = glm::translate(model, glm::vec3(pos[0], pos[1], 0.0f));
-    model = glm::rotate(model, glm::radians(rect->rot), glm::vec3(0.0f, 0.0f, 0.0f));
-    model = glm::scale(model, glm::vec3(rect->scale[0], rect->scale[1], 1.0f));
+    model = glm::rotate(model, glm::radians(this->rot), glm::vec3(0.0f, 0.0f, 0.0f));
+    model = glm::scale(model, glm::vec3(this->scale[0], this->scale[1], 1.0f));
 
-    set_uniform_mat4(rect->shader, "projection", (GLfloat *) &projection[0][0]);
-    set_uniform_mat4(rect->shader, "model", (GLfloat *) &model[0][0]);
-    set_uniform4f(rect->shader, "color", (GLfloat *) &rect->color);
+    set_uniform_mat4(this->shader, "projection", (GLfloat *) &projection[0][0]);
+    set_uniform_mat4(this->shader, "model", (GLfloat *) &model[0][0]);
+    set_uniform4f(this->shader, "color", c);
 
-    glBindVertexArray(rect->vao);
-    glBindTexture(GL_TEXTURE_2D, rect->texture);
-    glDrawArrays(GL_TRIANGLES, 0, rect->vbc);
+    glBindVertexArray(this->vao);
+    glBindTexture(GL_TEXTURE_2D, this->texture);
+    glDrawArrays(GL_TRIANGLES, 0, this->vbc);
 }
 
-void rect_unload(struct rect* rect) {
+Rect::~Rect() {
 
-    if (rect->state == STATE_OFF)
+    if (this->state == STATE_OFF)
         return;
 
-    if (rect->vao)
-        glDeleteVertexArrays(1, &rect->vao);
-    if (rect->vbo[0])
-        glDeleteBuffers(1, &rect->vbo[0]);
-    if (rect->ebo)
-        glDeleteBuffers(1, &rect->ebo);
-    if (rect->shader)
-        glDeleteProgram(rect->shader);
-    if (rect->texture)
-        texture_unload(rect->texture);
+    if (this->vao)
+        glDeleteVertexArrays(1, &this->vao);
+    if (this->vbo[0])
+        glDeleteBuffers(1, &this->vbo[0]);
+    if (this->ebo)
+        glDeleteBuffers(1, &this->ebo);
+    if (this->shader)
+        glDeleteProgram(this->shader);
+    if (this->texture)
+        texture_unload(this->texture);
 }
 
-void rect_use_texture(struct rect* rect, unsigned int texture) { rect->texture = texture; }
+void Rect::useTexture(unsigned int texture) { this->texture = texture; }
 
 // text
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
-void text_load(struct text* text, const char* font, float size) {
+Text::Text(Vec2 surface_size, const char* font, float size) : Drawable(surface_size) {
 
-    memset(text, 0, sizeof(struct text));
-
-    text->scale = 1.f;
-    text->size = size;
-    text->color = { 1.f, 1.f, 1.f, 1.f };
+    this->scale = 1.f;
+    this->size = size;
 
     const char* vertex_src =
         "#version 300 es\n"
@@ -347,14 +335,14 @@ void text_load(struct text* text, const char* font, float size) {
         "   fragColor = color * sampled;\n"
         "}\0";
 
-    text->shader = create_program(vertex_src, fragment_src);
-    text->vbc = 6; // vertices count
+    this->shader = create_program(vertex_src, fragment_src);
+    this->vbc = 6; // vertices count
 
-    glGenVertexArrays(1, &text->vao);
-    glGenBuffers(sizeof(text->vbo) / sizeof(text->vbo[0]), text->vbo);
-    glBindVertexArray(text->vao);
+    glGenVertexArrays(1, &this->vao);
+    glGenBuffers(sizeof(this->vbo) / sizeof(this->vbo[0]), this->vbo);
+    glBindVertexArray(this->vao);
 
-    glBindBuffer(GL_ARRAY_BUFFER, text->vbo[0]);
+    glBindBuffer(GL_ARRAY_BUFFER, this->vbo[0]);
     glBufferData(GL_ARRAY_BUFFER, 6 * 4 * sizeof(float), nullptr, GL_DYNAMIC_DRAW);
 
     glEnableVertexAttribArray(0);
@@ -401,9 +389,9 @@ void text_load(struct text* text, const char* font, float size) {
     // disable byte-alignment restriction
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-    text->characters = (struct character*)malloc(CHARACTERS_CAP * sizeof(struct character));
+    this->characters = (struct character*)malloc(CHARACTERS_CAP * sizeof(struct character));
 
-    if (!text->characters)
+    if (!this->characters)
         LOGE("Unable to allocate memory\n");
 
     // then for the first 128 ASCII characters, pre-load/compile their characters and store them
@@ -438,18 +426,18 @@ void text_load(struct text* text, const char* font, float size) {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
         // now store character for later use
-        text->characters[c] = character {
+        this->characters[c] = character {
             texture, // texture
             static_cast<unsigned int>(face->glyph->advance.x), // advance
             { (int)face->glyph->bitmap.width, (int)face->glyph->bitmap.rows }, // size
             { face->glyph->bitmap_left, face->glyph->bitmap_top } // bearing
         };
 
-        text->width += (float)(face->glyph->advance.x >> 6) * text->scale; // TODO find text width and height
-        float height = (float)(face->glyph->advance.y >> 6) * text->scale;
+        this->width += (float)(face->glyph->advance.x >> 6) * this->scale; // TODO find text width and height
+        float height = (float)(face->glyph->advance.y >> 6) * this->scale;
 
-        if (height > text->height)
-            text->height = height;
+        if (height > this->height)
+            this->height = height;
     }
 
     glBindTexture(GL_TEXTURE_2D, 0);
@@ -457,39 +445,39 @@ void text_load(struct text* text, const char* font, float size) {
     FT_Done_Face(face);
     FT_Done_FreeType(ft);
 
-    text->state = STATE_READY;
+    this->state = STATE_READY;
 }
 
-float text_draw(const struct text *text, const char* str, const float pos[2]) {
+float Text::draw(const char* str, const float pos[2], Color c) {
 
     float shift = pos[0];
 
     glActiveTexture(GL_TEXTURE0);
-    glUseProgram(text->shader);
-    glBindVertexArray(text->vao);
+    glUseProgram(this->shader);
+    glBindVertexArray(this->vao);
 
     glm::mat4 projection = glm::ortho(
         0.0f,
-        static_cast<GLfloat>(engine_instance->width),
-        static_cast<GLfloat>(engine_instance->height),
+        static_cast<GLfloat>(this->surface_size[0]),
+        static_cast<GLfloat>(this->surface_size[1]),
         0.0f,
         -1.0f,
         1.0f
     );
 
-    set_uniform_mat4(text->shader, "projection", (GLfloat *) &projection[0][0]);
-    set_uniform4f(text->shader, "color", text->color.data());
+    set_uniform_mat4(this->shader, "projection", (GLfloat *) &projection[0][0]);
+    set_uniform4f(this->shader, "color", c);
 
     // iterate through all characters
     for (const char* c = str; *c != '\0'; c++) {
 
-        struct character ch = text->characters[*c];
+        struct character ch = this->characters[*c];
 
-        float xpos = shift + (float)ch.bearing[0] * text->scale;
-        float ypos = pos[1] + (float)(text->characters['H'].bearing[1] - ch.bearing[1]) * text->scale;
+        float xpos = shift + (float)ch.bearing[0] * this->scale;
+        float ypos = pos[1] + (float)(this->characters['H'].bearing[1] - ch.bearing[1]) * this->scale;
 
-        float w = (float)ch.size[0] * text->scale;
-        float h = (float)ch.size[1] * text->scale;
+        float w = (float)ch.size[0] * this->scale;
+        float h = (float)ch.size[1] * this->scale;
 
         // update VBO for each character
         float vertices[6][4] = {
@@ -503,7 +491,7 @@ float text_draw(const struct text *text, const char* str, const float pos[2]) {
         };
 
         glBindTexture(GL_TEXTURE_2D, ch.texture);
-        glBindBuffer(GL_ARRAY_BUFFER, text->vbo[0]);
+        glBindBuffer(GL_ARRAY_BUFFER, this->vbo[0]);
         glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
 
@@ -511,7 +499,7 @@ float text_draw(const struct text *text, const char* str, const float pos[2]) {
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
         // now advance cursors for next glyph
-        shift += (float)(ch.advance >> 6) * text->scale; // bitshift by 6 to get value in pixels (1/64th times 2^6 = 64)
+        shift += (float)(ch.advance >> 6) * this->scale; // bitshift by 6 to get value in pixels (1/64th times 2^6 = 64)
     }
 
     glBindVertexArray(0);
@@ -521,10 +509,10 @@ float text_draw(const struct text *text, const char* str, const float pos[2]) {
     return shift;
 }
 
-void text_unload(struct text* text) {
+Text::~Text() {
 
-    if (text->state == STATE_OFF)
+    if (this->state == STATE_OFF)
         return;
 
-    free(text->characters);
+    free(this->characters);
 }
