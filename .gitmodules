@@ -1,14 +1,10 @@
-[submodule "app/src/main/cpp/spige/vendor/cglm"]
-	path = app/src/main/cpp/spige/vendor/cglm
-	url = git@github.com:recp/cglm.git
-	ignore = dirty
-[submodule "app/src/main/cpp/spige/vendor/freetype"]
-	path = app/src/main/cpp/spige/vendor/freetype
+[submodule "app/src/main/cpp/src/engine/vendor/freetype"]
+	path = app/src/main/cpp/src/engine/vendor/freetype
 	url = git@github.com:freetype/freetype.git
 	ignore = dirty
-[submodule "app/src/main/cpp/spige/vendor/glfw"]
-	path = app/src/main/cpp/spige/vendor/glfw
+[submodule "app/src/main/cpp/src/engine/vendor/glfw"]
+	path = app/src/main/cpp/src/engine/vendor/glfw
 	url = git@github.com:glfw/glfw.git
-[submodule "app/src/main/cpp/game/vendor/glm"]
-	path = app/src/main/cpp/game/vendor/glm
+[submodule "app/src/main/cpp/src/engine/vendor/glm"]
+	path = app/src/main/cpp/src/engine/vendor/glm
 	url = git@github.com:g-truc/glm.git
