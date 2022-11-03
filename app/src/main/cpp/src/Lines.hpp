@@ -10,10 +10,10 @@
 class Lines {
 public:
 
-    Lines(IVec2 screen_size);
+    Lines();
     void Push(glm::vec2 second, glm::vec2 first, bool isCol = true);
-    void Draw(const Line& drawable);
-    void Reset();
+    void Draw(const Graphics& g, const Line& drawable);
+    void Reset(const Graphics& g);
 
     struct Circle
     {
@@ -27,7 +27,7 @@ public:
         Circle(glm::vec2 pos, Color color);
     };
 
-    struct Line
+    struct Segment
     {
         bool collinear;
         glm::vec2 a_pos{};
@@ -35,11 +35,10 @@ public:
         Vec4 color;
         Circle circle[2];
 
-        Line(glm::vec2 a_pos, glm::vec2 b_pos, Color color, bool is_col = true);
+        Segment(glm::vec2 a_pos, glm::vec2 b_pos, Color color, bool is_col = true);
     };
 
-    std::vector<Line> lines;
-    IVec2 screen_size{};
+    std::vector<Segment> lines;
 };
 
 #endif //LINHOP_LINES_HPP

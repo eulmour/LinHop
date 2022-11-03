@@ -3,6 +3,7 @@
 #include <cstring>
 #include <cerrno>
 #include <cstdio>
+#include <exception>
 #include "stb_image.h"
 
 #if !defined(__ANDROID__) && !defined(ANDROID)
@@ -216,6 +217,10 @@ unsigned int texture_load(const char* path) {
     stbi_uc* buffer = stbi_load(path, &width, &height, &bpp, 4);
 #endif
 
+    if (buffer == nullptr) {
+        throw std::exception("Failed to load texture");
+    }
+
     GLuint texture;
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
@@ -263,6 +268,19 @@ int file_load(struct file *file, const char *path) {
     if (!path)
         return 0;
 
+    FILE* f = fopen(path, "r"); if(!f) {
+        LOGW("IO: Opening file \"%s\" for read failed.\n", path);
+        return 0;
+    }
+
+#ifndef NDEBUG
+    LOGI("IO: Reading file \"%s\".\n", path);
+#endif
+
+    fseek(f, 0, SEEK_END);
+    file->size = ftell(f);
+    fseek(f, 0, SEEK_SET);
+
 #if defined(ANDROID)
 
     const char absolute_wd_path[] = "data/data/com.pachuch.linhop/files/";
@@ -284,20 +302,6 @@ int file_load(struct file *file, const char *path) {
     memcpy(file->path, path, file->path_size * sizeof(char));
 
 #endif
-
-    FILE* f = fopen(file->path, "r"); if(!f) {
-        LOGW("IO: Opening file \"%s\" for read failed.\n", file->path);
-        free(file->path);
-        return 0;
-    }
-
-#ifndef NDEBUG
-    LOGI("IO: Reading file \"%s\".\n", file->path);
-#endif
-
-    fseek(f, 0, SEEK_END);
-    file->size = ftell(f);
-    fseek(f, 0, SEEK_SET);
 
     if ((file->data = malloc(file->size)) == NULL) {
         LOGE("Unable to allocate memory.\n");

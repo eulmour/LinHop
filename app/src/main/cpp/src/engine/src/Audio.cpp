@@ -131,8 +131,7 @@ AudioSource::AudioSource(const char* path, float vol) {
 
      /* In this example, all decoders need to have the same output format. */
     internal_ptr->decoderConfig = ma_decoder_config_init(AUDIO_SAMPLE_FORMAT, AUDIO_NUM_CHANNELS, AUDIO_SAMPLE_RATE);
-    file_load_asset(&this->file_data, path);
-    if (this->file_data.size < 1)
+    if (!file_load_asset(&this->file_data, path))
         throw std::exception((std::string("Could not load file: ") + path).c_str());
 
     result = ma_decoder_init_memory(
@@ -179,6 +178,7 @@ Audio::~Audio() {
 
 void Audio::play(AudioSource& source) {
 
+    return;
     // TODO unable to read memory from this ptr
     // auto* internal_ptr = static_cast<AudioInternal*>(source.internal.get());
     auto* internal_ptr = this->internal;

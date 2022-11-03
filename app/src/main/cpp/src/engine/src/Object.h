@@ -2,14 +2,12 @@
 #define ENGINE_OBJECT_H
 
 #include "Framework.h"
-#include "Window.h"
+#include "Graphics.h"
+#include <memory>
 #define CHARACTERS_CAP 128
 
 struct Drawable {
-    Drawable() = delete;
-    Drawable(Vec2 surface_size);
     enum state state;
-    Vec2 surface_size;
     unsigned shader;
     unsigned vao;
     unsigned ebo;
@@ -18,10 +16,10 @@ struct Drawable {
 
 struct Line : public Drawable {
 
-    Line(Vec2 surface_size);
+    Line();
     ~Line();
 
-    void draw(float ab[4], Color c);
+    void draw(const Graphics& g, float ab[4], Color c) const;
 
     unsigned vbo[1];
     float width;
@@ -29,10 +27,10 @@ struct Line : public Drawable {
 
 struct Tri : public Drawable {
 
-    Tri(Vec2 surface_size);
+    Tri();
     ~Tri();
 
-    void draw(float pos[2], Color c);
+    void draw(const Graphics& g, float pos[2], Color c) const;
 
     unsigned vbo[1];
     float rot;
@@ -41,10 +39,10 @@ struct Tri : public Drawable {
 
 struct Rect : public Drawable {
 
-    Rect(Vec2 surface_size);
+    Rect();
     ~Rect();
 
-    void draw(float pos[2], Color c);
+    void draw(const Graphics& g, float pos[2], Color c) const;
     void useTexture(unsigned int texture);
 
     unsigned texture;
@@ -55,7 +53,7 @@ struct Rect : public Drawable {
 
 struct Text : public Drawable {
 
-    struct character {
+    struct Character {
         unsigned texture; // ID handle of the glyph texture
         unsigned advance; // horizontal offset to advance to next glyph
         IVec2 size;     // size of glyph
@@ -63,17 +61,18 @@ struct Text : public Drawable {
     };
 
     Text() = delete;
-    Text(Vec2 surface_size, const char* font, float size);
+    Text(const char* font, float size);
     ~Text();
 
-    float draw(const char* str, const float pos[2], Color c);
+    float draw(const Graphics& g, const char* str, const float pos[2], Color c) const;
 
     unsigned vbo[1];
     float scale;
     float size;
     float width;
     float height;
-    struct character* characters;
+    // struct character* characters;
+    std::unique_ptr<Character> characters;
 };
 
 #endif //ENGINE_OBJECT_H

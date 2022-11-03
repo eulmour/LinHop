@@ -126,18 +126,16 @@ Graphics& Graphics::init() {
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-#if defined(__ANDROID__) || defined(ANDROID)
     glEnable(GL_CULL_FACE);
     glDisable(GL_DEPTH_TEST);
-#else
-    glEnable(GL_DEPTH_TEST);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
+#if !defined(__ANDROID__) && !defined(ANDROID)
     glEnable(GL_DEBUG_OUTPUT);
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
     glDebugMessageCallback(errorOccurredGL, this);
 #endif
+
     return *this;
 }
 
@@ -155,5 +153,8 @@ Graphics& Graphics::clear(Color color) {
 
 Graphics& Graphics::viewport(IVec2 size) {
     glViewport(0, 0, size[0], size[1]);
+    this->viewport_ = size;
     return *this;
 }
+
+const IVec2& Graphics::viewport() const { return this->viewport_; }

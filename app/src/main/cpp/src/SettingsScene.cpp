@@ -8,22 +8,22 @@ SettingsScene::SettingsScene(Engine& e) {
 
     PROLOG(e)
 
-    this->label_settings_title = std::make_unique<Label>(&this->large_text, "Settings", glm::vec2 {
+    this->label_settings_title = std::make_unique<Label>("Settings", glm::vec2 {
         screenW/2 - 170, screenH / 2.f - 280.f
     });
 
-    this->label_settings_fx = std::make_unique<Label>(&this->medium_text, "FX: ", glm::vec2 {
+    this->label_settings_fx = std::make_unique<Label>("FX: ", glm::vec2 {
         screenW/2 - 165, screenH / 2.f - 60.f
     });
 
-    this->label_settings_music_volume = std::make_unique<Label>(&this->medium_text, "Volume: ", glm::vec2 {
+    this->label_settings_music_volume = std::make_unique<Label>("Volume: ", glm::vec2 {
         screenW/2 - 150, screenH / 2.f });
 
-    this->label_settings_reset_statistics = std::make_unique<Label>(&this->medium_text, "Reset", glm::vec2 {
+    this->label_settings_reset_statistics = std::make_unique<Label>("Reset", glm::vec2 {
         screenW/2 - 76, screenH / 2.f + 120.f
     });
 
-    this->label_settings_back = std::make_unique<Label>(&this->medium_text, "Back", glm::vec2 {
+    this->label_settings_back = std::make_unique<Label>("Back", glm::vec2 {
         screenW/2 - 58, screenH / 2.f + 280.f
     });
 
@@ -35,41 +35,41 @@ SettingsScene::SettingsScene(Engine& e) {
 
 void SettingsScene::resume(Engine&) {
     const char *const fontPath = "fonts/OCRAEXT.TTF";
-    text_load(&this->small_text, fontPath, SettingsScene::small_text_size);
-    text_load(&this->medium_text, fontPath, SettingsScene::medium_text_size);
-    text_load(&this->large_text, fontPath, SettingsScene::large_text_size);
+    this->small_text = std::make_unique<Text>(fontPath, SettingsScene::small_text_size);
+    this->medium_text = std::make_unique<Text>(fontPath, SettingsScene::medium_text_size);
+    this->large_text = std::make_unique<Text>(fontPath, SettingsScene::large_text_size);
 }
 
 void SettingsScene::suspend(Engine&) {
-    text_unload(&small_text);
-    text_unload(&medium_text);
-    text_unload(&large_text);
+    this->small_text.reset();
+    this->medium_text.reset();
+    this->large_text.reset();
 }
 
 void SettingsScene::update(Engine&) {
 }
 
-void SettingsScene::render(Engine&) {
+void SettingsScene::render(Engine& e) {
 
-    this->label_settings_title->draw();
+    this->label_settings_title->draw(e.graphics, *this->large_text);
 
     this->label_settings_fx
         ->setText(CCAT("FX: ", save_data.fx_enabled, "enabled", "disabled"))
         .setColor(settings_selected == SettingsSelected::FX_ENABLED ? COLOR_SELECTED : COLOR_IDLE)
-        .draw();
+        .draw(e.graphics, *this->medium_text);
 
     this->label_settings_music_volume
         ->setText("Volume: " + std::to_string(static_cast<int>(save_data.music_volume_float * 100)))
         .setColor(settings_selected == SettingsSelected::MUSIC_VOLUME ? COLOR_SELECTED : COLOR_IDLE)
-        .draw();
+        .draw(e.graphics, *this->medium_text);
 
     this->label_settings_reset_statistics
         ->setColor(settings_selected == SettingsSelected::RESET_STATISTICS ? COLOR_SELECTED : COLOR_IDLE)
-        .draw();
+        .draw(e.graphics, *this->medium_text);
 
     this->label_settings_back
         ->setColor(settings_selected == SettingsSelected::BACK ? COLOR_SELECTED : COLOR_IDLE)
-        .draw();
+        .draw(e.graphics, *this->medium_text);
 }
 
 void SettingsScene::onEventPointerMove() {

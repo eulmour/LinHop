@@ -21,13 +21,13 @@ public:
     static constexpr float terminal_velocity{1.5f};
     glm::vec2 pos{}, prev_pos{}, vel{ 0.0f, 0.0f };
 
-    explicit Ball(IVec2 screen_size);
+    explicit Ball(const Graphics& g);
     ~Ball();
     bool collision(const Lines& line_array, glm::vec2 prev_position);
     void move(float dt);
-    void draw() const;
-    void reset(IVec2 screen_size);
-    void activate(IVec2 screen_size);
+    void draw(const Graphics& g) const;
+    void reset(const Graphics& g);
+    void activate();
     void deactivate();
 
 private:

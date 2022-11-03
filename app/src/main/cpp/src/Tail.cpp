@@ -1,30 +1,29 @@
 #include "Tail.hpp"
-#include "Utils.hpp"
+#include "Util.hpp"
 
-using namespace linhop::utils;
+using namespace linhop;
 extern float scroll;
 
-Tail::Tail(struct line* line, const float alpha) : alpha(alpha), line(line) {}
+Tail::Tail(const float alpha) : alpha(alpha) {}
 
-void Tail::push(glm::vec2 a, glm::vec2 b)
-{
-    tail.push_front(Line(a, b));
+void Tail::push(glm::vec2 a, glm::vec2 b) {
+    tail.push_front(TailLine(a, b));
 }
 
-void Tail::draw()
-{
+void Tail::draw(const Graphics& g, const Line& drawable) {
+
     auto current = tail.begin();
     auto end = tail.end();
 
-    while (current != end)
-    {
-        randColor(&this->line->color[0], (static_cast<float>(current->life_time) / tail_length) * alpha, 0.15f);
-        drawable.draw(this->line, &glm::vec4{ current->a_pos[0], current->a_pos[1] - scroll, current->b_pos[0], current->b_pos[1] - scroll }[0]);
+    while (current != end) {
+        drawable.draw(
+            g,
+            &glm::vec4{ current->a_pos[0], current->a_pos[1] - scroll, current->b_pos[0], current->b_pos[1] - scroll }[0],
+            util::randColor((static_cast<float>(current->life_time) / tail_length) * alpha, 0.15f));
 
         current->update();
 
-        if (current->life_time == 0)
-        {
+        if (current->life_time == 0) {
             tail.erase(current++);
             continue;
         }
@@ -33,21 +32,20 @@ void Tail::draw()
     }
 }
 
-void Tail::reset()
-{
+void Tail::reset() {
     tail.clear();
 }
 
-Tail::Line::Line(glm::vec2 a, glm::vec2 b) : a_pos(a), b_pos(b) {}
+Tail::TailLine::TailLine(glm::vec2 a, glm::vec2 b) : a_pos(a), b_pos(b) {}
 
-void Tail::Line::update()
-{
+void Tail::TailLine::update() {
+    
     float amount = (((tail_length - static_cast<float>(life_time)) * tail_fuzz) / tail_length) / 2;
 
-    a_pos[0] += t_rand(-amount, amount);
-    a_pos[1] += t_rand(-amount, amount);
-    b_pos[0] += t_rand(-amount, amount);
-    b_pos[1] += t_rand(-amount, amount);
+    a_pos[0] += util::rand(-amount, amount);
+    a_pos[1] += util::rand(-amount, amount);
+    b_pos[0] += util::rand(-amount, amount);
+    b_pos[1] += util::rand(-amount, amount);
 
     --life_time;
 }

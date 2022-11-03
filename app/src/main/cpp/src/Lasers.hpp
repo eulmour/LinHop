@@ -8,12 +8,12 @@
 class Lasers {
 
 public:
-    explicit Lasers(IVec2 screen_size);
+    explicit Lasers();
     ~Lasers();
 
-    void trigger(float position);
-    void draw(const Line& drawable);
-    void activate(IVec2 screen_size);
+    void trigger(const Graphics& g, float position);
+    void draw(const Graphics& g, const Line& drawable);
+    void activate();
     void deactivate();
 
     class Laser
@@ -25,8 +25,6 @@ public:
     };
 
     unsigned int live_time = 0U;
-    IVec2 screen_size{};
-    float area_width = 480.f / 3.f;
     float pos{};
 
     static constexpr std::size_t lasers_lives = 240;

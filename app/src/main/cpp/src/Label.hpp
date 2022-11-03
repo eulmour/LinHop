@@ -9,7 +9,7 @@ class Label : public IGameObject {
 
 public:
     Label(std::string text, glm::vec2 pos);
-    void draw(const Text& drawable);
+    void draw(const Graphics& g, const Text& drawable);
     Label& setText(std::string newText) { this->text = std::move(newText); return *this; }
     Label& setPos(glm::vec2 newPos) { this->pos = newPos; return *this; }
     Label& setColor(Color newColor) { this->color = newColor; return *this; }

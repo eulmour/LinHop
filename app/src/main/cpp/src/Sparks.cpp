@@ -1,15 +1,12 @@
 #include "Sparks.hpp"
-#include "Utils.hpp"
+#include "Util.hpp"
 
-using namespace linhop::utils;
+using namespace linhop;
 extern float scroll;
 
-Sparks::~Sparks() {
-    if (this->rect_drawable.state != STATE_OFF)
-        this->deactivate();
-}
+Sparks::~Sparks() = default;
 
-void Sparks::draw() {
+void Sparks::draw(const Graphics& g) {
 
     auto current = sparks.begin();
     auto end = sparks.end();
@@ -17,14 +14,14 @@ void Sparks::draw() {
     while (current != end) {
         current->update();
 
-        this->rect_drawable.rot = degrees(std::atan2(-current->vel[0], -current->vel[1]));
-        this->rect_drawable.color[0] = current->color[0];
-        this->rect_drawable.color[1] = current->color[1];
-        this->rect_drawable.color[2] = current->color[2];
-        this->rect_drawable.color[3] = (static_cast<float>(current->life) / spark_life);
-
-        this->rect_drawable.scale = current->size;
-        rect_draw(&this->rect_drawable, &glm::vec2{current->pos[0], current->pos[1] - scroll }[0]);
+        this->rect_drawable->rot = util::degrees(std::atan2(-current->vel[0], -current->vel[1]));
+        this->rect_drawable->scale = current->size;
+        this->rect_drawable->draw(g, &glm::vec2{current->pos[0], current->pos[1] - scroll }[0], Color{
+            current->color[0],
+            current->color[1],
+            current->color[2],
+            static_cast<float>(current->life) / spark_life
+        });
 
         if (current->life == 0) {
             sparks.erase(current++);
@@ -37,38 +34,31 @@ void Sparks::draw() {
 
 void Sparks::push(glm::vec2 position) {
 
-    for (unsigned int i = 0; i < spark_amount; ++i)
-    {
+    for (unsigned int i = 0; i < spark_amount; ++i) {
         sparks.push_front(Spark(position));
     }
 }
 
 void Sparks::activate() {
-
-    rect_load(&this->rect_drawable);
-    rect_use_texture(&this->rect_drawable, texture_load("textures/sparkle.png"));
-
-    this->rect_drawable.color[0] = 1.f;
-    this->rect_drawable.color[1] = 1.f;
-    this->rect_drawable.color[2] = 1.f;
-    this->rect_drawable.color[3] = 1.f;
-    this->rect_drawable.scale[0] = 50.f; // TODO ?
-    this->rect_drawable.scale[1] = 50.f;
+    this->rect_drawable = std::make_unique<Rect>();
+    this->rect_drawable->useTexture(texture_load("textures/sparkle.png"));
+    this->rect_drawable->scale[0] = 50.f; // TODO ?
+    this->rect_drawable->scale[1] = 50.f;
 }
 
 void Sparks::deactivate() {
-    rect_unload(&this->rect_drawable);
+    this->rect_drawable.reset();
 }
 
 Sparks::Spark::Spark(glm::vec2 pos) :
     pos(pos),
-    vel{ t_rand(-20.0f, 20.0f), t_rand(-30.0f, -10.0f) },
-    size{ t_rand(Sparks::Spark::min_size, Sparks::Spark::max_size),
-          t_rand(Sparks::Spark::min_size, Sparks::Spark::max_size) },
-    color{t_rand(0.0f, 1.0f),
-        t_rand(0.0f, 1.0f),
-        t_rand(0.0f, 1.0f),
-        t_rand(0.0f, 1.0f)}
+    vel{ util::rand(-20.0f, 20.0f), util::rand(-30.0f, -10.0f) },
+    size{ util::rand(Sparks::Spark::min_size, Sparks::Spark::max_size),
+          util::rand(Sparks::Spark::min_size, Sparks::Spark::max_size) },
+    color{util::rand(0.0f, 1.0f),
+        util::rand(0.0f, 1.0f),
+        util::rand(0.0f, 1.0f),
+        util::rand(0.0f, 1.0f)}
 {}
 
 void Sparks::Spark::update() {

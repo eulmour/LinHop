@@ -8,6 +8,10 @@ public:
     Graphics& init();
     Graphics& clear(Color color);
     Graphics& viewport(IVec2 size);
+    const IVec2& viewport() const;
+
+private:
+    IVec2 viewport_;
 };
 
 #endif //ENGINE_GRAPHICS_H

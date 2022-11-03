@@ -3,7 +3,7 @@
 
 #include "engine/engine.h"
 #include <memory>
-#include "Utils.hpp"
+#include "Util.hpp"
 #include "Label.hpp"
 
 class SettingsScene : public Scene {
@@ -31,9 +31,9 @@ private:
     static constexpr float medium_text_size = 50.f;
     static constexpr float large_text_size = 72.f;
 
-    struct text small_text = {};
-    struct text medium_text = {};
-    struct text large_text = {};
+    std::unique_ptr<Text> small_text;
+    std::unique_ptr<Text> medium_text;
+    std::unique_ptr<Text> large_text;
 
     std::unique_ptr<Label> label_settings_title;
     std::unique_ptr<Label> label_settings_fx;

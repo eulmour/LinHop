@@ -9,10 +9,10 @@
 
 #define PROLOG(e) float& pointerX = e.input.getPointerArray()[0][0]; \
     float& pointerY = e.input.getPointerArray()[0][1]; \
-    float screenW = static_cast<float>(e.window->getLogicalSize()[0]); \
-    float screenH = static_cast<float>(e.window->getLogicalSize()[1]);
+    float screenW = static_cast<float>(e.graphics.viewport()[0]); \
+    float screenH = static_cast<float>(e.graphics.viewport()[1]);
 
-using namespace linhop::utils;
+using namespace linhop;
 
 // global
 float scroll = 0.f;
@@ -45,87 +45,87 @@ MainScene::MainScene(Engine& e) {
     this->prev_mouse_pos = {pointerX, pointerY};
 
     // class
-    lines       = std::make_unique<Lines>(e.window->getLogicalSize());
-    rand_lines  = std::make_unique<Lines>(e.window->getLogicalSize());
+    lines       = std::make_unique<Lines>();
+    rand_lines  = std::make_unique<Lines>();
     sparks      = std::make_unique<Sparks>();
-    lasers      = std::make_unique<Lasers>(e.window->getLogicalSize());
+    lasers      = std::make_unique<Lasers>();
     ball_tail   = std::make_unique<Tail>(.7f);
     cursor_tail = std::make_unique<Tail>(.08f);
-    ball        = std::make_unique<Ball>(e.window->getLogicalSize());
+    ball        = std::make_unique<Ball>(e.graphics);
 
-    lines->Reset();
+    lines->Reset(e.graphics);
 
     // labels
-    this->label_menu_title = std::make_unique<Label>(&this->large_text, "LinHop", glm::vec2 {
-            screenW / 2.f - 162.f, screenH / 2.f - 180.f
+    this->label_menu_title = std::make_unique<Label>("LinHop", glm::vec2 {
+        screenW / 2.f - 162.f, screenH / 2.f - 180.f
     });
     this->label_menu_title->setColor({0.6f, 0.8f, 1.0f, 1.f});
 
-    this->label_menu_continue = std::make_unique<Label>(&this->medium_text, "Continue", glm::vec2 {
-            screenW / 2.f - 152.f, screenH / 2.f - 40.f
+    this->label_menu_continue = std::make_unique<Label>("Continue", glm::vec2 {
+        screenW / 2.f - 152.f, screenH / 2.f - 40.f
     });
 
-    this->label_menu_start = std::make_unique<Label>(&this->medium_text, "Start", glm::vec2 {
-            screenW / 2.f - 98.f, screenH / 2.f + 20.f
+    this->label_menu_start = std::make_unique<Label>("Start", glm::vec2 {
+        screenW / 2.f - 98.f, screenH / 2.f + 20.f
     });
 
-    this->label_menu_settings = std::make_unique<Label>(&this->medium_text, "Settings", glm::vec2 {
-            screenW / 2.f - 152.f, screenH / 2.f + 80.f
+    this->label_menu_settings = std::make_unique<Label>("Settings", glm::vec2 {
+        screenW / 2.f - 152.f, screenH / 2.f + 80.f
     });
 
-    this->label_menu_exit = std::make_unique<Label>(&this->medium_text, "Exit", glm::vec2 {
-            screenW / 2.f - 78.f, screenH / 2.f + 140.f
+    this->label_menu_exit = std::make_unique<Label>("Exit", glm::vec2 {
+        screenW / 2.f - 78.f, screenH / 2.f + 140.f
     });
 
-    this->label_menu_hint = std::make_unique<Label>(&this->small_text, "Left or right to change mode", glm::vec2 {
-            screenW / 2.f - 238.f, screenH - 40.f
+    this->label_menu_hint = std::make_unique<Label>("Left or right to change mode", glm::vec2 {
+        screenW / 2.f - 238.f, screenH - 40.f
     });
     this->label_menu_hint->setColor({0.4f, 0.55f, 0.6f, 1.f});
 
-    this->label_menu_mode = std::make_unique<Label>(&this->small_text, "Classic", glm::vec2 {
-            screenW / 2.f - 74.f, screenH / 2.f - 110.f
+    this->label_menu_mode = std::make_unique<Label>("Classic", glm::vec2 {
+        screenW / 2.f - 74.f, screenH / 2.f - 110.f
     });
 
-    this->label_endgame_restart = std::make_unique<Label>(&this->medium_text, "Retry", glm::vec2 {
-            screenW / 2.f + 35.f, screenH / 2.f
+    this->label_endgame_restart = std::make_unique<Label>("Retry", glm::vec2 {
+        screenW / 2.f + 35.f, screenH / 2.f
     });
 
-    this->label_endgame_score = std::make_unique<Label>(&this->medium_text, "Score: ", glm::vec2 {
-            screenW / 2.f - 230.f, screenH / 2.f - 60.f
+    this->label_endgame_score = std::make_unique<Label>("Score: ", glm::vec2 {
+        screenW / 2.f - 230.f, screenH / 2.f - 60.f
     });
 
-    this->label_settings_title = std::make_unique<Label>(&this->large_text, "Settings", glm::vec2 {
-            screenW / 2.f - 216.f, screenH / 2.f - 280.f
+    this->label_settings_title = std::make_unique<Label>("Settings", glm::vec2 {
+        screenW / 2.f - 216.f, screenH / 2.f - 280.f
     });
 
-    this->label_settings_fx = std::make_unique<Label>(&this->medium_text, "FX: ", glm::vec2 {
-            screenW / 2.f - 120.f, screenH / 2.f - 60.f
+    this->label_settings_fx = std::make_unique<Label>("FX: ", glm::vec2 {
+        screenW / 2.f - 120.f, screenH / 2.f - 60.f
     });
 
-    this->label_settings_music_volume = std::make_unique<Label>(&this->medium_text, "Volume: ", glm::vec2 {
-            screenW / 2.f - 196.f, screenH / 2.f
+    this->label_settings_music_volume = std::make_unique<Label>("Volume: ", glm::vec2 {
+        screenW / 2.f - 196.f, screenH / 2.f
     });
 
-    this->label_settings_reset_statistics = std::make_unique<Label>(&this->medium_text, "Reset", glm::vec2 {
-            screenW / 2.f - 90.f, screenH / 2.f + 60.f
+    this->label_settings_reset_statistics = std::make_unique<Label>("Reset", glm::vec2 {
+        screenW / 2.f - 90.f, screenH / 2.f + 60.f
     });
 
-    this->label_settings_back = std::make_unique<Label>(&this->medium_text, "Back", glm::vec2 {
-            screenW / 2.f - 70.f, screenH / 2.f + 280.f
+    this->label_settings_back = std::make_unique<Label>("Back", glm::vec2 {
+        screenW / 2.f - 70.f, screenH / 2.f + 280.f
     });
 
-    this->label_game_score = std::make_unique<Label>(&this->medium_text, "Score: ", glm::vec2 {
-            0.f, 5.f
+    this->label_game_score = std::make_unique<Label>("Score: ", glm::vec2 {
+        0.f, 5.f
     });
 
-    this->label_game_fps = std::make_unique<Label>(&this->medium_text, " fps", glm::vec2 {
-            screenW - 80.f, 5.f
+    this->label_game_fps = std::make_unique<Label>(" fps", glm::vec2 {
+        screenW - 80.f, 5.f
     });
 
     try {
         this->audio_engine = std::make_unique<Audio>();
-    } catch (std::exception& e) {
-        LOGE("Failed to initialize audio engine: %s\n", e.what());
+    } catch (const std::exception& exception) {
+        LOGE("Failed to initialize audio engine: %s\n", exception.what());
     }
 }
 
@@ -149,22 +149,27 @@ void MainScene::suspend(Engine&) {
     this->sparks->deactivate();
 
     this->line.reset();
-    this->small_reset.reset();
-    this->medium_reset.reset();
-    this->large_reset.reset();
+    this->small_text.reset();
+    this->medium_text.reset();
+    this->large_text.reset();
 
     this->audio_engine->pauseAll();
 }
 
-void MainScene::resume(Engine&) {
+void MainScene::resume(Engine& e) {
 
     this->line = std::make_unique<Line>();
     this->line->width = 5.f;
 
-    const char *const fontPath = "fonts/OCRAEXT.TTF";
-    this->small_text = std::make_unique<Text>(fontPath, MainScene::small_text_size);
-    this->medium_text = std::make_unique<Text>(fontPath, MainScene::medium_text_size);
-    this->large_text = std::make_unique<Text>(fontPath, MainScene::large_text_size);
+    try {
+        const char *const fontPath = "fonts/OCRAEXT.TTF";
+        this->small_text = std::make_unique<Text>(fontPath, MainScene::small_text_size);
+        this->medium_text = std::make_unique<Text>(fontPath, MainScene::medium_text_size);
+        this->large_text = std::make_unique<Text>(fontPath, MainScene::large_text_size);
+    } catch (const std::exception& exception) {
+        LOGE("%s\n", exception.what());
+        e.window->close();
+    }
 
     this->ball->activate();
     this->lasers->activate();
@@ -222,12 +227,12 @@ void MainScene::update(Engine& engine) {
 
             if (ball->collision(*lines, ball->prev_pos)) {
                 sparks->push(ball->pos);
-                this->audio_engine->play(*this->audio_bounce.get());
+                this->audio_engine->play(*this->audio_bounce);
             }
 
             if (ball->collision(*rand_lines, ball->prev_pos)) {
                 sparks->push(ball->pos);
-                this->audio_engine->play(*this->audio_bounce.get());
+                this->audio_engine->play(*this->audio_bounce);
             }
 
             /* If ball reaches half of the screen then update scroll */
@@ -245,10 +250,10 @@ void MainScene::update(Engine& engine) {
                 ball->pos[1] - scroll > screenH + ball->radius)
             {
                 if (game_state == GameState::INGAME) {
-                    if (t_rand(0, 1) == 0)
-                        this->audio_engine->play(*this->audio_fail_a.get());
+                    if (util::rand(0, 1) == 0)
+                        this->audio_engine->play(*this->audio_fail_a);
                     else
-                        this->audio_engine->play(*this->audio_fail_b.get());
+                        this->audio_engine->play(*this->audio_fail_b);
 
                     game_state = GameState::ENDGAME;
                 }
@@ -256,20 +261,20 @@ void MainScene::update(Engine& engine) {
 
             /* Random platforms */
             if ((-scroll) - last_place > rand_lines_density) {
-                if (t_rand(0, 1) <= 1) {
+                if (util::rand(0, 1) <= 1) {
                     auto base_y = scroll - 80.0f;
-                    auto base_x = t_rand(-(screenW/3.f), screenW);
+                    auto base_x = util::rand(-(screenW/3.f), screenW);
 
                     struct line {
                         glm::vec2 first;
                         glm::vec2 second;
                     } new_line {
                         {base_x, base_y},
-                        {base_x + (t_rand(0.f, screenW) / 2.f) - (screenW/2.f) / 4.f,
-							base_y + t_rand(0.f, screenH) / 6.f}
+                        {base_x + (util::rand(0.f, screenW) / 2.f) - (screenW/2.f) / 4.f,
+							base_y + util::rand(0.f, screenH) / 6.f}
                     };
 
-                    if (dis_func(new_line.second[0] - new_line.first[0],
+                    if (util::dis_func(new_line.second[0] - new_line.first[0],
                                  new_line.second[1] - new_line.first[1]) > 30.0f) {
                         rand_lines->Push(new_line.second, new_line.first, false);
                     }
@@ -299,15 +304,15 @@ void MainScene::update(Engine& engine) {
 
             /* lasers */
             if (game_score > 1000L) {
-                if (t_rand(0, 600) == 1) {
-                    this->audio_engine->play(*this->audio_warning.get());
+                if (util::rand(0, 600) == 1) {
+                    this->audio_engine->play(*this->audio_warning);
 
-                    lasers->trigger(
-                            t_rand(0.0f, screenW - this->lasers->area_width));
+                    lasers->trigger(engine.graphics,
+                            util::rand(0.0f, screenW - (screenW/3)));
                 }
 
                 if (lasers->live_time == 59)
-                    this->audio_engine->play(*this->audio_warning.get());
+                    this->audio_engine->play(*this->audio_warning);
             }
 
             break;
@@ -317,13 +322,14 @@ void MainScene::update(Engine& engine) {
     }
 
     // play random music
-    if (this->audio_main->state != STATE_BUSY
-       && this->audio_alt->state != STATE_BUSY)
+    if (this->audio_main
+        && this->audio_main->state != STATE_BUSY
+        && this->audio_alt->state != STATE_BUSY)
     {
        if (rand() % 2 == 0)
-            this->audio_engine->play(*this->audio_main.get());
+            this->audio_engine->play(*this->audio_main);
        else
-            this->audio_engine->play(*this->audio_alt.get());
+            this->audio_engine->play(*this->audio_alt);
     }
 }
 
@@ -333,7 +339,7 @@ void MainScene::render(Engine& engine) {
 
     engine.graphics.clear(background_color);
 
-    lasers->draw();
+    lasers->draw(engine.graphics, *this->line);
 
     if (lasers->live_time == 0 && !lasers->lasers.empty()) {
 
@@ -344,10 +350,10 @@ void MainScene::render(Engine& engine) {
             if (game_state == GameState::INGAME)
                 game_state = GameState::ENDGAME;
 
-            if (t_rand(0, 1) == 0)
-                this->audio_engine->play(*this->audio_fail_a.get());
+            if (util::rand(0, 1) == 0)
+                this->audio_engine->play(*this->audio_fail_a);
             else
-                this->audio_engine->play(*this->audio_fail_b.get());
+                this->audio_engine->play(*this->audio_fail_b);
         }
 
         sparks->push(glm::vec2{0.0f, 0.0f});
@@ -359,41 +365,41 @@ void MainScene::render(Engine& engine) {
     }
 
     if (save_data.fx_enabled) {
-        cursor_tail->draw();
-        sparks->draw();
-        ball_tail->draw();
+        cursor_tail->draw(engine.graphics, *this->line);
+        sparks->draw(engine.graphics);
+        ball_tail->draw(engine.graphics, *this->line);
     }
 
     if (game_mode == GameMode::CLASSIC)
-        lines->Draw();
+        lines->Draw(engine.graphics, *this->line);
 
-    ball->draw();
-    rand_lines->Draw();
+    ball->draw(engine.graphics);
+    rand_lines->Draw(engine.graphics, *this->line);
 
     // gui text
     switch (game_state) {
         case GameState::PAUSED:
         case GameState::MENU:
 
-            this->label_menu_title->draw();
+            this->label_menu_title->draw(engine.graphics, *this->large_text);
 
             this->label_menu_continue
                 ->setColor(menu_selected == MenuSelected::CONTINUE ? COLOR_SELECTED : COLOR_IDLE)
-                .draw();
+                .draw(engine.graphics, *this->medium_text);
 
             this->label_menu_start
                 ->setColor(menu_selected == MenuSelected::START ? COLOR_SELECTED : COLOR_IDLE)
-                .draw();
+                .draw(engine.graphics, *this->medium_text);
 
             this->label_menu_settings
                 ->setColor(menu_selected == MenuSelected::SETTINGS ? COLOR_SELECTED : COLOR_IDLE)
-                .draw();
+                .draw(engine.graphics, *this->medium_text);
 
             this->label_menu_exit
                 ->setColor(menu_selected == MenuSelected::EXIT ? COLOR_SELECTED : COLOR_IDLE)
-                .draw();
+                .draw(engine.graphics, *this->medium_text);
 
-            this->label_menu_hint->draw();
+            this->label_menu_hint->draw(engine.graphics, *this->small_text);
 
             switch (game_mode) {
                 case GameMode::CLASSIC:
@@ -401,13 +407,13 @@ void MainScene::render(Engine& engine) {
                     this->label_game_score
                         ->setText("Score: " + std::to_string(save_data.max_score_classic))
                         .setColor(COLOR_IDLE)
-                        .draw();
+                        .draw(engine.graphics, *this->medium_text);
 
                     this->label_menu_mode
                         ->setText("Classic")
                         .setPos(glm::vec2{ screenW/2.f - 60.f, screenH / 2.f - 110.f })
                         .setColor(COLOR_IDLE)
-                        .draw();
+                        .draw(engine.graphics, *this->small_text);
 
                     break;
 
@@ -416,13 +422,13 @@ void MainScene::render(Engine& engine) {
                     this->label_game_score
                         ->setText("Score: " + std::to_string(save_data.max_score_classic))
                         .setColor(COLOR_IDLE)
-                        .draw();
+                        .draw(engine.graphics, *this->medium_text);
 
                     this->label_menu_mode
                         ->setText("Hidden")
                         .setPos(glm::vec2{ screenW/2.f - 52.f, screenH / 2.f - 110.f })
                         .setColor(COLOR_IDLE)
-                        .draw();
+                        .draw(engine.graphics, *this->small_text);
 
                     break;
 
@@ -434,38 +440,34 @@ void MainScene::render(Engine& engine) {
 
         case GameState::SETTINGS:
 
-            this->label_settings_title->draw();
+            this->label_settings_title->draw(engine.graphics, *this->large_text);
 
             this->label_settings_fx
                 ->setText(CCAT("FX: ", save_data.fx_enabled, "on", "off"))
                 .setColor(settings_selected == SettingsSelected::FX_ENABLED ? COLOR_SELECTED : COLOR_IDLE)
-                .draw();
+                .draw(engine.graphics, *this->medium_text);
 
             this->label_settings_music_volume
                 ->setText("Volume: " + std::to_string(static_cast<int>(save_data.music_volume_float * 100)))
                 .setColor(settings_selected == SettingsSelected::MUSIC_VOLUME ? COLOR_SELECTED : COLOR_IDLE)
-                .draw();
+                .draw(engine.graphics, *this->medium_text);
 
             this->label_settings_reset_statistics
                 ->setColor(settings_selected == SettingsSelected::RESET_STATISTICS ? COLOR_SELECTED : COLOR_IDLE)
-                .draw();
+                .draw(engine.graphics, *this->medium_text);
 
             this->label_settings_back
                 ->setColor(settings_selected == SettingsSelected::BACK ? COLOR_SELECTED : COLOR_IDLE)
-                .draw();
+                .draw(engine.graphics, *this->medium_text);
 
             break;
 
         case GameState::INGAME:
 
             if (pressed && game_mode == GameMode::CLASSIC) {
-
-                this->line.color[0] = .5f;
-                this->line.color[1] = .5f;
-                this->line.color[2] = .5f;
-                this->line.color[3] = 1.f;
-
-                drawable.draw(&this->line, &glm::vec4 {last_click[0], last_click[1] - scroll, pointerX, pointerY}[0]);
+                this->line->draw(engine.graphics, &glm::vec4 {last_click[0], last_click[1] - scroll, pointerX, pointerY}[0], Color {
+                    0.5f, 0.5f, 0.5f, 1.0f
+                });
             }
 
 #ifndef NDEBUG
@@ -480,7 +482,7 @@ void MainScene::render(Engine& engine) {
             this->label_game_score
                 ->setText("Score: " + std::to_string(game_score))
                 .setColor(game_mode == GameMode::CLASSIC ? COLOR_SELECTED : COLOR_HIDDEN)
-                .draw();
+                .draw(engine.graphics, *this->medium_text);
 
             break;
 
@@ -489,9 +491,9 @@ void MainScene::render(Engine& engine) {
             this->label_endgame_score
                 ->setText("Score: " + std::to_string(game_score))
                 .setColor(game_mode == GameMode::CLASSIC ? COLOR_SELECTED : COLOR_HIDDEN)
-                .draw();
+                .draw(engine.graphics, *this->medium_text);
 
-            this->label_endgame_restart->draw();
+            this->label_endgame_restart->draw(engine.graphics, *this->medium_text);
 
             break;
 
@@ -525,8 +527,8 @@ void MainScene::reset(Engine& engine) {
     cursor_tail->reset();
 
     this->prev_mouse_pos = {
-        static_cast<float>(engine.window->getLogicalSize()[0]) / 2.f,
-        static_cast<float>(engine.window->getLogicalSize()[1])
+        static_cast<float>(engine.graphics.viewport()[0]) / 2.f,
+        static_cast<float>(engine.graphics.viewport()[1])
     };
 
     this->last_click = this->prev_mouse_pos;
@@ -546,9 +548,9 @@ void MainScene::reset(Engine& engine) {
     game_state = GameState::INGAME;
     last_place = rand_lines_density;
 
-    ball->reset(engine.window->getLogicalSize());
-    rand_lines->Reset();
-    lines->Reset();
+    ball->reset(engine.graphics);
+    rand_lines->Reset(engine.graphics);
+    lines->Reset(engine.graphics);
 }
 
 void MainScene::onEventPointerMove(Engine& engine) {
@@ -560,7 +562,7 @@ void MainScene::onEventPointerMove(Engine& engine) {
 
         case GameState::MENU:
         case GameState::PAUSED:
-            if (this->label_menu_continue->isCollide(glm::make_vec2(pointerPos.data()))) {
+            if (this->label_menu_continue->isCollide(*this->medium_text, glm::make_vec2(pointerPos.data()))) {
 
                 this->menu_selected = MenuSelected::CONTINUE;
                 if (this->pressed_once) {
@@ -568,14 +570,14 @@ void MainScene::onEventPointerMove(Engine& engine) {
                 }
             }
 
-            if (this->label_menu_start->isCollide(glm::make_vec2(pointerPos.data()))) {
+            if (this->label_menu_start->isCollide(*this->medium_text, glm::make_vec2(pointerPos.data()))) {
 
                 this->menu_selected = MenuSelected::START;
                 if (this->pressed_once) {
                     this->onEventSelect(engine);
                 }
             }
-            if (this->label_menu_settings->isCollide(glm::make_vec2(pointerPos.data()))) {
+            if (this->label_menu_settings->isCollide(*this->medium_text, glm::make_vec2(pointerPos.data()))) {
 
                 this->menu_selected = MenuSelected::SETTINGS;
                 if (this->pressed_once) {
@@ -583,7 +585,7 @@ void MainScene::onEventPointerMove(Engine& engine) {
                 }
             }
 
-            if (this->label_menu_exit->isCollide(glm::make_vec2(pointerPos.data()))) {
+            if (this->label_menu_exit->isCollide(*this->medium_text, glm::make_vec2(pointerPos.data()))) {
 
                 this->menu_selected = MenuSelected::EXIT;
                 if (this->pressed_once) {
@@ -591,15 +593,15 @@ void MainScene::onEventPointerMove(Engine& engine) {
                 }
             }
 
-            if (this->label_menu_hint->isCollide(glm::make_vec2(pointerPos.data()))) {
+            if (this->label_menu_hint->isCollide(*this->small_text, glm::make_vec2(pointerPos.data()))) {
                 if (this->pressed_once) {
                     this->label_menu_hint->setColor({
-                            t_rand(.0f, 1.f), t_rand(.0f, 1.f), t_rand(.0f, 1.f), 1.f
+                        util::rand(.0f, 1.f), util::rand(.0f, 1.f), util::rand(.0f, 1.f), 1.f
                     });
                 }
             }
 
-            if (this->label_menu_mode->isCollide(glm::make_vec2(pointerPos.data()))) {
+            if (this->label_menu_mode->isCollide(*this->small_text, glm::make_vec2(pointerPos.data()))) {
                 if (this->pressed_once) {
                     this->onEventRight();
                 }
@@ -609,7 +611,7 @@ void MainScene::onEventPointerMove(Engine& engine) {
 
         case GameState::ENDGAME:
 
-            if (this->label_endgame_restart->isCollide(glm::make_vec2(pointerPos.data()))) {
+            if (this->label_endgame_restart->isCollide(*this->medium_text, glm::make_vec2(pointerPos.data()))) {
                 if (this->pressed_once)
                     this->onEventSelect(engine);
             }
@@ -617,7 +619,7 @@ void MainScene::onEventPointerMove(Engine& engine) {
 
         case GameState::SETTINGS:
 
-            if (this->label_settings_fx->isCollide(glm::make_vec2(pointerPos.data()))) {
+            if (this->label_settings_fx->isCollide(*this->medium_text, glm::make_vec2(pointerPos.data()))) {
 
                 this->settings_selected = SettingsSelected::FX_ENABLED;
                 if (this->pressed_once) {
@@ -625,7 +627,7 @@ void MainScene::onEventPointerMove(Engine& engine) {
                 }
             }
 
-            if (this->label_settings_music_volume->isCollide(glm::make_vec2(pointerPos.data()))) {
+            if (this->label_settings_music_volume->isCollide(*this->medium_text, glm::make_vec2(pointerPos.data()))) {
 
                 this->settings_selected = SettingsSelected::MUSIC_VOLUME;
                 if (this->pressed_once) {
@@ -633,7 +635,7 @@ void MainScene::onEventPointerMove(Engine& engine) {
                 }
             }
 
-            if (this->label_settings_reset_statistics->isCollide(glm::make_vec2(pointerPos.data()))) {
+            if (this->label_settings_reset_statistics->isCollide(*this->medium_text, glm::make_vec2(pointerPos.data()))) {
 
                 this->settings_selected = SettingsSelected::RESET_STATISTICS;
                 if (this->pressed_once) {
@@ -641,7 +643,7 @@ void MainScene::onEventPointerMove(Engine& engine) {
                 }
             }
 
-            if (this->label_settings_back->isCollide(glm::make_vec2(pointerPos.data()))) {
+            if (this->label_settings_back->isCollide(*this->medium_text, glm::make_vec2(pointerPos.data()))) {
 
                 this->settings_selected = SettingsSelected::BACK;
                 if (this->pressed_once) {

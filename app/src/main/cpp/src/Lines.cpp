@@ -1,22 +1,19 @@
 #include "Lines.hpp"
-#include "Utils.hpp"
+#include "Util.hpp"
 
-using namespace linhop::utils;
+using namespace linhop::util;
 
 extern float scroll;
 
-Lines::Lines(IVec2 screen_size) : screen_size(screen_size) {}
+Lines::Lines() {}
 
-void Lines::Push(glm::vec2 second, glm::vec2 first, bool isCol /* = true */)
-{
-    Color newColor{};
-    randColor(newColor.data(), 1.f);
-    lines.emplace_back(first, second, newColor, isCol);
+void Lines::Push(glm::vec2 second, glm::vec2 first, bool isCol /* = true */) {
+    lines.emplace_back(first, second, randColor(), isCol);
 }
 
-void Lines::Draw(const Line& drawable)
-{
-    const auto drawCircle = [this](const Circle& circle) {
+void Lines::Draw(const Graphics& g, const Line& drawable) {
+
+    const auto drawCircle = [&g, &drawable](const Circle& circle) {
 
         float old_x = circle.pos[0];
         float old_y = circle.pos[1] - circle.radius;
@@ -26,7 +23,7 @@ void Lines::Draw(const Line& drawable)
             float new_x = circle.pos[0] + circle.radius * sinf(circle.angle * i);
             float new_y = circle.pos[1] + -circle.radius * cosf(circle.angle * i);
 
-            drawable.draw(&glm::vec4{old_x, old_y - scroll, new_x, new_y - scroll }[0], circle.color);
+            drawable.draw(g, &glm::vec4{old_x, old_y - scroll, new_x, new_y - scroll }[0], circle.color);
 
             old_x = new_x;
             old_y = new_y;
@@ -36,10 +33,10 @@ void Lines::Draw(const Line& drawable)
     for (const auto& line : lines)
     {
         /* No off-screen rendering */
-        if (line.a_pos[1] - scroll > static_cast<float>(screen_size[1]) && line.b_pos[1] - scroll > static_cast<float>(screen_size[1]))
+        if (line.a_pos[1] - scroll > static_cast<float>(g.viewport()[1]) && line.b_pos[1] - scroll > static_cast<float>(g.viewport()[1]))
             continue;
 
-        drawable.draw(drawable.drawable, &glm::vec4{line.a_pos[0], line.a_pos[1] - scroll, line.b_pos[0], line.b_pos[1] - scroll }[0], line.color);
+        drawable.draw(g, &glm::vec4{line.a_pos[0], line.a_pos[1] - scroll, line.b_pos[0], line.b_pos[1] - scroll }[0], line.color);
 
         if (!line.collinear)
             drawCircle(line.circle[0]);
@@ -48,19 +45,19 @@ void Lines::Draw(const Line& drawable)
     }
 }
 
-void Lines::Reset()
+void Lines::Reset(const Graphics& g)
 {
     lines.clear();
 
     lines.emplace_back( /* First line */
-        glm::vec2{ 0.f, static_cast<float>(screen_size[1]) },
-        glm::vec2{static_cast<float>(screen_size[0]), static_cast<float>(screen_size[1]) },
+        glm::vec2{ 0.f, static_cast<float>(g.viewport()[1]) },
+        glm::vec2{static_cast<float>(g.viewport()[0]), static_cast<float>(g.viewport()[1]) },
         Color{ 1.0f, 1.0f, 1.0f, 1.0f },
         false
     );
 }
 
-Lines::Line::Line(glm::vec2 a_pos, glm::vec2 b_pos, Color color, bool is_col /* = true */) :
+Lines::Segment::Segment(glm::vec2 a_pos, glm::vec2 b_pos, Color color, bool is_col /* = true */) :
     collinear(is_col),
     color(color),
     circle{ { a_pos, color }, { b_pos, color } }

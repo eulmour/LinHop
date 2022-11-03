@@ -3,6 +3,7 @@
 
 #include "engine/engine.h"
 #include <list>
+#include <memory>
 
 #include "glm/vec2.hpp"
 #include "glm/vec4.hpp"
@@ -26,7 +27,7 @@ public:
     };
 
     void push(glm::vec2 position);
-    void draw();
+    void draw(const Graphics& g);
     void activate();
     void deactivate();
 
@@ -36,7 +37,7 @@ private:
     static constexpr std::size_t spark_life{50};
     static constexpr std::size_t spark_amount{6};
     static constexpr float spark_gravity{2.5f};
-    Rect rect_drawable{};
+    std::unique_ptr<Rect> rect_drawable;
 };
 
 #endif //LINHOP_SPARKS_HPP

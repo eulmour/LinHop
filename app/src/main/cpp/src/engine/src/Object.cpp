@@ -7,10 +7,8 @@
 #include "GLFW/glfw3.h"
 #endif
 
-Drawable::Drawable(Vec2 surface_size) : surface_size(surface_size) {}
-
 // line
-Line::Line(Vec2 surface_size) : Drawable(surface_size), width(1.f) {
+Line::Line() : width(1.f) {
 
     const char* vertex_src =
         "#version 300 es\n"
@@ -48,14 +46,14 @@ Line::Line(Vec2 surface_size) : Drawable(surface_size), width(1.f) {
     this->state = STATE_READY;
 }
 
-void Line::draw(float ab[4], Color c) {
+void Line::draw(const Graphics& g, float ab[4], Color c) const {
 
     glUseProgram(this->shader);
 
     glm::mat4 projection = glm::ortho(
         0.0f,
-        static_cast<GLfloat>(this->surface_size[0]),
-        static_cast<GLfloat>(this->surface_size[1]),
+        static_cast<GLfloat>(g.viewport()[0]),
+        static_cast<GLfloat>(g.viewport()[1]),
         0.0f,
         -1.0f,
         1.0f
@@ -89,7 +87,7 @@ Line::~Line() {
 }
 
 // triangle
-Tri::Tri(Vec2 surface_size) : Drawable(surface_size) {
+Tri::Tri() {
 
     struct tri_vertex {
         GLfloat pos[2];
@@ -145,15 +143,15 @@ Tri::Tri(Vec2 surface_size) : Drawable(surface_size) {
     this->state = STATE_READY;
 }
 
-void Tri::draw(float pos[2], Color c) {
+void Tri::draw(const Graphics& g, float pos[2], Color c) const {
 
     (void)c;
     glUseProgram(this->shader);
 
     glm::mat4 projection = glm::ortho(
         0.0f,
-        static_cast<GLfloat>(this->surface_size[0]),
-        static_cast<GLfloat>(this->surface_size[1]),
+        static_cast<GLfloat>(g.viewport()[0]),
+        static_cast<GLfloat>(g.viewport()[1]),
         0.0f,
         -1.0f,
         1.0f
@@ -188,7 +186,7 @@ Tri::~Tri() {
 }
 
 // rectangle
-Rect::Rect(Vec2 surface_size) : Drawable(surface_size) {
+Rect::Rect() {
 
     struct rect_vertex {
         GLfloat pos[2];
@@ -257,14 +255,14 @@ Rect::Rect(Vec2 surface_size) : Drawable(surface_size) {
     this->state = STATE_READY;
 }
 
-void Rect::draw(float pos[2], Color c) {
+void Rect::draw(const Graphics& g, float pos[2], Color c) const {
 
     glUseProgram(this->shader);
 
     glm::mat4 projection = glm::ortho(
         0.0f,
-        static_cast<GLfloat>(this->surface_size[0]),
-        static_cast<GLfloat>(this->surface_size[1]),
+        static_cast<GLfloat>(g.viewport()[0]),
+        static_cast<GLfloat>(g.viewport()[1]),
         0.0f,
         -1.0f,
         1.0f
@@ -273,7 +271,7 @@ void Rect::draw(float pos[2], Color c) {
     glm::mat4 model(1.0f);
 
     model = glm::translate(model, glm::vec3(pos[0], pos[1], 0.0f));
-    model = glm::rotate(model, glm::radians(this->rot), glm::vec3(0.0f, 0.0f, 0.0f));
+    // model = glm::rotate(model, glm::radians(this->rot), glm::vec3(0.0f, 0.0f, 0.0f));
     model = glm::scale(model, glm::vec3(this->scale[0], this->scale[1], 1.0f));
 
     set_uniform_mat4(this->shader, "projection", (GLfloat *) &projection[0][0]);
@@ -308,7 +306,7 @@ void Rect::useTexture(unsigned int texture) { this->texture = texture; }
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
-Text::Text(Vec2 surface_size, const char* font, float size) : Drawable(surface_size) {
+Text::Text(const char* font, float size) {
 
     this->scale = 1.f;
     this->size = size;
@@ -353,8 +351,9 @@ Text::Text(Vec2 surface_size, const char* font, float size) : Drawable(surface_s
 
     // then initialize and load the FreeType library
     FT_Library ft;
-    if (FT_Init_FreeType(&ft)) // all functions return a value different than 0 whenever an error occurred
-        LOGE("FREETYPE: Could not init FreeType Library\n");
+    if (FT_Init_FreeType(&ft)) { // all functions return a value different than 0 whenever an error occurred
+        throw std::exception("FreeType: Could not init FreeType Library");
+    }
 
     // load font as face
     FT_Face face;
@@ -368,19 +367,19 @@ Text::Text(Vec2 surface_size, const char* font, float size) : Drawable(surface_s
     }
 
     if (FT_New_Memory_Face(ft, static_cast<const FT_Byte*>(file.data), (FT_Long)file.size, 0, &face))
-        LOGE("FREETYPE: Failed to load font\n");
+        LOGE("FreeType: Failed to load font\n");
 
     file_unload(&file);
 
 #else
 
     if (!engine_file_exists_(font)) {
-        LOGE("Failed to load font, file does not exists.\n");
-        return;
+        throw std::exception("Failed to load font, file does not exists.");
     }
 
-    if (FT_New_Face(ft, font, 0, &face))
-        LOGE("ERROR::FREETYPE: Failed to load font");
+    if (FT_New_Face(ft, font, 0, &face)) {
+        throw std::exception("FreeType: Failed to load font.");
+    }
 
 #endif
 
@@ -389,17 +388,19 @@ Text::Text(Vec2 surface_size, const char* font, float size) : Drawable(surface_s
     // disable byte-alignment restriction
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-    this->characters = (struct character*)malloc(CHARACTERS_CAP * sizeof(struct character));
+    // this->characters = (struct character*)malloc(CHARACTERS_CAP * sizeof(struct character));
+    this->characters = std::unique_ptr<Character>(new Character[CHARACTERS_CAP]);
 
-    if (!this->characters)
-        LOGE("Unable to allocate memory\n");
+    if (this->characters == nullptr) {
+        throw std::exception("Unable to allocate memory");
+    }
 
     // then for the first 128 ASCII characters, pre-load/compile their characters and store them
     for (GLubyte c = 0; c < CHARACTERS_CAP; c++) // lol see what I did there
     {
         // load character glyph
         if (FT_Load_Char(face, c, FT_LOAD_RENDER)) {
-            LOGE("FREETYPE: Failed to load Glyph\n");
+            LOGE("FreeType: Failed to load Glyph\n");
             continue;
         }
 
@@ -426,7 +427,7 @@ Text::Text(Vec2 surface_size, const char* font, float size) : Drawable(surface_s
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
         // now store character for later use
-        this->characters[c] = character {
+        this->characters.get()[c] = Character {
             texture, // texture
             static_cast<unsigned int>(face->glyph->advance.x), // advance
             { (int)face->glyph->bitmap.width, (int)face->glyph->bitmap.rows }, // size
@@ -441,14 +442,13 @@ Text::Text(Vec2 surface_size, const char* font, float size) : Drawable(surface_s
     }
 
     glBindTexture(GL_TEXTURE_2D, 0);
-    // destroy FreeType once we're finished
     FT_Done_Face(face);
     FT_Done_FreeType(ft);
 
     this->state = STATE_READY;
 }
 
-float Text::draw(const char* str, const float pos[2], Color c) {
+float Text::draw(const Graphics& g, const char* str, const float pos[2], Color c) const {
 
     float shift = pos[0];
 
@@ -458,8 +458,8 @@ float Text::draw(const char* str, const float pos[2], Color c) {
 
     glm::mat4 projection = glm::ortho(
         0.0f,
-        static_cast<GLfloat>(this->surface_size[0]),
-        static_cast<GLfloat>(this->surface_size[1]),
+        static_cast<GLfloat>(g.viewport()[0]),
+        static_cast<GLfloat>(g.viewport()[1]),
         0.0f,
         -1.0f,
         1.0f
@@ -471,10 +471,11 @@ float Text::draw(const char* str, const float pos[2], Color c) {
     // iterate through all characters
     for (const char* c = str; *c != '\0'; c++) {
 
-        struct character ch = this->characters[*c];
+        // struct character ch = this->characters[*c];
+        Character ch = this->characters.get()[*c];
 
         float xpos = shift + (float)ch.bearing[0] * this->scale;
-        float ypos = pos[1] + (float)(this->characters['H'].bearing[1] - ch.bearing[1]) * this->scale;
+        float ypos = pos[1] + (float)(this->characters.get()['H'].bearing[1] - ch.bearing[1]) * this->scale;
 
         float w = (float)ch.size[0] * this->scale;
         float h = (float)ch.size[1] * this->scale;
@@ -509,10 +510,4 @@ float Text::draw(const char* str, const float pos[2], Color c) {
     return shift;
 }
 
-Text::~Text() {
-
-    if (this->state == STATE_OFF)
-        return;
-
-    free(this->characters);
-}
+Text::~Text() = default;

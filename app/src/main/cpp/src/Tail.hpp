@@ -11,10 +11,10 @@ class Tail {
 
 public:
 
-    Tail(struct line* line, float alpha);
+    Tail(float alpha);
 
-    struct Line {
-        Line(glm::vec2 a, glm::vec2 b);
+    struct TailLine {
+        TailLine(glm::vec2 a, glm::vec2 b);
         void update();
 
         glm::vec2 a_pos;
@@ -23,7 +23,7 @@ public:
     };
 
     void push(glm::vec2 a, glm::vec2 b);
-    void draw();
+    void draw(const Graphics& g, const Line& drawable);
     void reset();
 
 public:
@@ -32,8 +32,7 @@ public:
 private:
     static constexpr std::size_t tail_length = 50;
     static constexpr float tail_fuzz = 10.f;
-    std::list<Line> tail;
-    struct line* line;
+    std::list<TailLine> tail;
 };
 
 #endif //LINHOP_TAIL_HPP
