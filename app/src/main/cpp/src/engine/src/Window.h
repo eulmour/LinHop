@@ -61,15 +61,18 @@ public:
 
     void close();
     bool isShouldClose();
+    bool isFocused() const { return this->focused; }
     void swapBuffers();
 
     float getDeltaTime();
     [[nodiscard]] float getDeltaTimeLast() const;
     [[nodiscard]] IVec2 getLogicalSize() const { return logical_size; };
     void setLogicalSize(IVec2 size) { this->logical_size = size; }
+    void setFocused(bool focused) { this->focused = focused; }
 
 protected:
     IVec2 logical_size{};
+    bool focused{false};
     bool should_close{false};
 
     struct FrameInfo {
@@ -86,6 +89,7 @@ protected:
     GLFWwindow* glfw_window{};
 
     static void glfwSizeCallback_(GLFWwindow* window, int width, int height);
+    static void glfwFocusCallback_(GLFWwindow* window, int focused);
 
 #endif
 };

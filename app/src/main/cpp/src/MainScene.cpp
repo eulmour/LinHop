@@ -166,14 +166,14 @@ void MainScene::resume(Engine& e) {
         this->small_text = std::make_unique<Text>(fontPath, MainScene::small_text_size);
         this->medium_text = std::make_unique<Text>(fontPath, MainScene::medium_text_size);
         this->large_text = std::make_unique<Text>(fontPath, MainScene::large_text_size);
+
+        this->ball->activate();
+        this->lasers->activate();
+        this->sparks->activate();
     } catch (const std::exception& exception) {
         LOGE("%s\n", exception.what());
         e.window->close();
     }
-
-    this->ball->activate();
-    this->lasers->activate();
-    this->sparks->activate();
 
     this->audio_engine->playAll();
 }
@@ -192,6 +192,8 @@ void MainScene::update(Engine& engine) {
     background_color[2] += bgColorDirection / 2;
 
     // handle input
+    if (engine.window->isFocused() == false)
+        this->game_state = GameState::PAUSED;
     if (engine.input.isKeyHold(InputKey::PointerMove))
         this->onEventPointerMove(engine);
     if (engine.input.isKeyDown(InputKey::Pointer))

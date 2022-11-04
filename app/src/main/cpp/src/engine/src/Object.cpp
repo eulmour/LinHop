@@ -8,15 +8,97 @@
 #endif
 
 // line
-Line::Line() : width(1.f) {
+// Line::Line() : width(1.f) {
+
+//     const char* vertex_src =
+//         "#version 300 es\n"
+//         "layout(location = 0) in vec2 pos;\n"
+//         "uniform mat4 projection;\n"
+//         "void main(){\n"
+//         "   gl_Position = projection * vec4(pos, 0.0, 1.0);\n"
+//         "}\0";
+
+//     const char* fragment_src =
+//         "#version 300 es\n"
+//         "precision mediump float;\n"
+//         "out vec4 fragColor;\n"
+//         "uniform vec4 color;\n"
+//         "void main() {\n"
+//         "   fragColor = color;\n"
+//         "}\0";
+
+//     this->shader = create_program(vertex_src, fragment_src);
+//     this->vbc = 2;
+
+//     glGenVertexArrays(1, &this->vao);
+//     glGenBuffers(sizeof(this->vbo) / sizeof(this->vbo[0]), this->vbo);
+//     glBindVertexArray(this->vao);
+
+//     glBindBuffer(GL_ARRAY_BUFFER, this->vbo[0]);
+//     glBufferData(GL_ARRAY_BUFFER, 4 * sizeof(float), nullptr, GL_DYNAMIC_DRAW);
+
+//     glEnableVertexAttribArray(0);
+//     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), nullptr);
+
+//     glBindBuffer(GL_ARRAY_BUFFER, 0);
+//     glBindVertexArray(0);
+
+//     this->state = STATE_READY;
+// }
+
+// void Line::draw(const Graphics& g, float ab[4], Color c) const {
+
+//     glUseProgram(this->shader);
+
+//     glm::mat4 projection = glm::ortho(
+//         0.0f,
+//         static_cast<GLfloat>(g.viewport()[0]),
+//         static_cast<GLfloat>(g.viewport()[1]),
+//         0.0f,
+//         -1.0f,
+//         1.0f
+//     );
+
+//     set_uniform_mat4(this->shader, "projection", (GLfloat *) &projection[0][0]);
+//     set_uniform4f(this->shader, "color", c);
+
+//     glBindBuffer(GL_ARRAY_BUFFER, this->vbo[0]);
+//     glBufferSubData(GL_ARRAY_BUFFER, 0, 4 * sizeof(float), ab);
+//     glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+//     glBindVertexArray(this->vao);
+//     glLineWidth(this->width);
+//     glDrawArrays(GL_LINES, 0, this->vbc);
+// }
+
+Line::Line() {
+
+    struct rect_vertex {
+        GLfloat pos[2];
+        GLfloat tex[2];
+    } static rect_vertices[6] = {
+        {{0.f, 1.f}, {0.f, 1.f}},
+        {{1.f, 0.f}, {1.f, 0.f}},
+        {{0.f, 0.f}, {0.f, 0.f}},
+
+        {{0.f, 1.f}, {0.f, 1.f}},
+        {{1.f, 1.f}, {1.f, 1.f}},
+        {{1.f, 0.f}, {1.f, 0.f}},
+    };
+
+    this->vbc = sizeof(rect_vertices) / sizeof(rect_vertices[0]);
 
     const char* vertex_src =
         "#version 300 es\n"
         "layout(location = 0) in vec2 pos;\n"
+
+        "uniform mat4 model;\n"
         "uniform mat4 projection;\n"
+
         "void main(){\n"
-        "   gl_Position = projection * vec4(pos, 0.0, 1.0);\n"
+        "   gl_Position = projection * model * vec4(pos, 0.0, 1.0);\n"
         "}\0";
+
 
     const char* fragment_src =
         "#version 300 es\n"
@@ -28,18 +110,21 @@ Line::Line() : width(1.f) {
         "}\0";
 
     this->shader = create_program(vertex_src, fragment_src);
-    this->vbc = 2;
 
     glGenVertexArrays(1, &this->vao);
     glGenBuffers(sizeof(this->vbo) / sizeof(this->vbo[0]), this->vbo);
     glBindVertexArray(this->vao);
 
     glBindBuffer(GL_ARRAY_BUFFER, this->vbo[0]);
-    glBufferData(GL_ARRAY_BUFFER, 4 * sizeof(float), nullptr, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(rect_vertices), rect_vertices, GL_STATIC_DRAW);
 
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), nullptr);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(struct rect_vertex), (void*) offsetof(struct rect_vertex, pos));
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(struct rect_vertex), (void*) offsetof(struct rect_vertex, tex));
 
+    // note that this is allowed, the call to glVertexAttribPointer registered p_scene->vbo_main
+    // as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
@@ -59,18 +144,18 @@ void Line::draw(const Graphics& g, float ab[4], Color c) const {
         1.0f
     );
 
+    glm::mat4 model(1.0f);
+
+    model = glm::translate(model, glm::vec3(pos[0], pos[1], 0.0f));
+    model = glm::scale(model, glm::vec3(this->scale[0], this->scale[1], 1.0f));
+
     set_uniform_mat4(this->shader, "projection", (GLfloat *) &projection[0][0]);
+    set_uniform_mat4(this->shader, "model", (GLfloat *) &model[0][0]);
     set_uniform4f(this->shader, "color", c);
 
-    glBindBuffer(GL_ARRAY_BUFFER, this->vbo[0]);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, 4 * sizeof(float), ab);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-
     glBindVertexArray(this->vao);
-    glLineWidth(this->width);
-    glDrawArrays(GL_LINES, 0, this->vbc);
+    glDrawArrays(GL_TRIANGLES, 0, this->vbc);
 }
-
 Line::~Line() {
 
     if (this->state == STATE_OFF)

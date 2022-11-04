@@ -55,9 +55,9 @@ void Lasers::draw(const Graphics& g, const Line& drawable)
 
 void Lasers::activate() {
     this->rect_drawable = std::make_unique<Rect>();
-    this->rect_drawable->useTexture(texture_load("textures/pixel.png"));
     this->rect_drawable->scale[0] = 50.f;
     this->rect_drawable->scale[1] = 50.f;
+    this->rect_drawable->useTexture(texture_load("textures/pixel.png"));
 }
 
 void Lasers::deactivate() {

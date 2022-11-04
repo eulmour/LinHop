@@ -116,6 +116,10 @@ void Window::glfwSizeCallback_(GLFWwindow *window, int width, int height) {
     Engine::instance->graphics.viewport({width, height});
 }
 
+void Window::glfwFocusCallback_(GLFWwindow* window, int focused) {
+    Engine::instance->window->setFocused(focused == GLFW_TRUE);
+}
+
 Window::Window(const Config& config) {
 
     /* Initialize the library */
@@ -157,19 +161,19 @@ Window::Window(const Config& config) {
             config.title().c_str(), nullptr, nullptr);
     }
 
-    if (!this->glfw_window)
-    {
+    if (!this->glfw_window) {
         glfwTerminate();
         exit(-1);
     }
 
-    /* Make the window's context current */
+    // Make the window's context current
     glfwMakeContextCurrent(this->glfw_window);
     glfwSetFramebufferSizeCallback(this->glfw_window, Window::glfwSizeCallback_);
     glfwSwapInterval(config.vsync() ? 1 : 0);
     glfwSetCursorPosCallback(this->glfw_window, Input::glfwCursorCallback_);
     glfwSetKeyCallback(this->glfw_window, Input::glfwInputCallback_);
     glfwSetMouseButtonCallback(this->glfw_window, Input::glfwMouseCallback_);
+    glfwSetWindowFocusCallback(this->glfw_window, Window::glfwFocusCallback_);
 
     if (glewInit() != GLEW_OK)
         exit(-1);
