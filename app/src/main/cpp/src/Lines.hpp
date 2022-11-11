@@ -38,6 +38,7 @@ public:
         Segment(glm::vec2 a_pos, glm::vec2 b_pos, Color color, bool is_col = true);
     };
 
+    static constexpr float width = 5.f;
     std::vector<Segment> lines;
 };
 

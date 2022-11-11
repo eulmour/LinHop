@@ -241,28 +241,6 @@ void texture_unload(unsigned int id) {
     glDeleteTextures(1, &id);
 }
 
-void set_uniform_mat4(unsigned int program, const char* name, float* value) {
-
-    GLint location = glGetUniformLocation(program, name);
-
-    if (location == -1) {
-        LOGW("Uniform %s does not exists\n", name);
-    }
-
-    glUniformMatrix4fv(location, 1, GL_FALSE, value);
-}
-
-void set_uniform4f(unsigned int program, const char* name, const Vec4 value) {
-
-    GLint location = glGetUniformLocation(program, name);
-
-    if (location == -1) {
-        LOGW("Uniform %s does not exists\n", name);
-    }
-
-    glUniform4f(location, value[0], value[1], value[2], value[3]);
-}
-
 int file_load(struct file *file, const char *path) {
 
     if (!path)

@@ -8,107 +8,70 @@
 #endif
 
 // line
-// Line::Line() : width(1.f) {
-
-//     const char* vertex_src =
-//         "#version 300 es\n"
-//         "layout(location = 0) in vec2 pos;\n"
-//         "uniform mat4 projection;\n"
-//         "void main(){\n"
-//         "   gl_Position = projection * vec4(pos, 0.0, 1.0);\n"
-//         "}\0";
-
-//     const char* fragment_src =
-//         "#version 300 es\n"
-//         "precision mediump float;\n"
-//         "out vec4 fragColor;\n"
-//         "uniform vec4 color;\n"
-//         "void main() {\n"
-//         "   fragColor = color;\n"
-//         "}\0";
-
-//     this->shader = create_program(vertex_src, fragment_src);
-//     this->vbc = 2;
-
-//     glGenVertexArrays(1, &this->vao);
-//     glGenBuffers(sizeof(this->vbo) / sizeof(this->vbo[0]), this->vbo);
-//     glBindVertexArray(this->vao);
-
-//     glBindBuffer(GL_ARRAY_BUFFER, this->vbo[0]);
-//     glBufferData(GL_ARRAY_BUFFER, 4 * sizeof(float), nullptr, GL_DYNAMIC_DRAW);
-
-//     glEnableVertexAttribArray(0);
-//     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), nullptr);
-
-//     glBindBuffer(GL_ARRAY_BUFFER, 0);
-//     glBindVertexArray(0);
-
-//     this->state = STATE_READY;
-// }
-
-// void Line::draw(const Graphics& g, float ab[4], Color c) const {
-
-//     glUseProgram(this->shader);
-
-//     glm::mat4 projection = glm::ortho(
-//         0.0f,
-//         static_cast<GLfloat>(g.viewport()[0]),
-//         static_cast<GLfloat>(g.viewport()[1]),
-//         0.0f,
-//         -1.0f,
-//         1.0f
-//     );
-
-//     set_uniform_mat4(this->shader, "projection", (GLfloat *) &projection[0][0]);
-//     set_uniform4f(this->shader, "color", c);
-
-//     glBindBuffer(GL_ARRAY_BUFFER, this->vbo[0]);
-//     glBufferSubData(GL_ARRAY_BUFFER, 0, 4 * sizeof(float), ab);
-//     glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-//     glBindVertexArray(this->vao);
-//     glLineWidth(this->width);
-//     glDrawArrays(GL_LINES, 0, this->vbc);
-// }
-
 Line::Line() {
-
-    struct rect_vertex {
-        GLfloat pos[2];
-        GLfloat tex[2];
-    } static rect_vertices[6] = {
-        {{0.f, 1.f}, {0.f, 1.f}},
-        {{1.f, 0.f}, {1.f, 0.f}},
-        {{0.f, 0.f}, {0.f, 0.f}},
-
-        {{0.f, 1.f}, {0.f, 1.f}},
-        {{1.f, 1.f}, {1.f, 1.f}},
-        {{1.f, 0.f}, {1.f, 0.f}},
-    };
-
-    this->vbc = sizeof(rect_vertices) / sizeof(rect_vertices[0]);
 
     const char* vertex_src =
         "#version 300 es\n"
-        "layout(location = 0) in vec2 pos;\n"
+        "#define LEFT 0.0\n"
+        "#define TOP 0.0\n"
+        "#define NEAR -1.0\n"
+        "#define FAR 1.0\n"
 
-        "uniform mat4 model;\n"
-        "uniform mat4 projection;\n"
+        "layout(location = 0) in vec2 position;\n"
+        "uniform vec2 screen;\n"
 
-        "void main(){\n"
-        "   gl_Position = projection * model * vec4(pos, 0.0, 1.0);\n"
-        "}\0";
+        "void main() {\n"
+            "mat4 projection = mat4(\n"
+                "vec4(2.0 / (screen.x - LEFT), 0, 0, 0),\n"
+                "vec4(0, 2.0 / (TOP - screen.y), 0, 0),\n"
+                "vec4(0, 0, -2.0 / (FAR - NEAR), 0),\n"
+                "vec4(-(screen.x + LEFT) / (screen.x - LEFT), -(TOP + screen.y) / (TOP - screen.y), -(FAR + NEAR) / (FAR - NEAR), 1)\n"
+            ");\n"
 
+            "gl_Position = projection * vec4(position, 0.0, 1.0);\n"
+        "}\n";
 
     const char* fragment_src =
         "#version 300 es\n"
         "precision mediump float;\n"
+
         "out vec4 fragColor;\n"
+        "uniform vec2 screen;\n"
         "uniform vec4 color;\n"
+        "uniform vec4 position;\n"
+
+        // "mat4 ortho(float left, float right, float bottom, float top, float zNear, float zFar) {\n"
+        //     "return mat4(\n"
+        //         "vec4(2.0 / (right - left), 0, 0, 0),\n"
+        //         "vec4(0, 2.0 / (top - bottom), 0, 0),\n"
+        //         "vec4(0, 0, -2.0 / (zFar - zNear), 0),\n"
+        //         "vec4(-(right + left) / (right - left), -(top + bottom) / (top - bottom), -(zFar + zNear) / (zFar - zNear), 1.0)\n"
+        //     ");\n"
+        // "}\n"
+
         "void main() {\n"
-        "   fragColor = color;\n"
+            "float lineLength = distance(position.xy, position.zw);"
+
+            "float offsetX = position.z - position.x;\n"
+            "float offsetY = position.w - position.y;\n"
+            
+            "vec2 center = vec2(position.z - offsetX/2.0, position.w - offsetY/2.0);\n"
+            // "float aDist = distance(position.xy, gl_FragCoord.xy);\n"
+            // "float bDist = distance(position.zw, gl_FragCoord.xy);\n"
+
+            // "if (lineLength/2.0 - 10.0 > distance(center, position.xy)) { \n"
+            // "if (distance(center, gl_FragCoord.xy) > lineLength - 40.0) { \n"
+
+            "if (distance(vec2(gl_FragCoord.x - offsetX, gl_FragCoord.y - offsetY), center) > lineLength/2.0 - 20.0) {\n"
+            // "if (distance(vec2(screen.x/2.0, screen.y/2.0), gl_FragCoord.xy) > 100.0) { \n"
+                "fragColor = vec4(1.0, 0.0, 0.0, 1.0);\n"
+            "} else {\n"
+                "fragColor = vec4(0.0, 1.0, 0.0, 1.0);\n"
+                // "fragColor = color;\n"
+            "}\n"
         "}\0";
 
+    this->vbc = 6;
     this->shader = create_program(vertex_src, fragment_src);
 
     glGenVertexArrays(1, &this->vao);
@@ -116,46 +79,53 @@ Line::Line() {
     glBindVertexArray(this->vao);
 
     glBindBuffer(GL_ARRAY_BUFFER, this->vbo[0]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(rect_vertices), rect_vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, 6*2*sizeof(GLfloat), nullptr, GL_DYNAMIC_DRAW);
 
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(struct rect_vertex), (void*) offsetof(struct rect_vertex, pos));
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(struct rect_vertex), (void*) offsetof(struct rect_vertex, tex));
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(GLfloat), nullptr);
 
-    // note that this is allowed, the call to glVertexAttribPointer registered p_scene->vbo_main
-    // as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
+    this->loc_screen = glGetUniformLocation(this->shader, "screen");
+    this->loc_color = glGetUniformLocation(this->shader, "color");
+    this->loc_position = glGetUniformLocation(this->shader, "position");
     this->state = STATE_READY;
 }
 
-void Line::draw(const Graphics& g, float ab[4], Color c) const {
+void Line::draw(const Graphics& g, float ab[4], Color c, float width) const {
 
     glUseProgram(this->shader);
+    glUniform4f(this->loc_color, c[0], c[1], c[2], c[3]);
+    glUniform2f(this->loc_screen, static_cast<GLfloat>(g.viewport()[0]), static_cast<GLfloat>(g.viewport()[1]));
+    glUniform4f(this->loc_position, ab[0], ab[1], ab[2], ab[3]);
 
-    glm::mat4 projection = glm::ortho(
-        0.0f,
-        static_cast<GLfloat>(g.viewport()[0]),
-        static_cast<GLfloat>(g.viewport()[1]),
-        0.0f,
-        -1.0f,
-        1.0f
-    );
+    float angle = atan2f(ab[3] - ab[1], ab[2] - ab[0]) - 1.570796327f;
+    width /= 2.f;
 
-    glm::mat4 model(1.0f);
+    std::array<float, 6*2> new_pos = {
+        ab[0] + std::cosf(angle) * width,
+        ab[1] + std::sinf(angle) * width,
+        ab[0] - std::cosf(angle) * width,
+        ab[1] - std::sinf(angle) * width,
+        ab[2] + std::cosf(angle) * width,
+        ab[3] + std::sinf(angle) * width,
+        ab[2] - std::cosf(angle) * width,
+        ab[3] - std::sinf(angle) * width,
+        ab[2] + std::cosf(angle) * width,
+        ab[3] + std::sinf(angle) * width,
+        ab[0] - std::cosf(angle) * width,
+        ab[1] - std::sinf(angle) * width,
+    };
 
-    model = glm::translate(model, glm::vec3(pos[0], pos[1], 0.0f));
-    model = glm::scale(model, glm::vec3(this->scale[0], this->scale[1], 1.0f));
-
-    set_uniform_mat4(this->shader, "projection", (GLfloat *) &projection[0][0]);
-    set_uniform_mat4(this->shader, "model", (GLfloat *) &model[0][0]);
-    set_uniform4f(this->shader, "color", c);
+    glBindBuffer(GL_ARRAY_BUFFER, this->vbo[0]);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, new_pos.size() * sizeof(float), new_pos.data());
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     glBindVertexArray(this->vao);
     glDrawArrays(GL_TRIANGLES, 0, this->vbc);
 }
+
 Line::~Line() {
 
     if (this->state == STATE_OFF)
@@ -225,6 +195,8 @@ Tri::Tri() {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
+    this->loc_projection = glGetUniformLocation(this->shader, "projection");
+    this->loc_model = glGetUniformLocation(this->shader, "model");
     this->state = STATE_READY;
 }
 
@@ -248,8 +220,8 @@ void Tri::draw(const Graphics& g, float pos[2], Color c) const {
     model = glm::rotate(model, glm::radians(this->rot), glm::vec3(0.0f, 0.0f, 0.0f));
     model = glm::scale(model, glm::vec3(this->scale[0], this->scale[1], 1.0f));
 
-    set_uniform_mat4(this->shader, "projection", (GLfloat *) &projection[0][0]);
-    set_uniform_mat4(this->shader, "model", (GLfloat *) &model[0][0]);
+    glUniformMatrix4fv(this->loc_projection, 1, GL_FALSE, (GLfloat *) &projection[0][0]);
+    glUniformMatrix4fv(this->loc_model, 1, GL_FALSE, (GLfloat *) &model[0][0]);
 
     glBindVertexArray(this->vao);
     glDrawArrays(GL_TRIANGLES, 0, this->vbc);
@@ -337,6 +309,9 @@ Rect::Rect() {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
+    this->loc_projection = glGetUniformLocation(this->shader, "projection");
+    this->loc_model = glGetUniformLocation(this->shader, "model");
+    this->loc_color = glGetUniformLocation(this->shader, "color");
     this->state = STATE_READY;
 }
 
@@ -359,9 +334,9 @@ void Rect::draw(const Graphics& g, float pos[2], Color c) const {
     // model = glm::rotate(model, glm::radians(this->rot), glm::vec3(0.0f, 0.0f, 0.0f));
     model = glm::scale(model, glm::vec3(this->scale[0], this->scale[1], 1.0f));
 
-    set_uniform_mat4(this->shader, "projection", (GLfloat *) &projection[0][0]);
-    set_uniform_mat4(this->shader, "model", (GLfloat *) &model[0][0]);
-    set_uniform4f(this->shader, "color", c);
+    glUniformMatrix4fv(this->loc_projection, 1, GL_FALSE, (GLfloat *) &projection[0][0]);
+    glUniformMatrix4fv(this->loc_model, 1, GL_FALSE, (GLfloat *) &model[0][0]);
+    glUniform4f(this->loc_color, c[0], c[1], c[2], c[3]);
 
     glBindVertexArray(this->vao);
     glBindTexture(GL_TEXTURE_2D, this->texture);
@@ -530,6 +505,8 @@ Text::Text(const char* font, float size) {
     FT_Done_Face(face);
     FT_Done_FreeType(ft);
 
+    this->loc_projection = glGetUniformLocation(this->shader, "projection");
+    this->loc_color = glGetUniformLocation(this->shader, "color");
     this->state = STATE_READY;
 }
 
@@ -550,8 +527,8 @@ float Text::draw(const Graphics& g, const char* str, const float pos[2], Color c
         1.0f
     );
 
-    set_uniform_mat4(this->shader, "projection", (GLfloat *) &projection[0][0]);
-    set_uniform4f(this->shader, "color", c);
+    glUniformMatrix4fv(this->loc_projection, 1, GL_FALSE, (GLfloat *) &projection[0][0]);
+    glUniform4f(this->loc_color, c[0], c[1], c[2], c[3]);
 
     // iterate through all characters
     for (const char* c = str; *c != '\0'; c++) {

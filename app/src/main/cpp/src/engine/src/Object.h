@@ -19,10 +19,12 @@ struct Line : public Drawable {
     Line();
     ~Line();
 
-    void draw(const Graphics& g, float ab[4], Color c) const;
+    void draw(const Graphics& g, float ab[4], Color c, float width = 1.f) const;
 
     unsigned vbo[1];
-    float width;
+    unsigned loc_screen;
+    unsigned loc_color;
+    unsigned loc_position;
 };
 
 struct Tri : public Drawable {
@@ -32,9 +34,11 @@ struct Tri : public Drawable {
 
     void draw(const Graphics& g, float pos[2], Color c) const;
 
-    unsigned vbo[1];
     float rot;
     Vec2 scale;
+    unsigned vbo[1];
+    unsigned loc_projection;
+    unsigned loc_model;
 };
 
 struct Rect : public Drawable {
@@ -45,10 +49,13 @@ struct Rect : public Drawable {
     void draw(const Graphics& g, float pos[2], Color c) const;
     void useTexture(unsigned int texture);
 
-    unsigned texture;
-    unsigned vbo[1];
     float rot;
     Vec2 scale;
+    unsigned texture;
+    unsigned vbo[1];
+    unsigned loc_projection;
+    unsigned loc_model;
+    unsigned loc_color;
 };
 
 struct Text : public Drawable {
@@ -66,12 +73,13 @@ struct Text : public Drawable {
 
     float draw(const Graphics& g, const char* str, const float pos[2], Color c) const;
 
-    unsigned vbo[1];
     float scale;
     float size;
     float width;
     float height;
-    // struct character* characters;
+    unsigned vbo[1];
+    unsigned loc_projection;
+    unsigned loc_color;
     std::unique_ptr<Character> characters;
 };
 

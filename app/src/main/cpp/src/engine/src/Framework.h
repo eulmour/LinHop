@@ -94,28 +94,10 @@ struct file {
     void* data;
 };
 
-// class Engine {
-//     int width;
-//     int height;
-
-// #ifdef ENGINE_WRITE_LOGS
-//     FILE* log;
-// #endif
-
-// #if defined(__ANDROID__) || defined(ANDROID)
-//     ASensorVector acceleration;
-//     AAssetManager* asset_mgr;
-// #endif
-// };
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-// engine api
-// int engine_init(Engine *app);
-// void engine_viewport(Engine *app, int w, int h);
-// void engine_destroy(Engine *app);
 void engine_log_message(const char* fmt, ...);
 int engine_get_cwd(char* buf, size_t max_size);
 void engine_check_error();
@@ -125,9 +107,6 @@ unsigned int create_program(const char *vertex_src, const char *fragment_src);
 
 unsigned int texture_load(const char *path);
 void texture_unload(unsigned int id);
-
-void set_uniform_mat4(unsigned int program, const char *name, float* value);
-void set_uniform4f(unsigned int program, const char *name, const Vec4 value);
 
 int file_load(struct file *file, const char *path);
 int file_load_asset(struct file *file, const char *path);

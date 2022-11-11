@@ -13,7 +13,7 @@ void Lines::Push(glm::vec2 second, glm::vec2 first, bool isCol /* = true */) {
 
 void Lines::Draw(const Graphics& g, const Line& drawable) {
 
-    const auto drawCircle = [&g, &drawable](const Circle& circle) {
+    const auto drawCircle = [&g, &drawable](const Circle& circle, float width) {
 
         float old_x = circle.pos[0];
         float old_y = circle.pos[1] - circle.radius;
@@ -23,7 +23,7 @@ void Lines::Draw(const Graphics& g, const Line& drawable) {
             float new_x = circle.pos[0] + circle.radius * sinf(circle.angle * i);
             float new_y = circle.pos[1] + -circle.radius * cosf(circle.angle * i);
 
-            drawable.draw(g, &glm::vec4{old_x, old_y - scroll, new_x, new_y - scroll }[0], circle.color);
+            drawable.draw(g, &glm::vec4{old_x, old_y - scroll, new_x, new_y - scroll }[0], circle.color, width);
 
             old_x = new_x;
             old_y = new_y;
@@ -36,12 +36,12 @@ void Lines::Draw(const Graphics& g, const Line& drawable) {
         if (line.a_pos[1] - scroll > static_cast<float>(g.viewport()[1]) && line.b_pos[1] - scroll > static_cast<float>(g.viewport()[1]))
             continue;
 
-        drawable.draw(g, &glm::vec4{line.a_pos[0], line.a_pos[1] - scroll, line.b_pos[0], line.b_pos[1] - scroll }[0], line.color);
+        drawable.draw(g, &glm::vec4{line.a_pos[0], line.a_pos[1] - scroll, line.b_pos[0], line.b_pos[1] - scroll }[0], line.color, this->width);
 
         if (!line.collinear)
-            drawCircle(line.circle[0]);
+            drawCircle(line.circle[0], this->width);
 
-        drawCircle(line.circle[1]);
+        drawCircle(line.circle[1], this->width);
     }
 }
 

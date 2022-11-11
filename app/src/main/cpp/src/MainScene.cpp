@@ -159,7 +159,6 @@ void MainScene::suspend(Engine&) {
 void MainScene::resume(Engine& e) {
 
     this->line = std::make_unique<Line>();
-    this->line->width = 5.f;
 
     try {
         const char *const fontPath = "fonts/OCRAEXT.TTF";
@@ -192,8 +191,8 @@ void MainScene::update(Engine& engine) {
     background_color[2] += bgColorDirection / 2;
 
     // handle input
-    if (engine.window->isFocused() == false)
-        this->game_state = GameState::PAUSED;
+    // if (engine.window->isFocused() == false)
+        // this->game_state = GameState::PAUSED;
     if (engine.input.isKeyHold(InputKey::PointerMove))
         this->onEventPointerMove(engine);
     if (engine.input.isKeyDown(InputKey::Pointer))
@@ -681,50 +680,27 @@ void MainScene::onEventPointerUp(Engine& engine) {
 void MainScene::onEventSelect(Engine& engine) {
 
     switch (game_state) {
-        case GameState::SETTINGS:
 
+        case GameState::SETTINGS:
             switch (settings_selected) {
                 case SettingsSelected::FX_ENABLED:
-
                     save_data.fx_enabled = save_data.fx_enabled == 0;
-
-                    break; /* end of FX_ENABLED */
-
-//                case SettingsSelected::UNLOCK_RESIZE: {
-//                    if (saveData.unlockResizing == 1L) {
-//                        /* little evil */
-//                        saveData.maxScoreClassic = 0L;
-//                        saveData.maxScoreHidden = 0L;
-//                    }
-//
-//                    saveData.unlockResizing = saveData.unlockResizing == 0L ? 1L : 0L;
-//                    SaveGameData(saveData);
-//                    Quit();
-//                    break; /* end of UNLOCK_RESIZE */
-//                }
-
+                    break;
                 case SettingsSelected::RESET_STATISTICS:
-
                     save_data.max_score_classic = 0L;
                     save_data.max_score_hidden = 0L;
                     file_remove("savedata.dat");
-
-                    break; /* end of RESET_STATISTICS */
-
+                    break;
                 case SettingsSelected::BACK:
-
                     game_state = GameState::PAUSED;
-
-                    break; /* end of BACK */
+                    break;
                 default:
                     break;
             }
-
             break;
 
         case GameState::PAUSED:
         case GameState::MENU:
-
             switch (menu_selected) {
                 case MenuSelected::START:
                     game_state = GameState::INGAME;
@@ -749,18 +725,19 @@ void MainScene::onEventSelect(Engine& engine) {
                 default:
                     break;
             }
-
             break;
 
         case GameState::ENDGAME:
             reset(engine);
             break;
+
         default:
             return;
     }
 }
 
 void MainScene::onEventBack(Engine& engine) {
+
     switch (game_state) {
 
         case GameState::MENU:
