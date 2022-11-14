@@ -17,6 +17,7 @@ Line::Line() {
         "#define NEAR -1.0\n"
         "#define FAR 1.0\n"
 
+        "precision mediump float;\n"
         "layout(location = 0) in vec2 position;\n"
         "uniform vec2 screen;\n"
 
@@ -51,19 +52,15 @@ Line::Line() {
 
         "void main() {\n"
             "float lineLength = distance(position.xy, position.zw);"
+            "vec2 vCenter = vec2((position.x + position.z) / 2.0, (position.y + position.w) / 2.0);\n"
+            // "vec2 vCenter = vec2((position.z - position.x)/2.0, (position.w - position.y)/2.0);"
 
-            "float offsetX = position.z - position.x;\n"
-            "float offsetY = position.w - position.y;\n"
-            
-            "vec2 center = vec2(position.z - offsetX/2.0, position.w - offsetY/2.0);\n"
-            // "float aDist = distance(position.xy, gl_FragCoord.xy);\n"
-            // "float bDist = distance(position.zw, gl_FragCoord.xy);\n"
+            // "float m = sqrt(v.x*v.x + v.y*v.y);"
+            // "v.x /= m; v.y /= m;"
 
-            // "if (lineLength/2.0 - 10.0 > distance(center, position.xy)) { \n"
-            // "if (distance(center, gl_FragCoord.xy) > lineLength - 40.0) { \n"
-
-            "if (distance(vec2(gl_FragCoord.x - offsetX, gl_FragCoord.y - offsetY), center) > lineLength/2.0 - 20.0) {\n"
-            // "if (distance(vec2(screen.x/2.0, screen.y/2.0), gl_FragCoord.xy) > 100.0) { \n"
+            // "vec2 coo = gl_FragCoord.xy * (v * (lineLength/2.0));\n"
+            // "if (distance(gl_FragCoord.xy, vCenter) > lineLength - 10.0) {\n"
+            "if (gl_FragCoord.x < vCenter.x + lineLength-10.0 && gl_FragCoord.x > vCenter.x - lineLength-10.0 && gl_FragCoord.y < vCenter.y + lineLength-10.0 && gl_FragCoord.y > vCenter.y - lineLength-10.0) {\n"
                 "fragColor = vec4(1.0, 0.0, 0.0, 1.0);\n"
             "} else {\n"
                 "fragColor = vec4(0.0, 1.0, 0.0, 1.0);\n"
