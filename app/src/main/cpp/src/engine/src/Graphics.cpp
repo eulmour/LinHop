@@ -110,8 +110,8 @@ static void GLAPIENTRY errorOccurredGL(
             break;
     }
 
-    printf("Message from OpenGL:\nSource: %s\nType: %s\n"
-           "Id: 0x%x\nSeverity: %s\n",
+    printf("Message from OpenGL: source: %s, type: %s, "
+           "id: 0x%x, severity: %s\n",
            _source, _type, id, _severity);
 
     printf("%s\n", message);

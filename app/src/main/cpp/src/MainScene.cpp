@@ -145,6 +145,7 @@ MainScene::~MainScene() {
 void MainScene::suspend(Engine&) {
 
     this->ball->deactivate();
+    this->lines->deactivate();
     this->lasers->deactivate();
     this->sparks->deactivate();
 
@@ -167,6 +168,7 @@ void MainScene::resume(Engine& e) {
         this->large_text = std::make_unique<Text>(fontPath, MainScene::large_text_size);
 
         this->ball->activate();
+        this->lines->activate();
         this->lasers->activate();
         this->sparks->activate();
     } catch (const std::exception& exception) {
@@ -521,6 +523,7 @@ void MainScene::render(Engine& engine) {
     };
 
     this->pressed_once = false;
+    // engine.window->close(); // TODO REMOVE
 }
 
 void MainScene::reset(Engine& engine) {

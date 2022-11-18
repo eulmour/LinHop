@@ -4,6 +4,7 @@
 #include "src/Framework.h"
 #include "src/Audio.h"
 #include "src/Object.h"
+#include "src/Shader.h"
 #include "src/Engine.h"
 
 #ifndef __cplusplus

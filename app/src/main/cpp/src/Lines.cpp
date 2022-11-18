@@ -36,7 +36,8 @@ void Lines::Draw(const Graphics& g, const Line& drawable) {
         if (line.a_pos[1] - scroll > static_cast<float>(g.viewport()[1]) && line.b_pos[1] - scroll > static_cast<float>(g.viewport()[1]))
             continue;
 
-        drawable.draw(g, &glm::vec4{line.a_pos[0], line.a_pos[1] - scroll, line.b_pos[0], line.b_pos[1] - scroll }[0], line.color, this->width);
+        auto pos = Vec4{line.a_pos[0], line.a_pos[1] - scroll, line.b_pos[0], line.b_pos[1] - scroll };
+        drawable.draw(g, &pos[0], line.color, this->width);
 
         if (!line.collinear)
             drawCircle(line.circle[0], this->width);
@@ -57,10 +58,18 @@ void Lines::Reset(const Graphics& g)
     );
 }
 
-Lines::Segment::Segment(glm::vec2 a_pos, glm::vec2 b_pos, Color color, bool is_col /* = true */) :
-    collinear(is_col),
-    color(color),
-    circle{ { a_pos, color }, { b_pos, color } }
+void Lines::activate() {
+    this->line_drawable = std::make_unique<Line>();
+}
+
+void Lines::deactivate() {
+    this->line_drawable.reset();
+}
+
+Lines::Segment::Segment(glm::vec2 a_pos, glm::vec2 b_pos, Color color, bool is_col /* = true */)
+    : collinear(is_col)
+    , color(color)
+    , circle{ { a_pos, color }, { b_pos, color } }
 {
     if (a_pos[0] < b_pos[0]) {
         this->a_pos = a_pos;

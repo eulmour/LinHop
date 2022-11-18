@@ -14,9 +14,13 @@ Engine::~Engine()
 
 void Engine::setScene(Scene *scene) {
     if (scene) {
-        if (this->current_scene) this->current_scene->suspend(*this);
+        if (this->current_scene) {
+            this->current_scene->suspend(*this);
+        }
         this->current_scene = scene;
-        this->current_scene->resume(*this);
+        if (!this->paused) {
+            this->current_scene->resume(*this);
+        }
     }
 }
 
