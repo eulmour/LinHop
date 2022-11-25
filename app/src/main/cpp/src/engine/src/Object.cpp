@@ -7,7 +7,7 @@
 #include "GLFW/glfw3.h"
 #endif
 
-Drawable::Drawable(std::unique_ptr<Shader> shader)
+Drawable::Drawable(Shader shader)
     : shader(std::move(shader))
 {}
 
@@ -15,35 +15,23 @@ Drawable::Drawable(std::unique_ptr<Shader> shader)
 Line::Line()
     : Line(Shader::Builder()
         .vertex(
-            "#version 300 es\n"
-            "precision mediump float;\n"
-
-            SHADER_FN_ORTHO
-
             "layout(location = 0) in vec2 position;\n"
-            "uniform vec2 resolution;\n"
 
             "void main() {\n"
-                "mat4 projection = ortho(0.0, resolution.x, resolution.y, 0.0, -1.0, 1.0);"
+                "mat4 projection = ortho(0.0, u_res.x, u_res.y, 0.0, -1.0, 1.0);"
                 "gl_Position = projection * vec4(position, 0.0, 1.0);\n"
             "}\n")
         .fragment(
-            "#version 300 es\n"
-            "precision mediump float;\n"
-            "out vec4 fragColor;\n"
-            "uniform vec4 color;\n"
-
             "void main() {\n"
-                "fragColor = color;\n"
+                "out_color = u_color;\n"
             "}")
-        .mk_unique())
+        .build()
+    )
+{}
+
+Line::Line(Shader shader)
+    : Drawable(std::move(shader))
 {
-    this->resolution = std::make_pair<unsigned, Vec2>(Shader::uniform_location(this->shader->id(), "resolution"), {});
-    this->color = std::make_pair<unsigned, Vec4>(Shader::uniform_location(this->shader->id(), "color"), {});
-}
-
-Line::Line(std::unique_ptr<Shader> shader) : Drawable(std::move(shader)) {
-
     this->vbc = 6;
 
     glGenVertexArrays(1, &this->vao);
@@ -62,10 +50,13 @@ Line::Line(std::unique_ptr<Shader> shader) : Drawable(std::move(shader)) {
     this->state = STATE_READY;
 }
 
-void Line::draw(const Graphics& g, float ab[4], Color c, float width) const {
+void Line::draw_(const Graphics& g, float ab[4], Color c, float width) const {
 
-    glUseProgram(this->shader->id());
-    this->update();
+    // glUseProgram(this->shader.id());
+
+    Shader::uniform_vec2(this->shader.u_res, Vec2{static_cast<float>(g.viewport()[0]), static_cast<float>(g.viewport()[1])});
+    Shader::uniform_vec4(this->shader.u_color, c);
+    // this->shader.push();
 
     float angle = atan2f(ab[3] - ab[1], ab[2] - ab[0]) - 1.570796327f;
     width /= 2.f;
@@ -108,30 +99,25 @@ Line::~Line() {
 
 // triangle
 Tri::Tri() :
-    Drawable(std::make_unique<Shader>(Shader::Builder()
+    Drawable(Shader::Builder()
         .vertex(
-            "#version 300 es\n"
             "layout(location = 0) in vec2 pos;\n"
             "layout(location = 1) in vec4 color;\n"
-            "out vec4 vColor;\n"
             "uniform mat4 model;\n"
             "uniform mat4 projection;\n"
             "void main(){\n"
             "   gl_Position = projection * model * vec4(pos, 0.0, 1.0);\n"
-            "   vColor = color;\n"
+            "   out_color = color;\n"
             "}\0"
         )
         .fragment(
-            "#version 300 es\n"
-            "precision mediump float;\n"
             "in vec4 vColor;\n"
-            "out vec4 fragColor;\n"
             "void main() {\n"
-            "   fragColor = vColor;\n"
+            "   out_color = vColor;\n"
             "}\0"
         )
         .build()
-    ))
+    )
 {
     struct tri_vertex {
         GLfloat pos[2];
@@ -161,15 +147,15 @@ Tri::Tri() :
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
-    this->loc_projection = glGetUniformLocation(this->shader->id(), "projection");
-    this->loc_model = glGetUniformLocation(this->shader->id(), "model");
+    this->loc_projection = glGetUniformLocation(this->shader.id(), "projection");
+    this->loc_model = glGetUniformLocation(this->shader.id(), "model");
     this->state = STATE_READY;
 }
 
-void Tri::draw(const Graphics& g, float pos[2], Color c) const {
+void Tri::draw_(const Graphics& g, float pos[2], Color c) const {
 
     (void)c;
-    glUseProgram(this->shader->id());
+    glUseProgram(this->shader.id());
 
     glm::mat4 projection = glm::ortho(
         0.0f,
@@ -210,7 +196,6 @@ Tri::~Tri() {
 Rect::Rect() :
     Drawable(Shader::Builder()
         .vertex(
-            "#version 300 es\n"
             "layout(location = 0) in vec2 pos;\n"
             "layout(location = 1) in vec2 tex;\n"
 
@@ -225,21 +210,16 @@ Rect::Rect() :
             "}\0"
         )
         .fragment(
-            "#version 300 es\n"
-            "precision mediump float;\n"
-
-            "layout(location = 0) out vec4 fragColor;\n"
-
             "in vec2 tex_coord;\n"
 
             "uniform sampler2D sprite;\n"
             "uniform vec4 color;\n"
 
             "void main() {\n"
-            "   fragColor = color * texture(sprite, tex_coord);\n"
+            "   out_color = color * texture(sprite, tex_coord);\n"
             "}\0"
         )
-        .mk_unique()
+        .build()
     )
 {
     struct rect_vertex {
@@ -274,15 +254,15 @@ Rect::Rect() :
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
-    this->loc_projection = glGetUniformLocation(this->shader->id(), "projection");
-    this->loc_model = glGetUniformLocation(this->shader->id(), "model");
-    this->loc_color = glGetUniformLocation(this->shader->id(), "color");
+    this->loc_projection = glGetUniformLocation(this->shader.id(), "projection");
+    this->loc_model = glGetUniformLocation(this->shader.id(), "model");
+    this->loc_color = glGetUniformLocation(this->shader.id(), "color");
     this->state = STATE_READY;
 }
 
-void Rect::draw(const Graphics& g, float pos[2], Color c) const {
+void Rect::draw_(const Graphics& g, float pos[2], Color c) const {
 
-    glUseProgram(this->shader->id());
+    glUseProgram(this->shader.id());
 
     glm::mat4 projection = glm::ortho(
         0.0f,
@@ -332,7 +312,6 @@ void Rect::useTexture(unsigned int texture) { this->texture = texture; }
 Text::Text(const char* font, float size) :
     Drawable(Shader::Builder()
         .vertex(
-            "#version 300 es\n"
             "layout(location = 0) in vec4 vx;\n"
             "out vec2 v_tex_coord;\n"
             "uniform mat4 projection;\n"
@@ -342,18 +321,15 @@ Text::Text(const char* font, float size) :
             "}\0"
         )
         .fragment(
-            "#version 300 es\n"
-            "precision mediump float;\n"
             "in vec2 v_tex_coord;\n"
-            "out vec4 fragColor;\n"
             "uniform sampler2D text;\n"
             "uniform vec4 color;\n"
             "void main() {\n"
             "   vec4 sampled = vec4(1.0, 1.0, 1.0, texture(text, v_tex_coord).r);\n"
-            "   fragColor = color * sampled;\n"
+            "   out_color = color * sampled;\n"
             "}\0"
         )
-        .mk_unique()
+        .build()
     )
 {
     this->scale = 1.f;
@@ -470,17 +446,17 @@ Text::Text(const char* font, float size) :
     FT_Done_Face(face);
     FT_Done_FreeType(ft);
 
-    this->loc_projection = glGetUniformLocation(this->shader->id(), "projection");
-    this->loc_color = glGetUniformLocation(this->shader->id(), "color");
+    this->loc_projection = glGetUniformLocation(this->shader.id(), "projection");
+    this->loc_color = glGetUniformLocation(this->shader.id(), "color");
     this->state = STATE_READY;
 }
 
-float Text::draw(const Graphics& g, const char* str, const float pos[2], Color c) const {
+float Text::draw_(const Graphics& g, const char* str, const float pos[2], Color c) const {
 
     float shift = pos[0];
 
     glActiveTexture(GL_TEXTURE0);
-    glUseProgram(this->shader->id());
+    glUseProgram(this->shader.id());
     glBindVertexArray(this->vao);
 
     glm::mat4 projection = glm::ortho(

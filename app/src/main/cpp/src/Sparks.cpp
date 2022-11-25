@@ -16,7 +16,7 @@ void Sparks::draw(const Graphics& g) {
 
         this->rect_drawable->rot = util::degrees(std::atan2(-current->vel[0], -current->vel[1]));
         this->rect_drawable->scale = current->size;
-        this->rect_drawable->draw(g, &glm::vec2{current->pos[0], current->pos[1] - scroll }[0], Color{
+        this->rect_drawable->draw_(g, &glm::vec2{current->pos[0], current->pos[1] - scroll }[0], Color{
             current->color[0],
             current->color[1],
             current->color[2],

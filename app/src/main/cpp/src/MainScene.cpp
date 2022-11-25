@@ -1,7 +1,7 @@
 #include "MainScene.hpp"
 #include <memory>
 
-/* colors --- I used macros because cglm don't deal with consts */
+// colors --- I used macros because cglm don't deal with consts
 #define COLOR_SELECTED Color{ 0.6f, 0.9f, 1.0f, 1.f }
 #define COLOR_HIDDEN Color{ 0.5f, 0.35f, 0.6f, 1.f }
 #define COLOR_IDLE Color{ 0.4f, 0.55f, 0.6f, 1.f }
@@ -39,7 +39,7 @@ MainScene::MainScene(Engine& e) {
         file_unload(&saveDataFile);
     }
 
-    /* init clicks */
+    // init clicks
     pointerX = last_click[0] = screenW / 2.f;
     pointerY = last_click[1] = screenH;
     this->prev_mouse_pos = {pointerX, pointerY};
@@ -238,17 +238,17 @@ void MainScene::update(Engine& engine) {
                 this->audio_engine->play(*this->audio_bounce);
             }
 
-            /* If ball reaches half of the screen then update scroll */
+            // If ball reaches half of the screen then update scroll
             if (ball->pos[1] - screenH / 2.f - 10.f < scroll) {
                 scroll += (ball->pos[1] - screenH / 2.f - 10.f - scroll) / 10.f;
             }
 
-            /* If game was over turn global scroll back */
+            // If game was over turn global scroll back
             if (game_state == GameState::ENDGAME) {
                 scroll += (-scroll) / 100;
             }
 
-            /* If the ball is out of screen then stop the game */
+            // If the ball is out of screen then stop the game
             if (ball->pos[0] < 0 || ball->pos[0] > screenW ||
                 ball->pos[1] - scroll > screenH + ball->radius)
             {
@@ -262,7 +262,7 @@ void MainScene::update(Engine& engine) {
                 }
             }
 
-            /* Random platforms */
+            // Random platforms
             if ((-scroll) - last_place > rand_lines_density) {
                 if (util::rand(0, 1) <= 1) {
                     auto base_y = scroll - 80.0f;
@@ -286,7 +286,7 @@ void MainScene::update(Engine& engine) {
                 last_place += rand_lines_density;
             }
 
-            /* Push for tail */
+            // Push for tail
             if (this->save_data.fx_enabled) {
 
                 ball_tail->push(glm::vec2{
@@ -305,7 +305,7 @@ void MainScene::update(Engine& engine) {
                 }
             }
 
-            /* lasers */
+            // lasers
             if (game_score > 1000L) {
                 if (util::rand(0, 600) == 1) {
                     this->audio_engine->play(*this->audio_warning);
@@ -374,10 +374,10 @@ void MainScene::render(Engine& engine) {
     }
 
     if (game_mode == GameMode::CLASSIC)
-        lines->Draw(engine.graphics, *this->line);
+        lines->draw(engine.graphics, *this->line);
 
     ball->draw(engine.graphics);
-    rand_lines->Draw(engine.graphics, *this->line);
+    rand_lines->draw(engine.graphics, *this->line);
 
     // gui text
     switch (game_state) {
@@ -468,7 +468,7 @@ void MainScene::render(Engine& engine) {
         case GameState::INGAME:
 
             if (pressed && game_mode == GameMode::CLASSIC) {
-                this->line->draw(engine.graphics, &glm::vec4 {last_click[0], last_click[1] - scroll, pointerX, pointerY}[0], Color {
+                this->line->draw_(engine.graphics, &glm::vec4 {last_click[0], last_click[1] - scroll, pointerX, pointerY}[0], Color {
                     0.5f, 0.5f, 0.5f, 1.0f
                 });
             }

@@ -110,7 +110,7 @@ private:
 
     static constexpr int ball_strength_mod = 25000;
     static constexpr int ball_gravity_mod = 8000;
-    static constexpr float rand_lines_density = 350.0f; /* lower = higher */
+    static constexpr float rand_lines_density = 350.0f; // lower = higher
     static constexpr float small_text_size = 28.f;
     static constexpr float medium_text_size = 64.f;
     static constexpr float large_text_size = 90.f;

@@ -86,7 +86,7 @@ void SettingsScene::onEventSelect() {
     switch (settings_selected) {
         case SettingsSelected::FX_ENABLED:
             save_data.fx_enabled = save_data.fx_enabled == 0;
-            break; /* end of FX_ENABLED */
+            break; // end of FX_ENABLED
 
         case SettingsSelected::RESET_STATISTICS:
 
@@ -94,11 +94,11 @@ void SettingsScene::onEventSelect() {
             save_data.max_score_hidden = 0L;
             file_remove("savedata.dat");
 
-            break; /* end of RESET_STATISTICS */
+            break; // end of RESET_STATISTICS
 
         case SettingsSelected::BACK:
             // TODO implement switching scenes
-            break; /* end of BACK */
+            break; // end of BACK
         default:
             break;
     }

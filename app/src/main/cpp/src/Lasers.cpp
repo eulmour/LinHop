@@ -36,7 +36,7 @@ void Lasers::draw(const Graphics& g, const Line& drawable)
         } else {
 
             for (const Lasers::Laser& laser : lasers) {
-                drawable.draw(g, &glm::vec4{laser.a[0], laser.a[1], laser.b[0], laser.b[1] }[0], LASERS_LINES_DEFAULT_COLOR);
+                drawable.draw_(g, &glm::vec4{laser.a[0], laser.a[1], laser.b[0], laser.b[1] }[0], LASERS_LINES_DEFAULT_COLOR);
             }
 
             if (live_time < 60) {
@@ -45,7 +45,7 @@ void Lasers::draw(const Graphics& g, const Line& drawable)
 
                 this->rect_drawable->scale[0] = lasers.back().a[0] - lasers.front().a[0];
                 this->rect_drawable->scale[1] = static_cast<float>(g.viewport()[1]);
-                this->rect_drawable->draw(g, &glm::vec2{lasers.front().a[0], lasers.front().a[1] }[0], LASERS_INNER_DEFAULT_COLOR);
+                this->rect_drawable->draw_(g, &glm::vec2{lasers.front().a[0], lasers.front().a[1] }[0], LASERS_INNER_DEFAULT_COLOR);
             }
 
             --live_time;

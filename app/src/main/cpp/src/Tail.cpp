@@ -16,7 +16,7 @@ void Tail::draw(const Graphics& g, const Line& drawable) {
     auto end = tail.end();
 
     while (current != end) {
-        drawable.draw(
+        drawable.draw_(
             g,
             &glm::vec4{ current->a_pos[0], current->a_pos[1] - scroll, current->b_pos[0], current->b_pos[1] - scroll }[0],
             util::randColor((static_cast<float>(current->life_time) / tail_length) * alpha, 0.15f));

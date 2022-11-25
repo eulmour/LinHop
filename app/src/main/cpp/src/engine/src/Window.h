@@ -68,7 +68,7 @@ public:
     [[nodiscard]] float getDeltaTimeLast() const;
     [[nodiscard]] IVec2 getLogicalSize() const { return logical_size; };
     void setLogicalSize(IVec2 size) { this->logical_size = size; }
-    void setFocused(bool focused) { this->focused = focused; }
+    void setFocused(bool flag) { this->focused = flag; }
 
 protected:
     IVec2 logical_size{};

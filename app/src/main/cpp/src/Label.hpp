@@ -15,8 +15,8 @@ public:
     Label& setColor(Color newColor) { this->color = newColor; return *this; }
     bool isCollide(const Text& drawable, glm::vec2 position);
 
-    void activate() override { /* text_load(this->drawable); */ }
-    void deactivate() override { /* text_unload(this->drawable); */ }
+    void activate() override {}
+    void deactivate() override {}
 
 private:
     std::string text = {0};

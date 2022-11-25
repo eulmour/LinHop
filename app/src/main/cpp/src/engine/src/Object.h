@@ -8,34 +8,28 @@
 #define CHARACTERS_CAP 128
 
 struct Drawable {
-    Drawable(std::unique_ptr<Shader> shader);
+
+    Drawable(Shader shader);
     virtual ~Drawable() {}
-    virtual void update() const = 0;
+    void use() const { shader.use(); }
+
     enum state state;
     unsigned vao;
     unsigned ebo;
     int vbc;
 
-    std::unique_ptr<Shader> shader;
+    Shader shader;
 };
 
 struct Line : public Drawable {
 
     Line();
-    Line(std::unique_ptr<Shader> shader);
+    Line(Shader shader);
     ~Line();
 
-    void draw(const Graphics& g, float ab[4], Color c, float width = 1.f) const;
-    inline virtual void update() const override {
-        Shader::uniform_vec2(resolution.first, resolution.second);
-        Shader::uniform_vec4(color.first, color.second);
-    };
+    void draw_(const Graphics& g, float ab[4], Color c, float width = 1.f) const;
 
     unsigned vbo[1];
-
-private:
-    std::pair<unsigned, Vec2> resolution{(unsigned)-1, {}};
-    std::pair<unsigned, Vec4> color{(unsigned)-1, {}};
 };
 
 struct Tri : public Drawable {
@@ -43,8 +37,7 @@ struct Tri : public Drawable {
     Tri();
     ~Tri();
 
-    void draw(const Graphics& g, float pos[2], Color c) const;
-    inline virtual void update() const override {}
+    void draw_(const Graphics& g, float pos[2], Color c) const;
 
     float rot;
     Vec2 scale;
@@ -58,8 +51,7 @@ struct Rect : public Drawable {
     Rect();
     ~Rect();
 
-    void draw(const Graphics& g, float pos[2], Color c) const;
-    inline virtual void update() const override {}
+    void draw_(const Graphics& g, float pos[2], Color c) const;
     void useTexture(unsigned int texture);
 
     float rot;
@@ -84,8 +76,7 @@ struct Text : public Drawable {
     Text(const char* font, float size);
     ~Text();
 
-    float draw(const Graphics& g, const char* str, const float pos[2], Color c) const;
-    inline virtual void update() const override {}
+    float draw_(const Graphics& g, const char* str, const float pos[2], Color c) const;
 
     float scale;
     float size;
