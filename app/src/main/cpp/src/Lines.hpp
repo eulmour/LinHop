@@ -7,44 +7,6 @@
 #include "glm/vec2.hpp"
 #include "glm/vec4.hpp"
 
-// struct CircleShader: public Shader {
-//     CircleShader()
-//         : Shader(Shader::Builder()
-//             .vertex(
-//                 "layout(location = 0) in vec2 position;\n"
-
-//                 "void main() {\n"
-//                     "mat4 projection = ortho(0.0, u_res.x, u_res.y, 0.0, -1.0, 1.0);"
-//                     "gl_Position = projection * vec4(position, 0.0, 1.0);\n"
-//                 "}\n")
-//             .fragment(
-//                 "uniform vec4 u_position;\n"
-
-//                 "void main() {\n"
-//                     "vec2 fragCoord = vec2(gl_FragCoord.x, u_res.y - gl_FragCoord.y);\n"
-//                     "float lineLength = distance(u_position.xy, u_position.zw);\n"
-//                     "vec2 vCenter = vec2((u_position.x + u_position.z) / 2.0, (u_position.y + u_position.w) / 2.0);\n"
-
-//                     "if (distance(vCenter, fragCoord) > (lineLength/2.0) - 18.0) {\n"
-//                         "out_color = vec4(0.0, 0.0, 0.0, 0.0);\n"
-//                     "} else {\n"
-//                         "out_color = u_color;\n"
-//                     "}\n"
-//                 "}")
-//             .build())
-//     {}
-
-//     void push_uniform(Vec4 a) {
-
-//     }
-
-//     void push() {
-//         Shader::uniform_vec4(u_position.first, u_position.second);
-//     }
-
-//     std::pair<unsigned, Vec4> u_position;
-// };
-
 struct MyLine : public Line {
     MyLine()
         : Line(Shader::Builder()
@@ -89,14 +51,14 @@ struct Circle {
 
     Circle();
     Circle(glm::vec2 pos, Color color);
-    void draw(const Graphics& g, float width);
+    void draw(const Graphics& g, const Line& d, float width);
 };
 
 struct Lines {
 
     Lines();
     void Push(glm::vec2 second, glm::vec2 first, bool isCol = true);
-    void draw(const Graphics& g, const Line& drawable);
+    void draw(const Graphics& g);
     void Reset(const Graphics& g);
 
     struct Segment {
@@ -116,7 +78,8 @@ struct Lines {
 
 private:
     static constexpr float width = 5.f;
-    std::unique_ptr<MyLine> line_drawable;
+    std::unique_ptr<MyLine> d_segment;
+    std::unique_ptr<Line> d_circle_segment;
 };
 
 #endif //LINHOP_LINES_HPP

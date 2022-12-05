@@ -27,7 +27,7 @@ struct Line : public Drawable {
     Line(Shader shader);
     ~Line();
 
-    void draw_(const Graphics& g, float ab[4], Color c, float width = 1.f) const;
+    void draw_(const Graphics& g, const float ab[4], Color c, float width = 1.f) const;
 
     unsigned vbo[1];
 };

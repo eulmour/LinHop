@@ -16,6 +16,8 @@ void Tail::draw(const Graphics& g, const Line& drawable) {
     auto end = tail.end();
 
     while (current != end) {
+
+        drawable.use();
         drawable.draw_(
             g,
             &glm::vec4{ current->a_pos[0], current->a_pos[1] - scroll, current->b_pos[0], current->b_pos[1] - scroll }[0],

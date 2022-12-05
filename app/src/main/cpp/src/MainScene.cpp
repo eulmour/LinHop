@@ -370,14 +370,14 @@ void MainScene::render(Engine& engine) {
     if (save_data.fx_enabled) {
         cursor_tail->draw(engine.graphics, *this->line);
         sparks->draw(engine.graphics);
-        ball_tail->draw(engine.graphics, *this->line);
+        // ball_tail->draw(engine.graphics, *this->line);
     }
 
     if (game_mode == GameMode::CLASSIC)
-        lines->draw(engine.graphics, *this->line);
+        lines->draw(engine.graphics);
 
     ball->draw(engine.graphics);
-    rand_lines->draw(engine.graphics, *this->line);
+    rand_lines->draw(engine.graphics);
 
     // gui text
     switch (game_state) {
@@ -467,10 +467,15 @@ void MainScene::render(Engine& engine) {
 
         case GameState::INGAME:
 
+#if defined(__ANDROID__) || defined(ANDROID)
             if (pressed && game_mode == GameMode::CLASSIC) {
+#else
+            if (game_mode == GameMode::CLASSIC) {
+#endif
+                this->line->use();
                 this->line->draw_(engine.graphics, &glm::vec4 {last_click[0], last_click[1] - scroll, pointerX, pointerY}[0], Color {
                     0.5f, 0.5f, 0.5f, 1.0f
-                });
+                }, 5.f);
             }
 
 #ifndef NDEBUG
@@ -504,18 +509,18 @@ void MainScene::render(Engine& engine) {
             break;
     }
 
-	//std::memcpy(this->line.color, (float[4]){1.f, 1.f, 1.f, 1.f}, sizeof(float[4]));
+    // std::memcpy(this->line.color, (float[4]){1.f, 1.f, 1.f, 1.f}, sizeof(float[4]));
 
-//    float debugLine[4] = {
-//        screenW/2.f, 0.f,
-//        screenW/2.f, screenH
-//    };
-//    float debugLineHor[4] = {
-//        0.f, screenH/2.f,
-//        screenW, screenH/2.f
-//    };
-//    drawable.draw(&this->line, debugLine);
-//    drawable.draw(&this->line, debugLineHor);
+    // float debugLine[4] = {
+    //     screenW/2.f, 0.f,
+    //     screenW/2.f, screenH
+    // };
+    // float debugLineHor[4] = {
+    //     0.f, screenH/2.f,
+    //     screenW, screenH/2.f
+    // };
+    // drawable.draw(&this->line, debugLine);
+    // drawable.draw(&this->line, debugLineHor);
 
     this->prev_mouse_pos = {
         pointerX,
@@ -553,8 +558,16 @@ void MainScene::reset(Engine& engine) {
     last_place = rand_lines_density;
 
     ball->reset(engine.graphics);
+
     rand_lines->Reset(engine.graphics);
     lines->Reset(engine.graphics);
+
+    lines->lines.emplace_back( // First line
+        glm::vec2{ 0.f, static_cast<float>(engine.graphics.viewport()[1]) },
+        glm::vec2{static_cast<float>(engine.graphics.viewport()[0]), static_cast<float>(engine.graphics.viewport()[1]) },
+        Color{ 1.0f, 1.0f, 1.0f, 1.0f },
+        false
+    );
 }
 
 void MainScene::onEventPointerMove(Engine& engine) {

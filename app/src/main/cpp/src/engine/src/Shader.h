@@ -31,14 +31,6 @@ struct Shader {
             );
         }
 
-        // inline std::unique_ptr<Shader> mk_unique() {
-        //     return std::make_unique<Shader>(
-        //         this->shader_id[static_cast<int>(Shader::Builder::Type::VERTEX)],
-        //         this->shader_id[static_cast<int>(Shader::Builder::Type::FRAGMENT)],
-        //         this->shader_id[static_cast<int>(Shader::Builder::Type::GEOMETRY)]
-        //     );
-        // }
-
         void update(Shader& my_shader);
 
     private:

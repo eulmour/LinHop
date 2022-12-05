@@ -50,13 +50,13 @@ Line::Line(Shader shader)
     this->state = STATE_READY;
 }
 
-void Line::draw_(const Graphics& g, float ab[4], Color c, float width) const {
+void Line::draw_(const Graphics& g, const float ab[4], Color c, float width) const {
 
-    // glUseProgram(this->shader.id());
+    Shader::uniform_vec2(
+        this->shader.u_res,
+        Vec2{static_cast<float>(g.viewport()[0]), static_cast<float>(g.viewport()[1])});
 
-    Shader::uniform_vec2(this->shader.u_res, Vec2{static_cast<float>(g.viewport()[0]), static_cast<float>(g.viewport()[1])});
     Shader::uniform_vec4(this->shader.u_color, c);
-    // this->shader.push();
 
     float angle = atan2f(ab[3] - ab[1], ab[2] - ab[0]) - 1.570796327f;
     width /= 2.f;
