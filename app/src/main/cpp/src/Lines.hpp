@@ -25,7 +25,7 @@ struct MyLine : public Line {
                     "float lineLength = distance(u_position.xy, u_position.zw);\n"
                     "vec2 vCenter = vec2((u_position.x + u_position.z) / 2.0, (u_position.y + u_position.w) / 2.0);\n"
 
-                    "if (distance(vCenter, fragCoord) > (lineLength/2.0) - 18.0) {\n"
+                    "if (distance(vCenter, fragCoord) > (lineLength/2.0) - 26.0) {\n"
                         "out_color = vec4(0.0, 0.0, 0.0, 0.0);\n"
                     "} else {\n"
                         "out_color = u_color;\n"

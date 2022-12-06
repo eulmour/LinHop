@@ -112,12 +112,14 @@ Window::Config &Window::Config::androidApp(android_app *androidApp) {
 #else
 
 void Window::glfwSizeCallback_(GLFWwindow *window, int width, int height) {
-    Engine::instance->window->setLogicalSize({width,height});
-    Engine::instance->graphics.viewport({width, height});
+	auto* e = reinterpret_cast<Engine*>(glfwGetWindowUserPointer(window));
+    e->window->setLogicalSize({width,height});
+    e->graphics.viewport({width, height});
 }
 
 void Window::glfwFocusCallback_(GLFWwindow* window, int focused) {
-    Engine::instance->window->setFocused(focused == GLFW_TRUE);
+	auto* e = reinterpret_cast<Engine*>(glfwGetWindowUserPointer(window));
+    e->window->setFocused(focused == GLFW_TRUE);
 }
 
 Window::Window(const Config& config) {
@@ -174,6 +176,10 @@ Window::Window(const Config& config) {
     glfwSetKeyCallback(this->glfw_window, Input::glfwInputCallback_);
     glfwSetMouseButtonCallback(this->glfw_window, Input::glfwMouseCallback_);
     glfwSetWindowFocusCallback(this->glfw_window, Window::glfwFocusCallback_);
+
+    if (config.userPointer() != nullptr) {
+        glfwSetWindowUserPointer(this->glfw_window, config.userPointer());
+    }
 
     if (glewInit() != GLEW_OK)
         exit(-1);
@@ -245,5 +251,10 @@ Window::Config &Window::Config::visible(bool visible) {
 
 Window::Config &Window::Config::decorated(bool decorated) {
     this->decorated_ = decorated;
+    return *this;
+}
+
+Window::Config &Window::Config::userPointer(void* ptr) {
+    this->user_ptr_ = ptr;
     return *this;
 }

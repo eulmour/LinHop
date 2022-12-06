@@ -4,8 +4,6 @@
 #include <stdexcept>
 #include "EmptyScene.h"
 
-Engine *Engine::instance = nullptr;
-
 Engine::~Engine()
 {
     if (this->state != STATE_OFF)
@@ -35,6 +33,7 @@ void Engine::load()
     builder->window_config.androidApp(this->androidApp);
 #endif
 
+    builder->window_config.userPointer(reinterpret_cast<void*>(this));
     this->window = std::make_unique<Window>(builder->window_config);
 
     graphics
@@ -134,8 +133,6 @@ Engine::Engine(Game& main_app, android_app* android_app_ptr)
     if (this->androidApp->savedState != nullptr) {
         this->savedState = *(Engine::SavedState*)this->androidApp->savedState;
     }
-
-    Engine::instance = this;
 }
 
 void Engine::run() {
@@ -345,17 +342,15 @@ void Engine::androidSetActivityDecor(struct android_app* app) {
 
 #else
 
-Engine::Engine(Game& mainApp, int argc, char *argv[]) :
-    window(nullptr),
-    input(),
-    main_app(mainApp),
-    data{argc, argv}
-{
-    Engine::instance = this;
-}
+Engine::Engine(Game& mainApp, int argc, char *argv[])
+    : window(nullptr)
+    , input()
+    , main_app(mainApp)
+    , data{argc, argv}
+{}
 
-void Engine::run()
-{
+void Engine::run() {
+
     this->load();
     this->resume();
 

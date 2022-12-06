@@ -27,6 +27,7 @@ public:
         Config& vsync(bool vsync);
         Config& visible(bool visible);
         Config& decorated(bool decorated);
+        Config& userPointer(void* ptr);
 
         [[nodiscard]] std::string title() const { return this->title_; }
         [[nodiscard]] IVec2 innerSize() const { return this->inner_size_; }
@@ -36,6 +37,7 @@ public:
         [[nodiscard]] bool vsync() const { return this->vsync_; }
         [[nodiscard]] bool visible() const{ return this->visible_; }
         [[nodiscard]] bool decorated() const { return this->decorated_; }
+        [[nodiscard]] void* userPointer() const { return this->user_ptr_; }
 
     private:
         std::string title_{"Application"};
@@ -46,6 +48,7 @@ public:
         bool vsync_{false};
         bool visible_{true};
         bool decorated_{true};
+        void* user_ptr_{nullptr};
 
 #if defined(__ANDROID__) || defined(ANDROID)
     public:

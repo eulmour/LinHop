@@ -163,6 +163,7 @@ void MainScene::resume(Engine& e) {
 
     try {
         const char *const fontPath = "fonts/OCRAEXT.TTF";
+
         this->small_text = std::make_unique<Text>(fontPath, MainScene::small_text_size);
         this->medium_text = std::make_unique<Text>(fontPath, MainScene::medium_text_size);
         this->large_text = std::make_unique<Text>(fontPath, MainScene::large_text_size);
@@ -183,8 +184,8 @@ void MainScene::update(Engine& engine) {
 
     PROLOG(engine)
 
-    // update background color
-    static float bgColorDirection = 0.005f * engine.window->getDeltaTime();
+	// update background color
+	static float bgColorDirection = 0.005f * engine.window->getDeltaTime();
     if (background_color[0] > 0.2f || background_color[0] < 0.0f)
         bgColorDirection = -bgColorDirection;
 
@@ -195,24 +196,33 @@ void MainScene::update(Engine& engine) {
     // handle input
     // if (engine.window->isFocused() == false)
         // this->game_state = GameState::PAUSED;
-    if (engine.input.isKeyHold(InputKey::PointerMove))
+    if (engine.input.isKeyHold(Input::Key::PointerMove))
         this->onEventPointerMove(engine);
-    if (engine.input.isKeyDown(InputKey::Pointer))
+    if (engine.input.isKeyDown(Input::Key::Pointer))
         this->onEventPointerDown();
-    if (engine.input.isKeyUp(InputKey::Pointer))
+    if (engine.input.isKeyUp(Input::Key::Pointer))
         this->onEventPointerUp(engine);
-    if (engine.input.isKeyDown(InputKey::Select))
-        this->onEventSelect(engine);
-    if (engine.input.isKeyDown(InputKey::Back))
-        this->onEventBack(engine);
-    if (engine.input.isKeyDown(InputKey::Up))
+    if (engine.input.isKeyDown(Input::Key::Up))
         this->onEventUp();
-    if (engine.input.isKeyDown(InputKey::Down))
+    if (engine.input.isKeyDown(Input::Key::Down))
         this->onEventDown();
-    if (engine.input.isKeyDown(InputKey::Left))
+    if (engine.input.isKeyDown(Input::Key::Left))
         this->onEventLeft();
-    if (engine.input.isKeyDown(InputKey::Right))
+    if (engine.input.isKeyDown(Input::Key::Right))
         this->onEventRight();
+    if (engine.input.isKeyDown(Input::Key::Select))
+        this->onEventSelect(engine);
+
+    if (engine.input.isKeyHold(Input::Key::Ctrl)) {
+        if (engine.input.isKeyDown(Input::Key::A)) {
+            this->suspend(engine);
+            this->resume(engine);
+        }
+    } else {
+		if (engine.input.isKeyDown(Input::Key::Back)) {
+			this->onEventBack(engine);
+        }
+    }
 
     // game logic
     switch (this->game_state) {
@@ -370,7 +380,7 @@ void MainScene::render(Engine& engine) {
     if (save_data.fx_enabled) {
         cursor_tail->draw(engine.graphics, *this->line);
         sparks->draw(engine.graphics);
-        // ball_tail->draw(engine.graphics, *this->line);
+		ball_tail->draw(engine.graphics, *this->line);
     }
 
     if (game_mode == GameMode::CLASSIC)

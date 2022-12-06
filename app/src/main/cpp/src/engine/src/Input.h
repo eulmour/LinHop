@@ -12,26 +12,31 @@
 #include "Framework.h"
 #include <array>
 
-enum class InputState {
-    Off, Pressed, Hold, Released
-};
-
-enum class InputKey : int {
-    Up = 0, Down, Left, Right, Select, Back, Pointer, PointerMove, EOL
-};
-
 class Input {
 
 public:
+	enum class State {
+		Off, Pressed, Hold, Released
+	};
+
+	enum class Key : int {
+		Pointer = 0, PointerMove,
+		Up , Down, Left, Right,
+		A, B, X, Y,
+		Select, Back,
+		Ctrl,
+		EOL
+	};
+
     using PointerArray = std::array<std::array<float, 2>, ENGINE_POINTER_COUNT_MAX>;
-    using InputArray = std::array<InputState, static_cast<int>(InputKey::EOL)>;
+    using InputArray = std::array<State, static_cast<int>(Key::EOL)>;
 
     Input();
     void clearStates();
-    bool isKeyDown(InputKey key);
-    bool isKeyHold(InputKey key);
-    bool isKeyUp(InputKey key);
-    [[nodiscard]] InputState& get(InputKey key);
+    bool isKeyDown(Key key);
+    bool isKeyHold(Key key);
+    bool isKeyUp(Key key);
+    [[nodiscard]] State& get(Key key);
     [[nodiscard]] InputArray& getInputArray() { return inputs; }
     [[nodiscard]] PointerArray& getPointerArray() { return pointers; }
 

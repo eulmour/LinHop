@@ -65,8 +65,6 @@ public:
     Graphics graphics;
     Input input;
 
-    static Engine* instance;
-
 private:
     bool paused{true};
     enum state state{STATE_OFF};

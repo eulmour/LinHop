@@ -4,7 +4,9 @@
 using namespace linhop;
 extern float scroll;
 
-Tail::Tail(const float alpha) : alpha(alpha) {}
+Tail::Tail(const float alpha)
+    : alpha(alpha)
+{}
 
 void Tail::push(glm::vec2 a, glm::vec2 b) {
     tail.push_front(TailLine(a, b));
@@ -21,7 +23,8 @@ void Tail::draw(const Graphics& g, const Line& drawable) {
         drawable.draw_(
             g,
             &glm::vec4{ current->a_pos[0], current->a_pos[1] - scroll, current->b_pos[0], current->b_pos[1] - scroll }[0],
-            util::randColor((static_cast<float>(current->life_time) / tail_length) * alpha, 0.15f));
+            util::randColor((static_cast<float>(current->life_time) / tail_length) * alpha, 0.15f),
+            2.0f);
 
         current->update();
 
@@ -38,7 +41,10 @@ void Tail::reset() {
     tail.clear();
 }
 
-Tail::TailLine::TailLine(glm::vec2 a, glm::vec2 b) : a_pos(a), b_pos(b) {}
+Tail::TailLine::TailLine(glm::vec2 a, glm::vec2 b)
+    : a_pos(a)
+    , b_pos(b)
+{}
 
 void Tail::TailLine::update() {
     

@@ -157,39 +157,46 @@ int32_t Input::androidHandleInput(struct android_app* app, AInputEvent* event) {
 #else
 void Input::glfwCursorCallback_(GLFWwindow *window, double xpos, double ypos)
 {
-    Engine::instance->input.getPointerArray()[0][0] = static_cast<float>(xpos);
-    Engine::instance->input.getPointerArray()[0][1] = static_cast<float>(ypos);
-    Engine::instance->input.get(InputKey::PointerMove) = InputState::Hold;
+	auto* e = reinterpret_cast<Engine*>(glfwGetWindowUserPointer(window));
+
+    e->input.getPointerArray()[0][0] = static_cast<float>(xpos);
+    e->input.getPointerArray()[0][1] = static_cast<float>(ypos);
+    e->input.get(Key::PointerMove) = State::Hold;
 }
 
 void Input::glfwInputCallback_(GLFWwindow *window, int key, int scancode, int action, int mods)
 {
-    InputState newState;
+    State newState;
 
     switch (action) {
-        case GLFW_PRESS: newState = InputState::Pressed; break;
-        case GLFW_RELEASE: newState = InputState::Released; break;
+        case GLFW_PRESS: newState = State::Pressed; break;
+        case GLFW_RELEASE: newState = State::Released; break;
         default: return;
     }
 
-    static const std::unordered_map<int, InputKey> matchKey {
-        {GLFW_KEY_UP, InputKey::Up},
-        {GLFW_KEY_DOWN, InputKey::Down},
-        {GLFW_KEY_LEFT, InputKey::Left},
-        {GLFW_KEY_RIGHT, InputKey::Right},
-        {GLFW_KEY_ENTER, InputKey::Select},
-        {GLFW_KEY_ESCAPE, InputKey::Back}
+    static const std::unordered_map<int, Key> matchKey {
+        {GLFW_KEY_W, Key::Up},
+        {GLFW_KEY_S, Key::Down},
+        {GLFW_KEY_A, Key::Left},
+        {GLFW_KEY_D, Key::Right},
+        {GLFW_KEY_UP, Key::Up},
+        {GLFW_KEY_DOWN, Key::Down},
+        {GLFW_KEY_LEFT, Key::Left},
+        {GLFW_KEY_RIGHT, Key::Right},
+        {GLFW_KEY_SPACE, Key::X},
+        {GLFW_KEY_Q, Key::Y},
+        {GLFW_KEY_R, Key::A},
+        {GLFW_KEY_E, Key::B},
+        {GLFW_KEY_ENTER, Key::Select},
+        {GLFW_KEY_ESCAPE, Key::Back},
+        {GLFW_KEY_LEFT_CONTROL, Key::Ctrl},
+        {GLFW_KEY_RIGHT_CONTROL, Key::Ctrl},
     };
 
+	auto* e = reinterpret_cast<Engine*>(glfwGetWindowUserPointer(window));
+
     try {
-        auto keyFound = matchKey.at(key);
-        auto& oldState = Engine::instance->input.get(keyFound);
-
-        if (oldState == newState || (oldState == InputState::Hold && newState == InputState::Pressed)) {
-
-        } else {
-            oldState = newState;
-        }
+        e->input.get(matchKey.at(key)) = newState;
     } catch (std::out_of_range& e) {
         LOGE("Input: %s\n", e.what());
     }
@@ -197,27 +204,22 @@ void Input::glfwInputCallback_(GLFWwindow *window, int key, int scancode, int ac
 
 void Input::glfwMouseCallback_(GLFWwindow *window, int button, int action, int mods)
 {
-    InputState newState;
+    State newState;
 
     switch (action) {
-        case GLFW_PRESS: newState = InputState::Pressed; break;
-        case GLFW_RELEASE: newState = InputState::Released; break;
+        case GLFW_PRESS: newState = State::Pressed; break;
+        case GLFW_RELEASE: newState = State::Released; break;
         default: return;
     }
 
-    static const std::unordered_map<int, InputKey> matchButton {
-        {GLFW_MOUSE_BUTTON_LEFT, InputKey::Pointer},
+    static const std::unordered_map<int, Key> matchButton {
+        {GLFW_MOUSE_BUTTON_LEFT, Key::Pointer},
     };
 
+	auto* e = reinterpret_cast<Engine*>(glfwGetWindowUserPointer(window));
+
     try {
-        auto keyFound = matchButton.at(button);
-        auto& oldState = Engine::instance->input.get(keyFound);
-
-        if (oldState == newState || (oldState == InputState::Hold && newState == InputState::Pressed)) {
-
-        } else {
-            oldState = newState;
-        }
+        e->input.get(matchButton.at(button)) = newState;
     } catch (std::out_of_range& e) {
         LOGE("Mouse: %s\n", e.what());
     }
@@ -230,25 +232,31 @@ Input::Input() {
 }
 
 void Input::clearStates() {
-    this->inputs.fill(InputState::Off);
+	std::for_each(this->inputs.begin(), this->inputs.end(), [](Input::State& state) {
+		if (state == Input::State::Hold || state == Input::State::Pressed) {
+			state = Input::State::Hold;
+		} else {
+			state = Input::State::Off;
+		}
+	});
 }
 
-bool Input::isKeyDown(InputKey key) {
-    return this->get(key) == InputState::Pressed;
+bool Input::isKeyDown(Input::Key key) {
+    return this->get(key) == State::Pressed;
 }
 
-bool Input::isKeyHold(InputKey key) {
-    return this->get(key) == InputState::Hold;
+bool Input::isKeyHold(Input::Key key) {
+    return this->get(key) == State::Hold;
 }
 
-bool Input::isKeyUp(InputKey key) {
-    return this->get(key) == InputState::Released;
+bool Input::isKeyUp(Input::Key key) {
+    return this->get(key) == State::Released;
 }
 
-InputState& Input::get(InputKey key) {
+Input::State& Input::get(Input::Key key) {
     auto iKey = static_cast<int>(key);
 
-    if (iKey < 0 || iKey > static_cast<int>(InputKey::EOL))
+    if (iKey < 0 || iKey > static_cast<int>(Input::Key::EOL))
         throw std::out_of_range("Key not found");
 
     return this->inputs[static_cast<int>(key)];
