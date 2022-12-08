@@ -363,12 +363,12 @@ Text::Text(const char* font, float size) :
 
     struct file file;
     if (!file_load_asset(&file, font)) {
-        LOGE("Cannot open file %s\n", font);
+        LOGE("Cannot open file %s", font);
         FT_Done_FreeType(ft); return;
     }
 
     if (FT_New_Memory_Face(ft, static_cast<const FT_Byte*>(file.data), (FT_Long)file.size, 0, &face))
-        LOGE("FreeType: Failed to load font\n");
+        LOGE("FreeType: Failed to load font");
 
     file_unload(&file);
 
@@ -401,7 +401,7 @@ Text::Text(const char* font, float size) :
     {
         // load character glyph
         if (FT_Load_Char(face, c, FT_LOAD_RENDER)) {
-            LOGE("FreeType: Failed to load Glyph\n");
+            LOGE("FreeType: Failed to load Glyph");
             continue;
         }
 

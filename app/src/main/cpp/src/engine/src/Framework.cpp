@@ -4,6 +4,8 @@
 #include <cerrno>
 #include <cstdio>
 #include <exception>
+#include <memory>
+#include <functional>
 #include "stb_image.h"
 
 #if !defined(__ANDROID__) && !defined(ANDROID)
@@ -14,59 +16,6 @@
 #if defined (WIN32) || defined (_WIN32)
     #include <Windows.h>
 #endif
-
-// int engine_init(Engine* app) {
-
-//     engine_instance = app;
-//     memset(app, 0, sizeof(Engine));
-
-//     // app->scale = 1.f;
-
-// #ifdef ENGINE_WRITE_LOGS
-//     app->log = fopen("log.txt", "w"); if(!app->log) {
-//         LOGE_PRINT("Error: opening file \"log.txt\" for write failed.\n");
-//         return 0;
-//     }
-// #endif
-
-//     // Check openGL on the system
-//     int opengl_info[] = { GL_VENDOR, GL_RENDERER, GL_VERSION /*, GL_EXTENSIONS */ };
-
-//     for (int value = 0; value != sizeof(opengl_info) / sizeof(int); value++) {
-//         LOGI("OpenGL Info: %s\n", glGetString(opengl_info[value]));
-//     }
-
-//     // Initialize GL state.
-//     glEnable(GL_CULL_FACE);
-//     glDisable(GL_DEPTH_TEST);
-//     glEnable(GL_BLEND);
-//     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-//     char cwd_buf[256] = {0};
-//     if (engine_get_cwd(cwd_buf, sizeof(cwd_buf))) {
-//         LOGI("Current working directory: %s\n", cwd_buf);
-//     } else {
-//         LOGW("Failed to get current working directory: %s\n", strerror(errno));
-//     }
-
-//     return 1;
-// }
-
-// void engine_viewport(Engine* app, int w, int h) {
-
-//     app->width = w;
-//     app->height = h;
-
-//     // TODO dynamic game scale (requires a lot of work)
-//     // app->scale = ((float)w * (float)h) / (720.f * 1280.f);
-//     glViewport(0, 0, w, h);
-// }
-
-// void engine_destroy(Engine* app) {
-// #ifdef ENGINE_WRITE_LOGS
-//     fclose(app->log);
-// #endif
-// }
 
 void engine_log_message(const char* fmt, ...) {
 
@@ -87,7 +36,7 @@ void engine_log_message(const char* fmt, ...) {
     if (size > 0) {
 
         if ((data = (char*)malloc(size)) == NULL) {
-            LOGE_PRINT("Unable to allocate memory.\n");
+            LOGE_PRINT("Unable to allocate memory");
 			// MessageBoxA(NULL, data, "Unable to allocate memory.", MB_ICONERROR | MB_OK);
             return;
         }
@@ -97,7 +46,15 @@ void engine_log_message(const char* fmt, ...) {
         }
 
 #ifdef ENGINE_WRITE_LOGS
-        fputs(data, engine_instance->log);
+		static std::unique_ptr<FILE, std::function<void(FILE*)>> log_file(fopen("log.txt", "w"), [](FILE* f) {
+            fclose(f);
+		});
+
+		if (!log_file.get()) {
+			LOGE_PRINT("Error: opening file \"log.txt\" for write failed");
+        } else {
+			fputs(data, log_file.get());
+        }
 #else
     #if defined (WIN32) || defined (_WIN32)
         MessageBoxA(NULL, data, "Message", MB_OK);
@@ -109,6 +66,7 @@ void engine_log_message(const char* fmt, ...) {
     }
 
     va_end(args);
+    errno = 0;
 }
 
 void engine_check_error() {
@@ -121,19 +79,19 @@ void engine_check_error() {
     {
         switch (error) {
             case GL_NO_ERROR:
-                LOGE("%s GL_NO_ERROR\n", prefix); break;
+                LOGE("%s GL_NO_ERROR", prefix); break;
             case GL_INVALID_ENUM:
-                LOGE("%s GL_INVALID_ENUM\n", prefix); break;
+                LOGE("%s GL_INVALID_ENUM", prefix); break;
             case GL_INVALID_VALUE:
-                LOGE("%s GL_INVALID_VALUE\n", prefix); break;
+                LOGE("%s GL_INVALID_VALUE", prefix); break;
             case GL_INVALID_OPERATION:
-                LOGE("%s GL_INVALID_OPERATION\n", prefix); break;
+                LOGE("%s GL_INVALID_OPERATION", prefix); break;
             case GL_OUT_OF_MEMORY:
-                LOGE("%s GL_OUT_OF_MEMORY\n", prefix); break;
+                LOGE("%s GL_OUT_OF_MEMORY", prefix); break;
             case GL_INVALID_FRAMEBUFFER_OPERATION:
-                LOGE("%s GL_INVALID_FRAMEBUFFER_OPERATION\n", prefix); break;
+                LOGE("%s GL_INVALID_FRAMEBUFFER_OPERATION", prefix); break;
             default:
-                LOGE("GL error: %d\n", error);
+                LOGE("GL error: %d", error);
         }
 
         error = glGetError();
@@ -155,7 +113,7 @@ unsigned int create_shader(unsigned int shader_type, const char* src) {
     if (!success) {
         glGetShaderInfoLog(shader, sizeof(infoLog), NULL, infoLog);
         LOGE(
-        "Could not compile %s shader: %s\n",
+        "Could not compile %s shader: %s",
         shader_type == GL_VERTEX_SHADER
                 ? "vertex"
                 : (shader_type == GL_FRAGMENT_SHADER
@@ -189,7 +147,7 @@ unsigned int create_program(const char* vertex_src, const char* fragment_src) {
     glGetProgramiv(program, GL_LINK_STATUS, &success);
     if (!success) {
         glGetProgramInfoLog(program, sizeof(infoLog), NULL, infoLog);
-        LOGE("Could not link program: %s\n", infoLog);
+        LOGE("Could not link program: %s", infoLog);
     }
 
     glDeleteShader(vertexShader);
@@ -247,13 +205,9 @@ int file_load(struct file *file, const char *path) {
         return 0;
 
     FILE* f = fopen(path, "r"); if(!f) {
-        LOGW("IO: Opening file \"%s\" for read failed.\n", path);
+        LOGW("IO: Opening file \"%s\" for read failed", path);
         return 0;
     }
-
-#ifndef NDEBUG
-    LOGI("IO: Reading file \"%s\".\n", path);
-#endif
 
     fseek(f, 0, SEEK_END);
     file->size = ftell(f);
@@ -273,7 +227,7 @@ int file_load(struct file *file, const char *path) {
 
     file->path_size = strlen(path) + sizeof(path[0]);
     if (!(file->path = (char*)malloc(file->path_size * sizeof(char)))) {
-        LOGE("Unable to allocate memory.\n");
+        LOGE("Unable to allocate memory");
         return 0;
     }
 
@@ -282,13 +236,17 @@ int file_load(struct file *file, const char *path) {
 #endif
 
     if ((file->data = malloc(file->size)) == NULL) {
-        LOGE("Unable to allocate memory.\n");
+        LOGE("Unable to allocate memory");
 		fclose(f);
         return 0;
     }
 
     fread(file->data, file->size, 1, f);
     fclose(f);
+
+#ifndef NDEBUG
+    LOGI("IO: File read \"%s\"", path);
+#endif
 
     return 1;
 }
@@ -316,7 +274,7 @@ int file_save(const char* path, void* data, size_t size) {
 
     new_length = strlen(path) + sizeof(path[0]);
     if ((new_path = (char*)malloc(new_length * sizeof(char))) == NULL) {
-		LOGE("Unable to allocate memory.\n");
+		LOGE("Unable to allocate memory");
         return 0;
     }
 
@@ -325,12 +283,12 @@ int file_save(const char* path, void* data, size_t size) {
 #endif
 
     FILE* f = fopen(new_path, "wb"); if(!f) {
-        LOGW("IO: Opening file \"%s\" for write failed.\n", new_path);
+        LOGW("IO: Opening file \"%s\" for write failed", new_path);
         return 0;
     }
 
 #ifndef NDEBUG
-    LOGI("IO: Writing to file \"%s\".\n", path);
+    LOGI("IO: Writing to file \"%s\"", path);
 #endif
 
     fwrite(data, size, 1, f);
@@ -375,7 +333,7 @@ int file_load_asset(struct file* file, const char* path) {
         return 1;
 
     } else {
-        LOGE("ERROR: Failed to read file to string, asset not found. (file: %s)\n", path);
+        LOGE("ERROR: Failed to read file to string, asset not found. (file: %s)", path);
         return 0;
     }
 }

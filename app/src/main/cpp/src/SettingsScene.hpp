@@ -13,7 +13,7 @@ public:
     ~SettingsScene() override = default;
     void resume(Engine& engine) override;
     void suspend(Engine& engine) override;
-    void update(Engine& engine) override;
+    void update(Engine& engine);
     void render(Engine& engine) override;
     Color getBackgroundColor() const { return { 0.f, 0.f, 0.f, 1.f }; }
     void onEventPointerMove();

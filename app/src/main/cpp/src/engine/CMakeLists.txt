@@ -4,6 +4,7 @@ set (CMAKE_CXX_STANDARD 17)
 
 add_definitions(-DGLEW_STATIC)
 add_definitions(-DSOUNDIO_STATIC_LIBRARY)
+add_definitions(-DENGINE_WRITE_LOGS)
 
 file(GLOB FILES_SRC CONFIGURE_DEPENDS "*.h" "src/*.h" "src/*cpp")
 

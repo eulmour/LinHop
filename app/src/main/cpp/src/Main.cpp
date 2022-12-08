@@ -17,7 +17,7 @@ public:
     }
 
     void init(Engine& e) override {
-        e.setScene(new MainScene(e));
+        e.pushScene(std::make_unique<MainScene>(e));
     }
 };
 

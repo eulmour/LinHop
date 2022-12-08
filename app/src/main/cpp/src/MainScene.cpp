@@ -12,6 +12,7 @@
     float screenW = static_cast<float>(e.graphics.viewport()[0]); \
     float screenH = static_cast<float>(e.graphics.viewport()[1]);
 
+// TODO wrap engine in namespace
 using namespace linhop;
 
 // global
@@ -31,7 +32,7 @@ MainScene::MainScene(Engine& e) {
         this->audio_fail_b = std::make_unique<AudioSource>("audio/fail2.wav", 1.f);
         this->audio_warning = std::make_unique<AudioSource>("audio/warning.wav", 1.f);
     } catch (std::exception& e) {
-        LOGE("Failed to load audio sources: %s\n", e.what());
+        LOGE("Failed to load audio sources: %s", e.what());
     }
 
     struct file saveDataFile = {}; if (file_load(&saveDataFile, "savedata.dat")) {
@@ -125,7 +126,7 @@ MainScene::MainScene(Engine& e) {
     try {
         this->audio_engine = std::make_unique<Audio>();
     } catch (const std::exception& exception) {
-        LOGE("Failed to initialize audio engine: %s\n", exception.what());
+        LOGE("Failed to initialize audio engine: %s", exception.what());
     }
 }
 
@@ -173,8 +174,10 @@ void MainScene::resume(Engine& e) {
         this->lasers->activate();
         this->sparks->activate();
     } catch (const std::exception& exception) {
-        LOGE("%s\n", exception.what());
+        LOGE("%s", exception.what());
         e.window->close();
+        //e.debug("Shader error. Please reload screen");
+        e.debug();
     }
 
     this->audio_engine->playAll();
@@ -189,9 +192,9 @@ void MainScene::update(Engine& engine) {
     if (background_color[0] > 0.2f || background_color[0] < 0.0f)
         bgColorDirection = -bgColorDirection;
 
-    background_color[0] += -bgColorDirection / 2;
-    background_color[1] += bgColorDirection / 3;
-    background_color[2] += bgColorDirection / 2;
+    background_color[0] += -bgColorDirection / 2.f;
+    background_color[1] += bgColorDirection / 3.f;
+    background_color[2] += bgColorDirection / 2.f;
 
     // handle input
     // if (engine.window->isFocused() == false)
@@ -217,6 +220,7 @@ void MainScene::update(Engine& engine) {
         if (engine.input.isKeyDown(Input::Key::A)) {
             this->suspend(engine);
             this->resume(engine);
+            LOGI("Scene reloaded");
         }
     } else {
 		if (engine.input.isKeyDown(Input::Key::Back)) {
@@ -321,7 +325,7 @@ void MainScene::update(Engine& engine) {
                     this->audio_engine->play(*this->audio_warning);
 
                     lasers->trigger(engine.graphics,
-                            util::rand(0.0f, screenW - (screenW/3)));
+                            util::rand(0.0f, screenW - (screenW/3.0f)));
                 }
 
                 if (lasers->live_time == 59)
@@ -347,6 +351,8 @@ void MainScene::update(Engine& engine) {
 }
 
 void MainScene::render(Engine& engine) {
+
+    this->update(engine);
 
     PROLOG(engine)
 

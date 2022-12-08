@@ -51,6 +51,8 @@ void SettingsScene::update(Engine&) {
 
 void SettingsScene::render(Engine& e) {
 
+    this->update(e);
+
     this->label_settings_title->draw(e.graphics, *this->large_text);
 
     this->label_settings_fx

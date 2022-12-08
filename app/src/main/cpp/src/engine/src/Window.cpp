@@ -184,7 +184,7 @@ Window::Window(const Config& config) {
     if (glewInit() != GLEW_OK)
         exit(-1);
 
-    LOGI("GL Init: %d\n", GL_VERSION);
+    LOGI("GL Init: %d", GL_VERSION);
 }
 
 Window::~Window() = default;

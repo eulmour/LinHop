@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.8)
 
 add_subdirectory("engine")
+add_definitions(-DENGINE_WRITE_LOGS)
 
 file (GLOB linhop_src CONFIGURE_DEPENDS "*.hpp" "*.cpp")
 
@@ -19,8 +20,7 @@ if (ANDROID)
 endif()
 
 target_include_directories(linhop PRIVATE
-    # ${CMAKE_SOURCE_DIR}/engine
-    ${CMAKE_SOURCE_DIR}/src/engine/vendor/glew # TODO: maybe consider moving it to engine or leave freedom
+    ${CMAKE_SOURCE_DIR}/src/engine/vendor/glew
     ${CMAKE_SOURCE_DIR}/src/engine/vendor/glm/glm
 )
 
@@ -30,7 +30,6 @@ target_link_libraries(linhop engine glm)
 add_library(linhop_android SHARED Main.hpp Main.cpp ${linhop_src})
 
 target_include_directories(linhop_android PRIVATE
-    # ${CMAKE_SOURCE_DIR}/engine
 	${CMAKE_SOURCE_DIR}/src/engine/vendor/android
     ${CMAKE_SOURCE_DIR}/src/engine/vendor/glm
 )

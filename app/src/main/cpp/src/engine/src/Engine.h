@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <string>
+#include <stack>
 
 #include "Framework.h"
 #include "Window.h"
@@ -19,29 +20,25 @@
 
 class Engine;
 
-class Scene {
+struct Scene {
 
-public:
     Scene() = default;
     explicit Scene(Engine&) {};
+    //Scene(const Scene& other) = default;
+    //Scene(Scene&& other) = default;
     virtual ~Scene() = default;
 
     virtual void resume(Engine&) = 0;
     virtual void suspend(Engine&) = 0;
-    virtual void update(Engine&) = 0;
     virtual void render(Engine&) = 0;
 };
 
-class EngineConfig {
-
-public:
+struct EngineConfig {
     EngineConfig& windowConfig(Window::Config config);
-
     Window::Config window_config;
 };
 
-class Game {
-public:
+struct Game {
     virtual ~Game() = default;
     virtual void init(Engine& e) = 0;
     virtual std::unique_ptr<EngineConfig> config() = 0;
@@ -57,23 +54,20 @@ public:
     void resume();
     void pause();
     void render();
+    void debug();
 
-    Scene* getScene() { return this->current_scene; }
-    void setScene(Scene* scene);
+    void pushScene(std::unique_ptr<Scene> scene);
+    void popScene() { if (this->scene.size() > 1) { this->scene.pop(); } }
 
     std::unique_ptr<Window> window;
     Graphics graphics;
     Input input;
 
 private:
-    bool paused{true};
-    enum state state{STATE_OFF};
+    bool paused{ true };
+    enum state state{ STATE_OFF };
     Game& main_app;
-    Scene* current_scene{nullptr};
-
-#ifdef ENGINE_WRITE_LOGS
-    FILE* log;
-#endif
+    std::stack<std::unique_ptr<Scene>> scene;
 
 #if defined(__ANDROID__) || defined(ANDROID)
     public:

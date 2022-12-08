@@ -301,7 +301,7 @@ void Audio::stopAll() {}
 //     memset(engine, 0, sizeof(struct audio));
 //     engine->master_vol = 1.f;
 
-//     LOGI("Audio Engine init started\n");
+//     LOGI("Audio Engine init started");
 
 //     //=================================== Creating the SL Sound Engine ======================================
 //     const SLuint32 eng_mix_iid_count = 1;
@@ -312,21 +312,21 @@ void Audio::stopAll() {}
 //     result = slCreateEngine(&engine->sl_engine, 0, NULL, eng_mix_iid_count, eng_mix_iids, eng_mix_reqs);
 //     if(result != SL_RESULT_SUCCESS)
 //     {
-//         LOGE("slCreateEngine failed\n");
+//         LOGE("slCreateEngine failed");
 //         return 0;
 //     }
 
 //     result = (*engine->sl_engine)->Realize(engine->sl_engine, SL_BOOLEAN_FALSE);
 //     if(result != SL_RESULT_SUCCESS)
 //     {
-//         LOGE("engine->sl_engine Realize failed\n");
+//         LOGE("engine->sl_engine Realize failed");
 //         return 0;
 //     }
 
 //     result = (*engine->sl_engine)->GetInterface(engine->sl_engine, SL_IID_ENGINE, &engine->sl_engine_interface);
 //     if(result != SL_RESULT_SUCCESS)
 //     {
-//         LOGE("engine->sl_engine GetInterface failed\n");
+//         LOGE("engine->sl_engine GetInterface failed");
 //         return 0;
 //     }
 //     //======================================================================================================
@@ -341,13 +341,13 @@ void Audio::stopAll() {}
 //                                                              out_mix_req);
 //     if(result != SL_RESULT_SUCCESS)
 //     {
-//         LOGE("engine->sl_engine CreatOutputMix failed\n");
+//         LOGE("engine->sl_engine CreatOutputMix failed");
 //         return 0;
 //     }
 //     result = (*engine->sl_output_mix)->Realize(engine->sl_output_mix, SL_BOOLEAN_FALSE);
 //     if(result != SL_RESULT_SUCCESS)
 //     {
-//         LOGE("engine->sl_engine output_mix_object Realize failed\n");
+//         LOGE("engine->sl_engine output_mix_object Realize failed");
 //         return 0;
 //     }
 
@@ -396,35 +396,35 @@ void Audio::stopAll() {}
 //                                                                snd_plyr_iid_count, snd_plyr_iids, snd_plyr_reqs);
 //     if(result != SL_RESULT_SUCCESS)
 //     {
-//         LOGE("engine->sl_engine CreateAudioPlayer failed\n");
+//         LOGE("engine->sl_engine CreateAudioPlayer failed");
 //         return 0;
 //     }
 
 //     result = (*engine->sl_audio_player)->Realize(engine->sl_audio_player, SL_BOOLEAN_FALSE);
 //     if(result != SL_RESULT_SUCCESS)
 //     {
-//         LOGE("sl_audio_player Realize failed\n");
+//         LOGE("sl_audio_player Realize failed");
 //     }
 
 //     //Getting the three interfaces we requested above
 //     result = (*engine->sl_audio_player)->GetInterface(engine->sl_audio_player, SL_IID_PLAY, &engine->sl_audio_player_interface);
 //     if(result != SL_RESULT_SUCCESS)
 //     {
-//         LOGE("sl_audio_player GetInterface resume failed\n");
+//         LOGE("sl_audio_player GetInterface resume failed");
 //         return 0;
 //     }
 
 //     result = (*engine->sl_audio_player)->GetInterface(engine->sl_audio_player, SL_IID_BUFFERQUEUE, &engine->sl_buffer_queue_interface);
 //     if(result != SL_RESULT_SUCCESS)
 //     {
-//         LOGE("sl_audio_player GetInterface buffer queue failed\n");
+//         LOGE("sl_audio_player GetInterface buffer queue failed");
 //         return 0;
 //     }
 
 //     result = (*engine->sl_audio_player)->GetInterface(engine->sl_audio_player, SL_IID_VOLUME, &engine->sl_volume_interface);
 //     if(result != SL_RESULT_SUCCESS)
 //     {
-//         LOGE("sl_audio_player GetInterface volume failed\n");
+//         LOGE("sl_audio_player GetInterface volume failed");
 //         return 0;
 //     }
 
@@ -436,7 +436,7 @@ void Audio::stopAll() {}
 
 //     if(result != SL_RESULT_SUCCESS)
 //     {
-//         LOGE("sl_buffer_queue_interface RegisterCallback failed\n");
+//         LOGE("sl_buffer_queue_interface RegisterCallback failed");
 //         return 0;
 //     }
 //     //===========================================================================================================
@@ -447,7 +447,7 @@ void Audio::stopAll() {}
 //     engine->state = STATE_READY;
 
 //     audio_play_all(engine);
-//     LOGI("Audio Engine init finished\n");
+//     LOGI("Audio Engine init finished");
 //     return 1;
 // }
 
@@ -605,12 +605,12 @@ void Audio::stopAll() {}
 //     struct SoundIo* soundio = soundio_create();
     
 //     if (!soundio) {
-//         LOGE("Audio: out of memory\n");
+//         LOGE("Audio: out of memory");
 //         return 0;
 //     }
 
 //     if ((err = soundio_connect(soundio))) {
-//         LOGE("Audio: error connecting: %s\n", soundio_strerror(err));
+//         LOGE("Audio: error connecting: %s", soundio_strerror(err));
 //         return 0;
 //     }
 
@@ -618,17 +618,17 @@ void Audio::stopAll() {}
 
 //     int default_out_device_index = soundio_default_output_device_index(soundio);
 //     if (default_out_device_index < 0) {
-//         LOGE("Audio: no output device found\n");
+//         LOGE("Audio: no output device found");
 //         return 0;
 //     }
 
 //     struct SoundIoDevice* device = soundio_get_output_device(soundio, default_out_device_index);
 //     if (!device) {
-//         LOGE("Audio: out of memory\n");
+//         LOGE("Audio: out of memory");
 //         return 0;
 //     }
 
-//     LOGI("Audio: output device: %s\n", device->name);
+//     LOGI("Audio: output device: %s", device->name);
 
 //     struct SoundIoOutStream* outstream = soundio_outstream_create(device);
 //     outstream->format = SoundIoFormatFloat32NE;
@@ -636,15 +636,15 @@ void Audio::stopAll() {}
 //     outstream->userdata = (void*)engine;
 
 //     if ((err = soundio_outstream_open(outstream))) {
-//         LOGE("Audio: unable to open device: %s\n", soundio_strerror(err));
+//         LOGE("Audio: unable to open device: %s", soundio_strerror(err));
 //         return 0;
 //     }
 
 //     if (outstream->layout_error)
-//         LOGE("Audio: unable to set channel layout: %s\n", soundio_strerror(outstream->layout_error));
+//         LOGE("Audio: unable to set channel layout: %s", soundio_strerror(outstream->layout_error));
 
 //     if ((err = soundio_outstream_start(outstream))) {
-//         LOGE("Audio: unable to start device: %s\n", soundio_strerror(err));
+//         LOGE("Audio: unable to start device: %s", soundio_strerror(err));
 //         return 0;
 //     }
 
@@ -656,7 +656,7 @@ void Audio::stopAll() {}
 //     pthread_t thread;
 //     // TODO fix audio playback
 //     if (pthread_create(&thread, NULL, loop_for_events, (void*) soundio))
-//         LOGE("Thread: cannot create thread.\n");
+//         LOGE("Thread: cannot create thread");
 // #endif
 
 //     engine->soundio = (void*)soundio;
@@ -664,7 +664,7 @@ void Audio::stopAll() {}
 //     engine->outstream = (void*)outstream;
 //     engine->state = STATE_READY;
 //     audio_play_all(engine);
-//     LOGI("Audio: engine initialization finished.\n");
+//     LOGI("Audio: engine initialization finished");
 
 //     return 1;
 // }
@@ -697,10 +697,10 @@ void Audio::stopAll() {}
 // void audio_play(struct audio* engine, struct audio_source* source) {
 
 //     if (!source) {
-//         LOGW("Warning: couldn't resume sound, no free sound sources\n");
+//         LOGW("Warning: couldn't resume sound, no free sound sources");
 //         return;
 //     } else if (source->data == NULL) {
-//         LOGW("Warning: tried playing sound with an uninitialized sample (Sample has null data)\n");
+//         LOGW("Warning: tried playing sound with an uninitialized sample (Sample has null data)");
 //         return;
 //     } else if (engine->free_slot > AUDIO_MAX_SOURCES) {
 //         return;
@@ -713,11 +713,11 @@ void Audio::stopAll() {}
 // }
 
 // void audio_pause(struct audio* engine, struct audio_source* source) {
-//     LOGI("audio_pause is not implemented\n");
+//     LOGI("audio_pause is not implemented");
 // }
 
 // void audio_stop(struct audio* engine, struct audio_source* source) {
-//     LOGI("audio_stop is not implemented\n");
+//     LOGI("audio_stop is not implemented");
 // }
 
 // static void audio_wav_i16i_pcm_read(struct audio_source* source, const char* path) {
@@ -746,7 +746,7 @@ void Audio::stopAll() {}
 
 //     file_load_asset(&source->wav_file, path);
 //     if (source->wav_file.size < 1) {
-//         LOGE("Could not load file %s\n", path);
+//         LOGE("Could not load file %s", path);
 //         return;
 //     }
 
@@ -767,13 +767,13 @@ void Audio::stopAll() {}
 
 //     // validate
 //     if (wav_hdr.bitsPerSample != AUDIO_BITS_PER_SAMPLE) {
-//         LOGE("Unexpected bitrate\n");
+//         LOGE("Unexpected bitrate");
 //         return;
 //     } else if (wav_hdr.SamplesPerSec != AUDIO_SAMPLE_RATE) {
-//         LOGE("Unexpected sample rate\n");
+//         LOGE("Unexpected sample rate");
 //         return;
 //     } else if (wav_hdr.AudioFormat != 1) {
-//         LOGE("Audio format %d is not supported\n", wav_hdr.AudioFormat);
+//         LOGE("Audio format %d is not supported", wav_hdr.AudioFormat);
 //         return;
 //     }
 

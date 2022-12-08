@@ -11,46 +11,42 @@
 #   include <android_native_app_glue.h>
 #   include <android/sensor.h>
 #   include <android/native_activity.h>
-
 #   define LOGV_PRINT(fmt, ...)\
-        ((void)__android_log_print(ANDROID_LOG_VERBOSE, "threaded_app", "[VERBOSE] " fmt, ##__VA_ARGS__))
+        ((void)__android_log_print(ANDROID_LOG_VERBOSE, "threaded_app", "[VERBOSE] " fmt "\n", ##__VA_ARGS__))
 #   define LOGI_PRINT(fmt, ...)\
-        ((void)__android_log_print(ANDROID_LOG_INFO, "threaded_app", "[INFO] " fmt, ##__VA_ARGS__))
+        ((void)__android_log_print(ANDROID_LOG_INFO, "threaded_app", "[INFO] " fmt "\n", ##__VA_ARGS__))
 #   define LOGW_PRINT(fmt, ...)\
-        ((void)__android_log_print(ANDROID_LOG_WARN, "threaded_app", "[WARNING] " fmt, ##__VA_ARGS__))
+        ((void)__android_log_print(ANDROID_LOG_WARN, "threaded_app", "[WARNING] " fmt "\n", ##__VA_ARGS__))
 #   define LOGE_PRINT(fmt, ...)\
-        ((void)__android_log_print(ANDROID_LOG_ERROR, "threaded_app", "[ERROR] " fmt, ##__VA_ARGS__))
+        ((void)__android_log_print(ANDROID_LOG_ERROR, "threaded_app", "[ERROR] " fmt "\n", ##__VA_ARGS__))
 
 #   define LOGV_WRITE LOGV_PRINT
 #   define LOGI_WRITE LOGI_PRINT
 #   define LOGW_WRITE LOGW_PRINT
 #   define LOGE_WRITE LOGE_PRINT
-
 #elif defined (WIN32) || defined (_WIN32)
 #   define strncasecmp(s1, s2, n) _strnicmp(s1, s2, n)
-#   define LOGV_PRINT(fmt, ...) ((void)printf("[VERBOSE] " fmt, ##__VA_ARGS__))
-#   define LOGI_PRINT(fmt, ...) ((void)printf("[INFO] " fmt, ##__VA_ARGS__))
-#   define LOGW_PRINT(fmt, ...) ((void)printf("[WARNING] " fmt, ##__VA_ARGS__))
-#   define LOGE_PRINT(fmt, ...) ((void)fprintf(stderr, "[ERROR] " fmt, ##__VA_ARGS__))
-
-#   define LOGV_WRITE(fmt, ...) engine_log_message("[VERBOSE] " fmt, ##__VA_ARGS__)
-#   define LOGI_WRITE(fmt, ...) engine_log_message("[INFO] " fmt, ##__VA_ARGS__)
+#   define LOGV_PRINT(fmt, ...) ((void)printf("[VERBOSE] " fmt "\n", ##__VA_ARGS__))
+#   define LOGI_PRINT(fmt, ...) ((void)printf("[INFO] " fmt "\n", ##__VA_ARGS__))
+#   define LOGW_PRINT(fmt, ...) ((void)printf("[WARNING] " fmt "\n", ##__VA_ARGS__))
+#   define LOGE_PRINT(fmt, ...) ((void)fprintf(stderr, "[ERROR] " fmt "\n", ##__VA_ARGS__))
+#   define LOGV_WRITE(fmt, ...) engine_log_message("[VERBOSE] " fmt "\n", ##__VA_ARGS__)
+#   define LOGI_WRITE(fmt, ...) engine_log_message("[INFO] " fmt "\n", ##__VA_ARGS__)
 #   define LOGW_WRITE(fmt, ...)\
-        engine_log_message("[WARNING] %s\n" fmt "File %s, line %d\n", strerror(errno), ##__VA_ARGS__, __FILE__, __LINE__)
+        engine_log_message("[WARNING] " fmt "\n[INFO] Reason: %s\n", ##__VA_ARGS__, errno != 0 ? strerror(errno) : "unknown")
 #   define LOGE_WRITE(fmt, ...)\
-        engine_log_message("[ERROR] %s\n" fmt "File %s, line %d\n", strerror(errno), ##__VA_ARGS__, __FILE__, __LINE__)
+        engine_log_message("[ERROR] " fmt "\n[INFO] Reason: %s, file %s, line %d\n", ##__VA_ARGS__, errno != 0 ? strerror(errno) : "unknown", __FILE__, __LINE__)
 #else
-#   define LOGV_PRINT(fmt, ...) ((void)printf("[VERBOSE] " fmt, ##__VA_ARGS__))
-#   define LOGI_PRINT(fmt, ...) ((void)printf("[INFO] " fmt, ##__VA_ARGS__))
-#   define LOGW_PRINT(fmt, ...) ((void)printf("[WARNING] " fmt, ##__VA_ARGS__))
-#   define LOGE_PRINT(fmt, ...) ((void)fprintf(stderr, "[ERROR] " fmt, ##__VA_ARGS__))
-
-#   define LOGV_WRITE(fmt, ...) engine_log_message("[VERBOSE] " fmt, ##__VA_ARGS__)
-#   define LOGI_WRITE(fmt, ...) engine_log_message("[INFO] " fmt, ##__VA_ARGS__)
+#   define LOGV_PRINT(fmt, ...) ((void)printf("[VERBOSE] " fmt "\n", ##__VA_ARGS__))
+#   define LOGI_PRINT(fmt, ...) ((void)printf("[INFO] " fmt "\n", ##__VA_ARGS__))
+#   define LOGW_PRINT(fmt, ...) ((void)printf("[WARNING] " fmt "\n", ##__VA_ARGS__))
+#   define LOGE_PRINT(fmt, ...) ((void)fprintf(stderr, "[ERROR] " fmt "\n", ##__VA_ARGS__))
+#   define LOGV_WRITE(fmt, ...) engine_log_message("[VERBOSE] " fmt "\n", ##__VA_ARGS__)
+#   define LOGI_WRITE(fmt, ...) engine_log_message("[INFO] " fmt "\n", ##__VA_ARGS__)
 #   define LOGW_WRITE(fmt, ...)\
-        engine_log_message("[WARNING] %s\n" fmt "File %s, line %d\n", strerror(errno), ##__VA_ARGS__, __FILE__, __LINE__)
+        engine_log_message("[WARNING] " fmt "\n[INFO] Reason: %s\n", ##__VA_ARGS__, errno != 0 ? strerror(errno) : "unknown")
 #   define LOGE_WRITE(fmt, ...)\
-        engine_log_message("[ERROR] %s\n" fmt "File %s, line %d\n", strerror(errno), ##__VA_ARGS__, __FILE__, __LINE__)
+        engine_log_message("[ERROR] " fmt "\n[INFO] Reason: %s, file %s, line %d\n", ##__VA_ARGS__, errno != 0 ? strerror(errno) : "unknown", __FILE__, __LINE__)
 #endif
 
 #ifdef ENGINE_WRITE_LOGS

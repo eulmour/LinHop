@@ -280,7 +280,7 @@ static struct android_app* android_app_create(ANativeActivity* activity,
 
 static void android_app_write_cmd(struct android_app* android_app, int8_t cmd) {
     if (write(android_app->msgwrite, &cmd, sizeof(cmd)) != sizeof(cmd)) {
-        LOGE("Failure writing android_app cmd: %s\n", strerror(errno));
+        LOGE("Failure writing android_app cmd: %s", strerror(errno));
     }
 }
 

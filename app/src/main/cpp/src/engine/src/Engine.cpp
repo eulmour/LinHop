@@ -1,8 +1,10 @@
 #include "Engine.h"
+#include "Engine.h"
 
 #include <utility>
 #include <stdexcept>
 #include "EmptyScene.h"
+#include "DebugScreen.h"
 
 Engine::~Engine()
 {
@@ -10,14 +12,15 @@ Engine::~Engine()
         this->unload();
 }
 
-void Engine::setScene(Scene *scene) {
-    if (scene) {
-        if (this->current_scene) {
-            this->current_scene->suspend(*this);
+void Engine::pushScene(std::unique_ptr<Scene> scene) {
+
+    if (!!scene) {
+        if (this->scene.top()) {
+            this->scene.top()->suspend(*this);
         }
-        this->current_scene = scene;
+        this->scene.push(std::move(scene));
         if (!this->paused) {
-            this->current_scene->resume(*this);
+            this->scene.top()->resume(*this);
         }
     }
 }
@@ -41,25 +44,18 @@ void Engine::load()
         .viewport(window->getLogicalSize())
         .clear({0.0f, 0.1f, 0.2f, 1.0f});
 
-#ifdef ENGINE_WRITE_LOGS
-    app->log = fopen("log.txt", "w"); if(!app->log) {
-        LOGE_PRINT("Error: opening file \"log.txt\" for write failed.\n");
-        return 0;
-    }
-#endif
-
     // Check openGL on the system
     int opengl_info[] = { GL_VENDOR, GL_RENDERER, GL_VERSION /*, GL_EXTENSIONS */ };
 
     for (int value = 0; value != sizeof(opengl_info) / sizeof(int); value++) {
-        LOGI("OpenGL Info: %s\n", glGetString(opengl_info[value]));
+        LOGI("OpenGL Info: %s", glGetString(opengl_info[value]));
     }
 
     char cwd_buf[256] = {0};
     if (engine_get_cwd(cwd_buf, sizeof(cwd_buf))) {
-        LOGI("Current working directory: %s\n", cwd_buf);
+        LOGI("Current working directory: %s", cwd_buf);
     } else {
-        LOGW("Failed to get current working directory: %s\n", strerror(errno));
+        LOGW("Failed to get current working directory: %s", strerror(errno));
     }
 
     // TODO dynamic game scale (requires a lot of work)
@@ -71,12 +67,12 @@ void Engine::load()
     this->engine.asset_mgr = this->androidApp->activity->assetManager;
 #endif
 
-    if (!this->current_scene) { // TODO manage how to load app once
+    if (!this->scene.size() == 0) { // TODO manage how to load app once
         this->main_app.init(*this);
     }
 
-    if (!this->current_scene) {
-        LOGW("Unable to run engine: No scene available\n");
+    if (!this->scene.size() == 0) {
+        LOGW("Unable to run engine: No scene available");
         this->window->close();
     }
 }
@@ -88,20 +84,21 @@ void Engine::unload()
 
     this->state = STATE_OFF;
     this->window.reset();
-
-#ifdef ENGINE_WRITE_LOGS
-    fclose(this->log);
-#endif
 }
 
 void Engine::render()
 {
     /* Rendering scene */
-    this->current_scene->update(*this);
-    this->current_scene->render(*this);
+    this->scene.top()->render(*this);
 
     /* Swap front and back buffers */
     this->window->swapBuffers();
+}
+
+void Engine::debug()
+{
+    auto debug_scene = std::unique_ptr<Scene>(reinterpret_cast<Scene*>(new DebugScreen(*this)));
+    this->scene.push(std::move(debug_scene));
 }
 
 void Engine::resume() {
@@ -354,12 +351,12 @@ void Engine::run() {
     this->load();
     this->resume();
 
-    if (!this->current_scene) {
-        LOGW("Unable to run engine: No scene available\n");
-        return;
+    if (this->scene.size() == 0) {
+        LOGW("Unable to run engine: No scene available");
+        this->scene.push(std::make_unique<EmptyScene>());
     }
 
-    this->current_scene->resume(*this);
+    this->scene.top()->resume(*this);
 
     while (!this->window->isShouldClose()) {
 

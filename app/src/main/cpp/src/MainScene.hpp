@@ -21,7 +21,7 @@ public:
 
     void suspend(Engine& engine) override;
     void resume(Engine& engine) override;
-    void update(Engine& engine) override;
+    void update(Engine& engine);
     void render(Engine& engine) override;
 
     std::unique_ptr<Audio> audio_engine;

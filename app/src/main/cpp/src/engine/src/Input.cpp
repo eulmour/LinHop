@@ -49,7 +49,7 @@ int32_t Input::androidHandleInput(struct android_app* app, AInputEvent* event) {
                     }
 
                 } catch (std::out_of_range& e) {
-                    LOGE("Touch: %s\n", e.what());
+                    LOGE("Touch: %s", e.what());
                 }
 
                 return 1;
@@ -65,7 +65,7 @@ int32_t Input::androidHandleInput(struct android_app* app, AInputEvent* event) {
                     }
 
                 } catch (std::out_of_range& e) {
-                            LOGE("Touch: %s\n", e.what());
+                            LOGE("Touch: %s", e.what());
                 }
                 return 1;
 
@@ -117,7 +117,7 @@ int32_t Input::androidHandleInput(struct android_app* app, AInputEvent* event) {
             }
 
         } catch (std::out_of_range& e) {
-            LOGE("Input: %s\n", e.what());
+            LOGE("Input: %s", e.what());
         }
 
 //        if (keyAction == AKEY_EVENT_ACTION_DOWN) {
@@ -198,7 +198,7 @@ void Input::glfwInputCallback_(GLFWwindow *window, int key, int scancode, int ac
     try {
         e->input.get(matchKey.at(key)) = newState;
     } catch (std::out_of_range& e) {
-        LOGE("Input: %s\n", e.what());
+        LOGE("Input: %s", e.what());
     }
 }
 
@@ -221,7 +221,7 @@ void Input::glfwMouseCallback_(GLFWwindow *window, int button, int action, int m
     try {
         e->input.get(matchButton.at(button)) = newState;
     } catch (std::out_of_range& e) {
-        LOGE("Mouse: %s\n", e.what());
+        LOGE("Mouse: %s", e.what());
     }
 }
 #endif

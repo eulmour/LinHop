@@ -10,7 +10,7 @@
 struct MyLine : public Line {
     MyLine()
         : Line(Shader::Builder()
-            .vertex(
+/*            .vertex(
                 "layout(location = 0) in vec2 position;\n"
 
                 "void main() {\n"
@@ -31,7 +31,8 @@ struct MyLine : public Line {
                         "out_color = u_color;\n"
                     "}\n"
                 "}")
-            .build())
+            .build())*/
+            .from_file("shaders/line_segment.glsl"))
         , u_position(Shader::uniform_location(this->shader.id(), "u_position"))
     {}
 

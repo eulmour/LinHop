@@ -177,7 +177,9 @@ Shader::Builder& Shader::Builder::vertex(const std::string& shader_src) {
 
     const std::string src =
         "#version 300 es\n"
+		"#ifdef GL_ES\n"
         "precision mediump float;\n"
+		"#endif\n"
         "uniform vec2 u_res;\n"
         SHADER_FN_ORTHO + shader_src;
 
@@ -189,7 +191,11 @@ Shader::Builder& Shader::Builder::fragment(const std::string& shader_src) {
 
     const std::string src =
         "#version 300 es\n"
+
+		"#ifdef GL_ES\n"
         "precision mediump float;\n"
+		"#endif\n"
+
         "uniform vec2 u_res;\n"
         "uniform vec4 u_color;\n"
         "out vec4 out_color;\n"
@@ -203,7 +209,9 @@ Shader::Builder& Shader::Builder::geometry(const std::string& shader_src) {
 
     const std::string src =
         "#version 300 es\n"
+		"#ifdef GL_ES\n"
         "precision mediump float;\n"
+		"#endif\n"
         + shader_src;
 
 	this->shader_id[static_cast<int>(Shader::Builder::Type::GEOMETRY)] = Shader::compile(GL_GEOMETRY_SHADER, src.c_str());
