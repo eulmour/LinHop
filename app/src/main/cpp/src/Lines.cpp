@@ -25,7 +25,7 @@ void Lines::draw(const Graphics& g) {
 
         this->d_segment->use();
         this->d_segment->position(pos);
-        this->d_segment->draw_(g, &pos[0], line.color, this->width);
+        this->d_segment->draw(g, &pos[0], line.color, this->width);
 
         if (!line.collinear)
             line.circle[0].draw(g, *this->d_circle_segment, this->width);
@@ -82,7 +82,7 @@ void Circle::draw(const Graphics& g, const Line& d, float width) {
         const Vec4 segment_pos{old_x, old_y - scroll, new_x, new_y - scroll};
 
         d.use();
-        d.draw_(g, &segment_pos[0], this->color, width);
+        d.draw(g, &segment_pos[0], this->color, width);
 
         old_x = new_x;
         old_y = new_y;

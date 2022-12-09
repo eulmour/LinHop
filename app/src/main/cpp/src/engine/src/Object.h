@@ -7,12 +7,33 @@
 #include <memory>
 #define CHARACTERS_CAP 128
 
+struct Object {
+
+    Vec2& pos() { return this->pos_; }
+    float& width() { return this->width_; }
+    float& height() { return this->height_; }
+
+	bool clicked(const Vec2& position) {
+		return
+			position[0] > pos()[0]
+			&& position[0] < pos()[0] + this->width()
+			&& position[1] > pos()[1]
+			&& position[1] < pos()[1] + this->height();
+	}
+
+private:
+    float width_{ 0.f };
+    float height_{ 0.f };
+    Vec2 pos_{};
+};
+
 struct Drawable {
 
     Drawable(Shader shader);
     virtual ~Drawable() {}
     void use() const { shader.use(); }
 
+protected:
     enum state state;
     unsigned vao;
     unsigned ebo;
@@ -27,7 +48,7 @@ struct Line : public Drawable {
     Line(Shader shader);
     ~Line();
 
-    void draw_(const Graphics& g, const float ab[4], Color c, float width = 1.f) const;
+    void draw(const Graphics& g, const float ab[4], Color c, float width = 1.f) const;
 
     unsigned vbo[1];
 };
@@ -37,7 +58,7 @@ struct Tri : public Drawable {
     Tri();
     ~Tri();
 
-    void draw_(const Graphics& g, float pos[2], Color c) const;
+    void draw(const Graphics& g, float pos[2], Color c) const;
 
     float rot;
     Vec2 scale;
@@ -51,7 +72,7 @@ struct Rect : public Drawable {
     Rect();
     ~Rect();
 
-    void draw_(const Graphics& g, float pos[2], Color c) const;
+    void draw(const Graphics& g, float pos[2], Color c) const;
     void useTexture(unsigned int texture);
 
     float rot;
@@ -76,7 +97,7 @@ struct Text : public Drawable {
     Text(const char* font, float size);
     ~Text();
 
-    float draw_(const Graphics& g, const char* str, const float pos[2], Color c) const;
+    float draw(const Graphics& g, const char* str, const float pos[2], Color c) const;
 
     float scale;
     float size;

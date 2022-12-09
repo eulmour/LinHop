@@ -50,7 +50,7 @@ Line::Line(Shader shader)
     this->state = STATE_READY;
 }
 
-void Line::draw_(const Graphics& g, const float ab[4], Color c, float width) const {
+void Line::draw(const Graphics& g, const float ab[4], Color c, float width) const {
 
     Shader::uniform_vec2(
         this->shader.u_res,
@@ -152,7 +152,7 @@ Tri::Tri() :
     this->state = STATE_READY;
 }
 
-void Tri::draw_(const Graphics& g, float pos[2], Color c) const {
+void Tri::draw(const Graphics& g, float pos[2], Color c) const {
 
     (void)c;
     glUseProgram(this->shader.id());
@@ -260,7 +260,7 @@ Rect::Rect() :
     this->state = STATE_READY;
 }
 
-void Rect::draw_(const Graphics& g, float pos[2], Color c) const {
+void Rect::draw(const Graphics& g, float pos[2], Color c) const {
 
     glUseProgram(this->shader.id());
 
@@ -451,7 +451,7 @@ Text::Text(const char* font, float size) :
     this->state = STATE_READY;
 }
 
-float Text::draw_(const Graphics& g, const char* str, const float pos[2], Color c) const {
+float Text::draw(const Graphics& g, const char* str, const float pos[2], Color c) const {
 
     float shift = pos[0];
 

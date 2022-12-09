@@ -18,6 +18,7 @@ struct Shader {
     ~Shader();
 
     struct Builder {
+
         Builder& vertex(const std::string& shader_src);
         Builder& fragment(const std::string& shader_src);
         Builder& geometry(const std::string& shader_src);
@@ -30,8 +31,6 @@ struct Shader {
                 this->shader_id[static_cast<int>(Shader::Builder::Type::GEOMETRY)]
             );
         }
-
-        void update(Shader& my_shader);
 
     private:
 		enum class Type { VERTEX = 0, FRAGMENT = 1, GEOMETRY = 2 };

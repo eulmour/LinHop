@@ -62,7 +62,7 @@ void Ball::move(float dt) {
 }
 
 void Ball::draw(const Graphics& g) const {
-    this->rect_drawable->draw_(g, &glm::vec2{pos[0] - radius, pos[1] - scroll - radius}[0], Color{1.f, 1.f, 1.f, 1.f});
+    this->rect_drawable->draw(g, &glm::vec2{pos[0] - radius, pos[1] - scroll - radius}[0], Color{1.f, 1.f, 1.f, 1.f});
 }
 
 void Ball::reset(const Graphics& g) {

@@ -15,7 +15,7 @@ Engine::~Engine()
 void Engine::pushScene(std::unique_ptr<Scene> scene) {
 
     if (!!scene) {
-        if (this->scene.top()) {
+        if (this->scene.size() != 0) {
             this->scene.top()->suspend(*this);
         }
         this->scene.push(std::move(scene));
@@ -67,11 +67,11 @@ void Engine::load()
     this->engine.asset_mgr = this->androidApp->activity->assetManager;
 #endif
 
-    if (!this->scene.size() == 0) { // TODO manage how to load app once
+    if (this->scene.size() == 0) { // TODO manage how to load app once
         this->main_app.init(*this);
     }
 
-    if (!this->scene.size() == 0) {
+    if (this->scene.size() == 0) {
         LOGW("Unable to run engine: No scene available");
         this->window->close();
     }
@@ -98,7 +98,7 @@ void Engine::render()
 void Engine::debug()
 {
     auto debug_scene = std::unique_ptr<Scene>(reinterpret_cast<Scene*>(new DebugScreen(*this)));
-    this->scene.push(std::move(debug_scene));
+    this->pushScene(std::move(debug_scene));
 }
 
 void Engine::resume() {

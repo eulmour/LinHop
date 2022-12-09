@@ -8,7 +8,7 @@ Label::Label(std::string text, glm::vec2 pos) : text(std::move(text)) {
 }
 
 void Label::draw(const Graphics& g, const Text& drawable) {
-    this->width = drawable.draw_(g, text.c_str(), &this->pos[0], this->color) - this->pos[0];
+    this->width = drawable.draw(g, text.c_str(), &this->pos[0], this->color) - this->pos[0];
 }
 
 bool Label::isCollide(const Text& drawable, const glm::vec2 position) {

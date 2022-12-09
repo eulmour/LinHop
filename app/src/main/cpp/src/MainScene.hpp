@@ -19,10 +19,14 @@ public:
 
     ~MainScene() override;
 
-    void suspend(Engine& engine) override;
-    void resume(Engine& engine) override;
-    void update(Engine& engine);
-    void render(Engine& engine) override;
+    void suspend(Engine& e) override;
+    void resume(Engine& e) override;
+    void render(Engine& e) override;
+    void update(Engine& e);
+
+    struct Resources {};
+
+    std::unique_ptr<Resources> res;
 
     std::unique_ptr<Audio> audio_engine;
     std::unique_ptr<AudioSource> audio_main;
@@ -83,18 +87,18 @@ public:
         FX_ENABLED, MUSIC_VOLUME, RESET_STATISTICS, BACK, END
     } settings_selected = SettingsSelected::FX_ENABLED;
 
-    void onEventPointerMove(Engine& engine);
+    void onEventPointerMove(Engine& e);
     void onEventPointerDown();
-    void onEventPointerUp(Engine& engine);
-    void onEventSelect(Engine& engine);
+    void onEventPointerUp(Engine& e);
+    void onEventSelect(Engine& e);
     void onEventUp();
     void onEventLeft();
     void onEventDown();
     void onEventRight();
-    void onEventBack(Engine& engine);
+    void onEventBack(Engine& e);
 
 private:
-    void reset(Engine& engine);
+    void reset(Engine& e);
 
     glm::vec2 prev_mouse_pos {0};
     glm::vec2 last_click {0};
@@ -108,12 +112,12 @@ private:
         float music_volume_float;
     } save_data {0, 0, 1, 0, .8f };
 
-    static constexpr int ball_strength_mod = 25000;
-    static constexpr int ball_gravity_mod = 8000;
-    static constexpr float rand_lines_density = 350.0f; // lower = higher
-    static constexpr float small_text_size = 28.f;
-    static constexpr float medium_text_size = 64.f;
-    static constexpr float large_text_size = 90.f;
+    static constexpr float ball_strength_mod{ 25000 };
+    static constexpr float ball_gravity_mod{ 8000 };
+    static constexpr float rand_lines_density{ 350.f }; // lower = higher
+    static constexpr float small_text_size{ 28.f };
+    static constexpr float medium_text_size{ 64.f };
+    static constexpr float large_text_size{ 90.f };
 
     float last_place = rand_lines_density;
     long game_score = 0L;

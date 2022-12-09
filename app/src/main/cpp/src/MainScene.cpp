@@ -177,9 +177,9 @@ void MainScene::resume(Engine& e) {
         LOGE("%s", exception.what());
         e.window->close();
         //e.debug("Shader error. Please reload screen");
-        e.debug();
     }
 
+	e.debug();
     this->audio_engine->playAll();
 }
 
@@ -237,7 +237,7 @@ void MainScene::update(Engine& engine) {
             game_score = std::max(game_score, -static_cast<long>(
                 ball->pos[1] - screenH / 2.f));
 
-            ball->bounce_strength = 1 + static_cast<float>(game_score) / ball_strength_mod;
+            ball->bounce_strength = 1.f + static_cast<float>(game_score) / ball_strength_mod;
             ball->gravity = 9.8f + static_cast<float>(game_score) / ball_gravity_mod;
 
             ball->move(engine.window->getDeltaTime());
@@ -259,7 +259,7 @@ void MainScene::update(Engine& engine) {
 
             // If game was over turn global scroll back
             if (game_state == GameState::ENDGAME) {
-                scroll += (-scroll) / 100;
+                scroll += (-scroll) / 100.f;
             }
 
             // If the ball is out of screen then stop the game
@@ -350,15 +350,15 @@ void MainScene::update(Engine& engine) {
     }
 }
 
-void MainScene::render(Engine& engine) {
+void MainScene::render(Engine& e) {
 
-    this->update(engine);
+    this->update(e);
 
-    PROLOG(engine)
+    PROLOG(e)
 
-    engine.graphics.clear(background_color);
+    e.graphics.clear(background_color);
 
-    lasers->draw(engine.graphics, *this->line);
+    lasers->draw(e.graphics, *this->line);
 
     if (lasers->live_time == 0 && !lasers->lasers.empty()) {
 
@@ -384,41 +384,41 @@ void MainScene::render(Engine& engine) {
     }
 
     if (save_data.fx_enabled) {
-        cursor_tail->draw(engine.graphics, *this->line);
-        sparks->draw(engine.graphics);
-		ball_tail->draw(engine.graphics, *this->line);
+        cursor_tail->draw(e.graphics, *this->line);
+        sparks->draw(e.graphics);
+		ball_tail->draw(e.graphics, *this->line);
     }
 
     if (game_mode == GameMode::CLASSIC)
-        lines->draw(engine.graphics);
+        lines->draw(e.graphics);
 
-    ball->draw(engine.graphics);
-    rand_lines->draw(engine.graphics);
+    ball->draw(e.graphics);
+    rand_lines->draw(e.graphics);
 
     // gui text
     switch (game_state) {
         case GameState::PAUSED:
         case GameState::MENU:
 
-            this->label_menu_title->draw(engine.graphics, *this->large_text);
+            this->label_menu_title->draw(e.graphics, *this->large_text);
 
             this->label_menu_continue
                 ->setColor(menu_selected == MenuSelected::CONTINUE ? COLOR_SELECTED : COLOR_IDLE)
-                .draw(engine.graphics, *this->medium_text);
+                .draw(e.graphics, *this->medium_text);
 
             this->label_menu_start
                 ->setColor(menu_selected == MenuSelected::START ? COLOR_SELECTED : COLOR_IDLE)
-                .draw(engine.graphics, *this->medium_text);
+                .draw(e.graphics, *this->medium_text);
 
             this->label_menu_settings
                 ->setColor(menu_selected == MenuSelected::SETTINGS ? COLOR_SELECTED : COLOR_IDLE)
-                .draw(engine.graphics, *this->medium_text);
+                .draw(e.graphics, *this->medium_text);
 
             this->label_menu_exit
                 ->setColor(menu_selected == MenuSelected::EXIT ? COLOR_SELECTED : COLOR_IDLE)
-                .draw(engine.graphics, *this->medium_text);
+                .draw(e.graphics, *this->medium_text);
 
-            this->label_menu_hint->draw(engine.graphics, *this->small_text);
+            this->label_menu_hint->draw(e.graphics, *this->small_text);
 
             switch (game_mode) {
                 case GameMode::CLASSIC:
@@ -426,13 +426,13 @@ void MainScene::render(Engine& engine) {
                     this->label_game_score
                         ->setText("Score: " + std::to_string(save_data.max_score_classic))
                         .setColor(COLOR_IDLE)
-                        .draw(engine.graphics, *this->medium_text);
+                        .draw(e.graphics, *this->medium_text);
 
                     this->label_menu_mode
                         ->setText("Classic")
                         .setPos(glm::vec2{ screenW/2.f - 60.f, screenH / 2.f - 110.f })
                         .setColor(COLOR_IDLE)
-                        .draw(engine.graphics, *this->small_text);
+                        .draw(e.graphics, *this->small_text);
 
                     break;
 
@@ -441,13 +441,13 @@ void MainScene::render(Engine& engine) {
                     this->label_game_score
                         ->setText("Score: " + std::to_string(save_data.max_score_classic))
                         .setColor(COLOR_IDLE)
-                        .draw(engine.graphics, *this->medium_text);
+                        .draw(e.graphics, *this->medium_text);
 
                     this->label_menu_mode
                         ->setText("Hidden")
                         .setPos(glm::vec2{ screenW/2.f - 52.f, screenH / 2.f - 110.f })
                         .setColor(COLOR_IDLE)
-                        .draw(engine.graphics, *this->small_text);
+                        .draw(e.graphics, *this->small_text);
 
                     break;
 
@@ -459,25 +459,25 @@ void MainScene::render(Engine& engine) {
 
         case GameState::SETTINGS:
 
-            this->label_settings_title->draw(engine.graphics, *this->large_text);
+            this->label_settings_title->draw(e.graphics, *this->large_text);
 
             this->label_settings_fx
                 ->setText(CCAT("FX: ", save_data.fx_enabled, "on", "off"))
                 .setColor(settings_selected == SettingsSelected::FX_ENABLED ? COLOR_SELECTED : COLOR_IDLE)
-                .draw(engine.graphics, *this->medium_text);
+                .draw(e.graphics, *this->medium_text);
 
             this->label_settings_music_volume
                 ->setText("Volume: " + std::to_string(static_cast<int>(save_data.music_volume_float * 100)))
                 .setColor(settings_selected == SettingsSelected::MUSIC_VOLUME ? COLOR_SELECTED : COLOR_IDLE)
-                .draw(engine.graphics, *this->medium_text);
+                .draw(e.graphics, *this->medium_text);
 
             this->label_settings_reset_statistics
                 ->setColor(settings_selected == SettingsSelected::RESET_STATISTICS ? COLOR_SELECTED : COLOR_IDLE)
-                .draw(engine.graphics, *this->medium_text);
+                .draw(e.graphics, *this->medium_text);
 
             this->label_settings_back
                 ->setColor(settings_selected == SettingsSelected::BACK ? COLOR_SELECTED : COLOR_IDLE)
-                .draw(engine.graphics, *this->medium_text);
+                .draw(e.graphics, *this->medium_text);
 
             break;
 
@@ -489,7 +489,7 @@ void MainScene::render(Engine& engine) {
             if (game_mode == GameMode::CLASSIC) {
 #endif
                 this->line->use();
-                this->line->draw_(engine.graphics, &glm::vec4 {last_click[0], last_click[1] - scroll, pointerX, pointerY}[0], Color {
+                this->line->draw(e.graphics, &glm::vec4 {last_click[0], last_click[1] - scroll, pointerX, pointerY}[0], Color {
                     0.5f, 0.5f, 0.5f, 1.0f
                 }, 5.f);
             }
@@ -506,7 +506,7 @@ void MainScene::render(Engine& engine) {
             this->label_game_score
                 ->setText("Score: " + std::to_string(game_score))
                 .setColor(game_mode == GameMode::CLASSIC ? COLOR_SELECTED : COLOR_HIDDEN)
-                .draw(engine.graphics, *this->medium_text);
+                .draw(e.graphics, *this->medium_text);
 
             break;
 
@@ -515,9 +515,9 @@ void MainScene::render(Engine& engine) {
             this->label_endgame_score
                 ->setText("Score: " + std::to_string(game_score))
                 .setColor(game_mode == GameMode::CLASSIC ? COLOR_SELECTED : COLOR_HIDDEN)
-                .draw(engine.graphics, *this->medium_text);
+                .draw(e.graphics, *this->medium_text);
 
-            this->label_endgame_restart->draw(engine.graphics, *this->medium_text);
+            this->label_endgame_restart->draw(e.graphics, *this->medium_text);
 
             break;
 
