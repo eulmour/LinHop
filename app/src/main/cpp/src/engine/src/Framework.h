@@ -101,7 +101,8 @@ void engine_check_error();
 unsigned int create_shader(unsigned int shader_type, const char *src);
 unsigned int create_program(const char *vertex_src, const char *fragment_src);
 
-unsigned int texture_load(const char *path);
+unsigned int texture_create(int width, int height, const void* data);
+unsigned int texture_load_from_file(const char *path);
 void texture_unload(unsigned int id);
 
 int file_load(struct file *file, const char *path);

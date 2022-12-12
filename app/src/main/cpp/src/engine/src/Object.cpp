@@ -211,12 +211,10 @@ Rect::Rect() :
         )
         .fragment(
             "in vec2 tex_coord;\n"
-
             "uniform sampler2D sprite;\n"
-            "uniform vec4 color;\n"
 
             "void main() {\n"
-            "   out_color = color * texture(sprite, tex_coord);\n"
+            "   out_color = u_color * texture(sprite, tex_coord);\n"
             "}\0"
         )
         .build()
@@ -254,6 +252,9 @@ Rect::Rect() :
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
+    unsigned char pixels[4] = { 255, 255, 255, 255 };
+    this->texture = texture_create(1, 1, pixels);
+
     this->loc_projection = glGetUniformLocation(this->shader.id(), "projection");
     this->loc_model = glGetUniformLocation(this->shader.id(), "model");
     this->loc_color = glGetUniformLocation(this->shader.id(), "color");
@@ -279,12 +280,13 @@ void Rect::draw(const Graphics& g, float pos[2], Color c) const {
     // model = glm::rotate(model, glm::radians(this->rot), glm::vec3(0.0f, 0.0f, 0.0f));
     model = glm::scale(model, glm::vec3(this->scale[0], this->scale[1], 1.0f));
 
+    Shader::uniform_vec4(this->shader.u_color, c);
+
     glUniformMatrix4fv(this->loc_projection, 1, GL_FALSE, (GLfloat *) &projection[0][0]);
     glUniformMatrix4fv(this->loc_model, 1, GL_FALSE, (GLfloat *) &model[0][0]);
-    glUniform4f(this->loc_color, c[0], c[1], c[2], c[3]);
 
     glBindVertexArray(this->vao);
-    glBindTexture(GL_TEXTURE_2D, this->texture);
+	glBindTexture(GL_TEXTURE_2D, this->texture);
     glDrawArrays(GL_TRIANGLES, 0, this->vbc);
 }
 
@@ -303,7 +305,12 @@ Rect::~Rect() {
         texture_unload(this->texture);
 }
 
-void Rect::useTexture(unsigned int texture) { this->texture = texture; }
+void Rect::useTexture(unsigned int texture) {
+    if (this->texture > 0) {
+        glDeleteTextures(1, &this->texture);
+    }
+    this->texture = texture;
+}
 
 // text
 #include <ft2build.h>

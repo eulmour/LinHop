@@ -14,7 +14,7 @@ void Ball::activate() {
     this->rect_drawable = std::make_unique<Rect>();
     this->rect_drawable->scale[0] = radius * 2;
     this->rect_drawable->scale[1] = radius * 2;
-    this->rect_drawable->useTexture(texture_load("textures/circle.png"));
+    this->rect_drawable->useTexture(texture_load_from_file("textures/circle.png"));
 }
 
 void Ball::deactivate() {

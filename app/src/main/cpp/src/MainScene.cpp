@@ -179,7 +179,7 @@ void MainScene::resume(Engine& e) {
         //e.debug("Shader error. Please reload screen");
     }
 
-	e.debug();
+	//e.debug();
     this->audio_engine->playAll();
 }
 
