@@ -2,6 +2,8 @@
 #define ENGINE_FRAMEWORK_H
 
 #include <array>
+#include <string.h>
+#include <errno.h>
 
 #define ENGINE_POINTER_COUNT_MAX 16
 
@@ -85,8 +87,8 @@ enum state {
 
 struct file {
     char* path;
-    size_t path_size;
-    size_t size;
+    std::size_t path_size;
+    std::size_t size;
     void* data;
 };
 
@@ -95,7 +97,7 @@ extern "C" {
 #endif
 
 void engine_log_message(const char* fmt, ...);
-int engine_get_cwd(char* buf, size_t max_size);
+int engine_get_cwd(char* buf, std::size_t max_size);
 void engine_check_error();
 
 unsigned int create_shader(unsigned int shader_type, const char *src);
@@ -107,7 +109,7 @@ void texture_unload(unsigned int id);
 
 int file_load(struct file *file, const char *path);
 int file_load_asset(struct file *file, const char *path);
-int file_save(const char* path, void* data, size_t size);
+int file_save(const char* path, void* data, std::size_t size);
 int file_remove(const char* path);
 void file_unload(struct file *file);
 

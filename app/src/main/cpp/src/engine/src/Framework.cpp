@@ -3,7 +3,7 @@
 #include <cstring>
 #include <cerrno>
 #include <cstdio>
-#include <exception>
+#include <stdexcept>
 #include <memory>
 #include <functional>
 #include "stb_image.h"
@@ -19,7 +19,7 @@
 
 void engine_log_message(const char* fmt, ...) {
 
-    size_t size;
+    std::size_t size;
     va_list args, tmp_args;
     char* data = 0;
 
@@ -190,7 +190,7 @@ unsigned int texture_load_from_file(const char* path) {
 #endif
 
     if (buffer == nullptr) {
-        throw std::exception("Failed to load texture");
+        throw std::runtime_error("Failed to load texture");
     }
 
     unsigned texture = texture_create(width, height, buffer);
@@ -222,7 +222,7 @@ int file_load(struct file *file, const char *path) {
 #if defined(ANDROID)
 
     const char absolute_wd_path[] = "data/data/com.pachuch.linhop/files/";
-    size_t parameter_path_length = strlen(path);
+    std::size_t parameter_path_length = strlen(path);
     file->path_size = parameter_path_length + sizeof(absolute_wd_path);
     file->path = (char*)malloc(file->path_size);
 
@@ -257,19 +257,19 @@ int file_load(struct file *file, const char *path) {
     return 1;
 }
 
-int file_save(const char* path, void* data, size_t size) {
+int file_save(const char* path, void* data, std::size_t size) {
 
     if (!path)
         return 0;
 
     char* new_path = NULL;
-    size_t new_length = 0;
+    std::size_t new_length = 0;
 
 #if defined(ANDROID)
 
     const char absolute_wd_path[] = "data/data/com.pachuch.linhop/files/";
 
-    size_t parameter_path_length = strlen(path);
+    std::size_t parameter_path_length = strlen(path);
     new_length = parameter_path_length + sizeof(absolute_wd_path);
     new_path = (char*)malloc(new_length);
 
@@ -344,7 +344,7 @@ int file_load_asset(struct file* file, const char* path) {
     }
 }
 
-int engine_get_cwd(char* buf, size_t max_size) {
+int engine_get_cwd(char* buf, std::size_t max_size) {
     return getcwd(buf, max_size) != NULL;
 }
 
@@ -356,7 +356,7 @@ int file_load_asset(struct file* file, const char* path) {
     return file_load(file, path);
 }
 
-int engine_get_cwd(char* buf, size_t max_size) {
+int engine_get_cwd(char* buf, std::size_t max_size) {
     return getcwd(buf, max_size) != NULL;
 }
 
@@ -368,7 +368,7 @@ int file_load_asset(struct file* file, const char* path) {
     return file_load(file, path);
 }
 
-int engine_get_cwd(char* buf, size_t max_size) {
+int engine_get_cwd(char* buf, std::size_t max_size) {
     return GetCurrentDirectoryA(static_cast<DWORD>(max_size), buf) != 0;
 }
 

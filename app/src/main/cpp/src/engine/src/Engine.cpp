@@ -1,5 +1,4 @@
 #include "Engine.h"
-#include "Engine.h"
 
 #include <utility>
 #include <stdexcept>

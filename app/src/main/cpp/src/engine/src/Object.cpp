@@ -1,11 +1,14 @@
 #include "Object.h"
 #include "Internal.h"
 #include <cstring>
+#include <stdexcept>
 
 #if !defined(__ANDROID__) && !defined(ANDROID)
 #include "GL/glew.h"
 #include "GLFW/glfw3.h"
 #endif
+
+#include <cmath>
 
 Drawable::Drawable(Shader shader)
     : shader(std::move(shader))
@@ -62,18 +65,18 @@ void Line::draw(const Graphics& g, const float ab[4], Color c, float width) cons
     width /= 2.f;
 
     std::array<float, 6*2> new_pos = {
-        ab[0] + std::cosf(angle) * width,
-        ab[1] + std::sinf(angle) * width,
-        ab[0] - std::cosf(angle) * width,
-        ab[1] - std::sinf(angle) * width,
-        ab[2] + std::cosf(angle) * width,
-        ab[3] + std::sinf(angle) * width,
-        ab[2] - std::cosf(angle) * width,
-        ab[3] - std::sinf(angle) * width,
-        ab[2] + std::cosf(angle) * width,
-        ab[3] + std::sinf(angle) * width,
-        ab[0] - std::cosf(angle) * width,
-        ab[1] - std::sinf(angle) * width,
+        ab[0] + cosf(angle) * width,
+        ab[1] + sinf(angle) * width,
+        ab[0] - cosf(angle) * width,
+        ab[1] - sinf(angle) * width,
+        ab[2] + cosf(angle) * width,
+        ab[3] + sinf(angle) * width,
+        ab[2] - cosf(angle) * width,
+        ab[3] - sinf(angle) * width,
+        ab[2] + cosf(angle) * width,
+        ab[3] + sinf(angle) * width,
+        ab[0] - cosf(angle) * width,
+        ab[1] - sinf(angle) * width,
     };
 
     glBindBuffer(GL_ARRAY_BUFFER, this->vbo[0]);
@@ -360,7 +363,7 @@ Text::Text(const char* font, float size) :
     // then initialize and load the FreeType library
     FT_Library ft;
     if (FT_Init_FreeType(&ft)) { // all functions return a value different than 0 whenever an error occurred
-        throw std::exception("FreeType: Could not init FreeType Library");
+        throw std::runtime_error("FreeType: Could not init FreeType Library");
     }
 
     // load font as face
@@ -382,11 +385,11 @@ Text::Text(const char* font, float size) :
 #else
 
     if (!engine_file_exists_(font)) {
-        throw std::exception("Failed to load font, file does not exists.");
+        throw std::runtime_error("Failed to load font, file does not exists.");
     }
 
     if (FT_New_Face(ft, font, 0, &face)) {
-        throw std::exception("FreeType: Failed to load font.");
+        throw std::runtime_error("FreeType: Failed to load font.");
     }
 
 #endif
@@ -400,7 +403,7 @@ Text::Text(const char* font, float size) :
     this->characters = std::unique_ptr<Character>(new Character[CHARACTERS_CAP]);
 
     if (this->characters == nullptr) {
-        throw std::exception("Unable to allocate memory");
+        throw std::runtime_error("Unable to allocate memory");
     }
 
     // then for the first 128 ASCII characters, pre-load/compile their characters and store them

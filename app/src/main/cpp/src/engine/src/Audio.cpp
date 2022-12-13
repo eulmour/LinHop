@@ -4,6 +4,7 @@
 #include <assert.h>
 #include <errno.h>
 #include <memory>
+#include <exception>
 #include <stdexcept>
 
 #define AUDIO_NUM_CHANNELS 2
@@ -132,7 +133,7 @@ AudioSource::AudioSource(const char* path, float vol) {
      /* In this example, all decoders need to have the same output format. */
     internal_ptr->decoderConfig = ma_decoder_config_init(AUDIO_SAMPLE_FORMAT, AUDIO_NUM_CHANNELS, AUDIO_SAMPLE_RATE);
     if (!file_load_asset(&this->file_data, path))
-        throw std::exception((std::string("Could not load file: ") + path).c_str());
+        throw std::runtime_error("Could not load audio source file");
 
     result = ma_decoder_init_memory(
         this->file_data.data,
@@ -141,7 +142,7 @@ AudioSource::AudioSource(const char* path, float vol) {
         &internal_ptr->decoder);
 
     if (result != MA_SUCCESS) {
-        throw std::exception((std::string("Could not init from file: ") + path).c_str());
+        throw std::runtime_error("Could not init audio source from file");
     }
 }
 
@@ -166,7 +167,7 @@ Audio::Audio() {
     internal_ptr->deviceConfig.pUserData         = internal_ptr;
 
     if (ma_device_init(nullptr, &internal_ptr->deviceConfig, &internal_ptr->device) != MA_SUCCESS)
-        throw std::exception("Failed to open playback device");
+        throw std::runtime_error("Failed to open playback device");
 
     this->state = STATE_READY;
 }
@@ -197,7 +198,7 @@ void Audio::play(AudioSource& source) {
         /* Now we start playback and wait for the audio thread to tell us to stop. */
         if (ma_device_start(&internal_ptr->device) != MA_SUCCESS) {
             this->state = STATE_ERROR;
-            throw std::exception("Failed to start playback device");
+            throw std::runtime_error("Failed to start playback device");
         }
 
         this->state = STATE_BUSY;
@@ -205,7 +206,7 @@ void Audio::play(AudioSource& source) {
         ma_event_wait(&internal_ptr->g_stopEvent);
 
     } else if (this->state == STATE_OFF || this->state == STATE_ERROR) {
-        throw std::exception("Failed to play audio, context is not ready");
+        throw std::runtime_error("Failed to play audio, context is not ready");
     }
 }
 

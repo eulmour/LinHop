@@ -116,9 +116,9 @@ static void GLAPIENTRY errorOccurredGL(
 
     printf("%s\n", message);
 
-    if (type == GL_DEBUG_SEVERITY_HIGH) {
-        exit(-1);
-    }
+    // if (type == GL_DEBUG_SEVERITY_HIGH) {
+        // exit(-1);
+    // }
 }
 #endif
 

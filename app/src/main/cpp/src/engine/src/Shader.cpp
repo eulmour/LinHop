@@ -3,6 +3,7 @@
 #include <array>
 #include <fstream>
 #include <sstream>
+#include <exception>
 #include "Framework.h"
 
 #if !defined(__ANDROID__) && !defined(ANDROID)
@@ -128,7 +129,7 @@ void Shader::color(const Vec4& value) const { Shader::uniform_vec4(this->u_color
 Shader Shader::Builder::from_file(const std::string& path) {
 
     std::fstream stream(path); if (!stream) {
-        throw std::exception("Cannot open file");
+        throw std::runtime_error("Cannot open file");
     }
 
     Builder::Type type;
@@ -169,7 +170,7 @@ Shader Shader::Builder::from_file(const std::string& path) {
         return this->vertex(ss[static_cast<unsigned>(Type::VERTEX)].str())
             .build();
     } else {
-        throw std::exception("Cannot parse shader file");
+        throw std::runtime_error("Cannot parse shader file");
     }
 }
 
