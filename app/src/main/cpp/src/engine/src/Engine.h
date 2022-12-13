@@ -4,6 +4,7 @@
 #include <memory>
 #include <string>
 #include <stack>
+#include <sstream>
 
 #include "Framework.h"
 #include "Window.h"
@@ -24,13 +25,12 @@ struct Scene {
 
     Scene() = default;
     explicit Scene(Engine&) {};
-    //Scene(const Scene& other) = default;
-    //Scene(Scene&& other) = default;
     virtual ~Scene() = default;
 
     virtual void resume(Engine&) = 0;
     virtual void suspend(Engine&) = 0;
     virtual void render(Engine&) = 0;
+    virtual const char* title() { return "Untitled"; }
 };
 
 struct EngineConfig {
@@ -54,10 +54,11 @@ public:
     void resume();
     void pause();
     void render();
-    void debug();
+    void show_log();
+    std::stringstream& log() { return this->log_stream; }
 
     void pushScene(std::unique_ptr<Scene> scene);
-    void popScene() { if (this->scene.size() > 1) { this->scene.pop(); } }
+    void popScene();
 
     std::unique_ptr<Window> window;
     Graphics graphics;
@@ -68,6 +69,7 @@ private:
     enum state state{ STATE_OFF };
     Game& main_app;
     std::stack<std::unique_ptr<Scene>> scene;
+    std::stringstream log_stream;
 
 #if defined(__ANDROID__) || defined(ANDROID)
     public:

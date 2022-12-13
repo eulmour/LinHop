@@ -3,7 +3,7 @@
 #include <utility>
 #include <stdexcept>
 #include "EmptyScene.h"
-#include "DebugScreen.h"
+#include "LogActivity.h"
 
 Engine::~Engine()
 {
@@ -16,18 +16,33 @@ void Engine::pushScene(std::unique_ptr<Scene> scene) {
     if (!!scene) {
         if (this->scene.size() != 0) {
             this->scene.top()->suspend(*this);
+            this->log() << this->scene.top()->title() << " suspended\n";
         }
         this->scene.push(std::move(scene));
         if (!this->paused) {
             this->scene.top()->resume(*this);
+            this->log() << this->scene.top()->title() << " resumed\n";
         }
+    }
+}
+
+void Engine::popScene() {
+    if (this->scene.size() < 1) {
+        return;
+    }
+
+    this->scene.pop();
+
+    if (this->scene.size() > 0) {
+        this->scene.top()->resume(*this);
+        this->log() << this->scene.top()->title() << " resumed\n";
     }
 }
 
 void Engine::load()
 {
     if (this->state != STATE_OFF)
-        throw std::domain_error("Engine: engine is already loaded");
+        throw std::runtime_error("Engine: engine is already loaded");
 
     auto builder = this->main_app.config();
 
@@ -79,7 +94,7 @@ void Engine::load()
 void Engine::unload()
 {
     if (this->state == STATE_OFF)
-        throw std::domain_error("Engine: engine is already off");
+        throw std::runtime_error("Engine: engine is already off");
 
     this->state = STATE_OFF;
     this->window.reset();
@@ -94,10 +109,10 @@ void Engine::render()
     this->window->swapBuffers();
 }
 
-void Engine::debug()
+void Engine::show_log()
 {
-    auto debug_scene = std::unique_ptr<Scene>(reinterpret_cast<Scene*>(new DebugScreen(*this)));
-    this->pushScene(std::move(debug_scene));
+    auto log_screen = std::unique_ptr<Scene>(reinterpret_cast<Scene*>(new LogActivity(*this, this->log_stream.str())));
+    this->pushScene(std::move(log_screen));
 }
 
 void Engine::resume() {
@@ -356,6 +371,7 @@ void Engine::run() {
     }
 
     this->scene.top()->resume(*this);
+    this->log() << this->scene.top()->title() << " resumed\n";
 
     while (!this->window->isShouldClose()) {
 

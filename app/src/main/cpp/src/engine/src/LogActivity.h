@@ -8,15 +8,15 @@
 #include <vector>
 #include <algorithm>
 
-struct DebugScreen : public Scene {
+struct LogActivity : public Scene {
 
-    explicit DebugScreen(Engine& e);
-    ~DebugScreen() override = default;
+    explicit LogActivity(Engine& e, std::string content);
+    ~LogActivity() override = default;
     void resume(Engine& e) override;
     void suspend(Engine& e) override;
     void render(Engine& e) override;
 
-private:
+protected:
 
 	struct Button : public Object {
         Button(std::shared_ptr<Text> d, std::shared_ptr<Rect> d_rect, std::string label)
@@ -36,6 +36,15 @@ private:
         std::shared_ptr<Rect> d_rect;
     };
 
+    struct ScrollArea : Object {
+
+        ScrollArea(Vec2 pos) {}
+        void draw(const Graphics& g) {}
+
+    protected:
+        float scroll{ 0.f }, deltaScroll{ 0.f }, originScroll{ 0.f };
+    };
+
 	struct MultilineText {
 
         MultilineText(std::shared_ptr<Text> d, std::string text, std::size_t max)
@@ -51,7 +60,19 @@ private:
                 return;
             }
 
+            if (text.size() <= max) {
+                this->lines.push_back(text);
+                return;
+            }
+
 			while (true) {
+
+                std::size_t t = text.rfind('\n', max + offset);
+                if (max < (max + offset) - t) {
+                    this->lines.push_back(text.substr(offset, t - offset));
+                    offset = t;
+                    continue;
+                }
 
                 std::size_t n = max + offset <= text.size()
                     ? text.rfind(' ', max + offset)
@@ -73,9 +94,13 @@ private:
         void draw(const Graphics& g, Vec2 pos, Color c) {
 
             std::for_each(this->lines.begin(), this->lines.end(), [&g, &pos, &c, this, i = 0](const std::string& text) mutable {
-				this->d->draw(g, text.c_str(), &Vec2{pos[0], pos[1] + static_cast<float>(i) * 25.f}[0], c);
+				this->d->draw(g, text.c_str(), &Vec2{pos[0], pos[1] + static_cast<float>(i) * line_height}[0], c);
 				++i;
 			});
+        }
+
+        unsigned height() {
+            return this->lines.size() * line_height;
         }
 
         std::shared_ptr<Text> d;
@@ -86,14 +111,16 @@ private:
         Line separator;
         Rect header_rect;
         std::shared_ptr<Rect> button_rect{std::make_shared<Rect>()};
-		std::shared_ptr<Text> d_default_text{ std::make_shared<Text>("fonts/OCRAEXT.TTF", DebugScreen::text_size) };
+		std::shared_ptr<Text> d_default_text{ std::make_shared<Text>("fonts/OCRAEXT.TTF", LogActivity::text_size) };
         Button back_btn{ d_default_text, button_rect, "<- Back" };
         MultilineText ml_text{ d_default_text, "", 1 };
     };
 
+    static constexpr float line_height{ 25.f };
     static constexpr float text_size{ 24.f };
-    std::unique_ptr<Resources> res;
 
+    std::string content;
+    std::unique_ptr<Resources> res;
     float scroll{ 0.f }, deltaScroll{ 0.f }, originScroll{ 0.f };
 };
 

@@ -31,8 +31,8 @@ MainScene::MainScene(Engine& e) {
         this->audio_fail_a = std::make_unique<AudioSource>("audio/fail.wav", 1.f);
         this->audio_fail_b = std::make_unique<AudioSource>("audio/fail2.wav", 1.f);
         this->audio_warning = std::make_unique<AudioSource>("audio/warning.wav", 1.f);
-    } catch (std::exception& e) {
-        LOGE("Failed to load audio sources: %s", e.what());
+    } catch (std::exception& exception) {
+        e.log() << "Failed to load audio sources: " << exception.what();
     }
 
     struct file saveDataFile = {}; if (file_load(&saveDataFile, "savedata.dat")) {
@@ -60,6 +60,7 @@ MainScene::MainScene(Engine& e) {
     this->label_menu_title = std::make_unique<Label>("LinHop", glm::vec2 {
         screenW / 2.f - 162.f, screenH / 2.f - 180.f
     });
+
     this->label_menu_title->setColor({0.6f, 0.8f, 1.0f, 1.f});
 
     this->label_menu_continue = std::make_unique<Label>("Continue", glm::vec2 {
@@ -81,6 +82,7 @@ MainScene::MainScene(Engine& e) {
     this->label_menu_hint = std::make_unique<Label>("Left or right to change mode", glm::vec2 {
         screenW / 2.f - 238.f, screenH - 40.f
     });
+
     this->label_menu_hint->setColor({0.4f, 0.55f, 0.6f, 1.f});
 
     this->label_menu_mode = std::make_unique<Label>("Classic", glm::vec2 {
@@ -111,6 +113,10 @@ MainScene::MainScene(Engine& e) {
         screenW / 2.f - 90.f, screenH / 2.f + 60.f
     });
 
+    this->label_settings_log = std::make_unique<Label>("Log", glm::vec2 {
+        screenW / 2.f - 55.f, screenH / 2.f + 120.f
+    });
+
     this->label_settings_back = std::make_unique<Label>("Back", glm::vec2 {
         screenW / 2.f - 70.f, screenH / 2.f + 280.f
     });
@@ -126,14 +132,13 @@ MainScene::MainScene(Engine& e) {
     try {
         this->audio_engine = std::make_unique<Audio>();
     } catch (const std::exception& exception) {
-        LOGE("Failed to initialize audio engine: %s", exception.what());
+        e.log() << "Failed to initialize audio engine: " << exception.what();
     }
 }
 
 MainScene::~MainScene() {
 
     file_save("savedata.dat", (void*)&this->save_data, sizeof(SaveData));
-
     //audio_destroy(&this->audio_engine);
     //audio_source_unload(&this->audio_main);
     //audio_source_unload(&this->audio_alt);
@@ -143,7 +148,7 @@ MainScene::~MainScene() {
     //audio_source_unload(&this->audio_warning);
 }
 
-void MainScene::suspend(Engine&) {
+void MainScene::suspend(Engine& e) {
 
     this->ball->deactivate();
     this->lines->deactivate();
@@ -174,16 +179,15 @@ void MainScene::resume(Engine& e) {
         this->lasers->activate();
         this->sparks->activate();
     } catch (const std::exception& exception) {
-        LOGE("%s", exception.what());
-        e.window->close();
-        //e.debug("Shader error. Please reload screen");
+        e.log() << exception.what() << "\nShader error. Please reload screen";
+        e.show_log();
+        // e.window->close();
     }
 
-	//e.debug();
     this->audio_engine->playAll();
 }
 
-void MainScene::update(Engine& engine) {
+bool MainScene::update(Engine& engine) {
 
     PROLOG(engine)
 
@@ -199,12 +203,22 @@ void MainScene::update(Engine& engine) {
     // handle input
     // if (engine.window->isFocused() == false)
         // this->game_state = GameState::PAUSED;
-    if (engine.input.isKeyHold(Input::Key::PointerMove))
-        this->onEventPointerMove(engine);
-    if (engine.input.isKeyDown(Input::Key::Pointer))
-        this->onEventPointerDown();
-    if (engine.input.isKeyUp(Input::Key::Pointer))
-        this->onEventPointerUp(engine);
+    if (engine.input.isKeyHold(Input::Key::PointerMove)) {
+        if (!this->onEventPointerMove(engine)) {
+            return false;
+        }
+    }
+    if (engine.input.isKeyDown(Input::Key::Pointer)) {
+        if (!this->onEventPointerDown()) {
+            return false;
+        }
+    }
+    if (engine.input.isKeyUp(Input::Key::Pointer)) {
+        if (!this->onEventPointerUp(engine)) {
+            return false;
+        }
+    }
+
     if (engine.input.isKeyDown(Input::Key::Up))
         this->onEventUp();
     if (engine.input.isKeyDown(Input::Key::Down))
@@ -220,7 +234,7 @@ void MainScene::update(Engine& engine) {
         if (engine.input.isKeyDown(Input::Key::A)) {
             this->suspend(engine);
             this->resume(engine);
-            LOGI("Scene reloaded");
+            engine.log() << "Scene reloaded";
         }
     } else {
 		if (engine.input.isKeyDown(Input::Key::Back)) {
@@ -348,11 +362,15 @@ void MainScene::update(Engine& engine) {
        else
             this->audio_engine->play(*this->audio_alt);
     }
+
+    return true;
 }
 
 void MainScene::render(Engine& e) {
 
-    this->update(e);
+    if (!this->update(e)) {
+        return;
+    }
 
     PROLOG(e)
 
@@ -474,6 +492,10 @@ void MainScene::render(Engine& e) {
             this->label_settings_reset_statistics
                 ->setColor(settings_selected == SettingsSelected::RESET_STATISTICS ? COLOR_SELECTED : COLOR_IDLE)
                 .draw(e.graphics, *this->medium_text);
+            
+            this->label_settings_log
+                ->setColor(settings_selected == SettingsSelected::LOG ? COLOR_SELECTED : COLOR_IDLE)
+                .draw(e.graphics, *this->medium_text);
 
             this->label_settings_back
                 ->setColor(settings_selected == SettingsSelected::BACK ? COLOR_SELECTED : COLOR_IDLE)
@@ -586,7 +608,7 @@ void MainScene::reset(Engine& engine) {
     );
 }
 
-void MainScene::onEventPointerMove(Engine& engine) {
+bool MainScene::onEventPointerMove(Engine& engine) {
 
     auto& pointerPos = engine.input.getPointerArray()[0];
 
@@ -599,7 +621,7 @@ void MainScene::onEventPointerMove(Engine& engine) {
 
                 this->menu_selected = MenuSelected::CONTINUE;
                 if (this->pressed_once) {
-                    this->onEventSelect(engine);
+                    return this->onEventSelect(engine);
                 }
             }
 
@@ -607,14 +629,14 @@ void MainScene::onEventPointerMove(Engine& engine) {
 
                 this->menu_selected = MenuSelected::START;
                 if (this->pressed_once) {
-                    this->onEventSelect(engine);
+                    return this->onEventSelect(engine);
                 }
             }
             if (this->label_menu_settings->isCollide(*this->medium_text, glm::make_vec2(pointerPos.data()))) {
 
                 this->menu_selected = MenuSelected::SETTINGS;
                 if (this->pressed_once) {
-                    this->onEventSelect(engine);
+                    return this->onEventSelect(engine);
                 }
             }
 
@@ -622,7 +644,7 @@ void MainScene::onEventPointerMove(Engine& engine) {
 
                 this->menu_selected = MenuSelected::EXIT;
                 if (this->pressed_once) {
-                    this->onEventSelect(engine);
+                    return this->onEventSelect(engine);
                 }
             }
 
@@ -646,7 +668,7 @@ void MainScene::onEventPointerMove(Engine& engine) {
 
             if (this->label_endgame_restart->isCollide(*this->medium_text, glm::make_vec2(pointerPos.data()))) {
                 if (this->pressed_once)
-                    this->onEventSelect(engine);
+                    return this->onEventSelect(engine);
             }
             break;
 
@@ -656,7 +678,7 @@ void MainScene::onEventPointerMove(Engine& engine) {
 
                 this->settings_selected = SettingsSelected::FX_ENABLED;
                 if (this->pressed_once) {
-                    this->onEventSelect(engine);
+                    return this->onEventSelect(engine);
                 }
             }
 
@@ -672,7 +694,15 @@ void MainScene::onEventPointerMove(Engine& engine) {
 
                 this->settings_selected = SettingsSelected::RESET_STATISTICS;
                 if (this->pressed_once) {
-                    this->onEventSelect(engine);
+                    return this->onEventSelect(engine);
+                }
+            }
+
+            if (this->label_settings_log->isCollide(*this->medium_text, glm::make_vec2(pointerPos.data()))) {
+
+                this->settings_selected = SettingsSelected::LOG;
+                if (this->pressed_once) {
+                    return this->onEventSelect(engine);
                 }
             }
 
@@ -680,19 +710,22 @@ void MainScene::onEventPointerMove(Engine& engine) {
 
                 this->settings_selected = SettingsSelected::BACK;
                 if (this->pressed_once) {
-                    this->onEventSelect(engine);
+                    return this->onEventSelect(engine);
                 }
             }
             break;
         default: break;
     }
+
+    return true;
 }
 
-void MainScene::onEventPointerDown() {
+bool MainScene::onEventPointerDown() {
     pressed = true;
+    return true;
 }
 
-void MainScene::onEventPointerUp(Engine& engine) {
+bool MainScene::onEventPointerUp(Engine& engine) {
 
     if (this->game_state == GameState::INGAME) {
         glm::vec2 newPos = {
@@ -706,10 +739,10 @@ void MainScene::onEventPointerUp(Engine& engine) {
     this->pressed = false;
     this->pressed_once = true;
 
-    onEventPointerMove(engine);
+    return onEventPointerMove(engine);
 }
 
-void MainScene::onEventSelect(Engine& engine) {
+bool MainScene::onEventSelect(Engine& engine) {
 
     switch (game_state) {
 
@@ -723,6 +756,10 @@ void MainScene::onEventSelect(Engine& engine) {
                     save_data.max_score_hidden = 0L;
                     file_remove("savedata.dat");
                     break;
+                case SettingsSelected::LOG:
+                    game_state = GameState::PAUSED;
+                    engine.show_log();
+                    return false;
                 case SettingsSelected::BACK:
                     game_state = GameState::PAUSED;
                     break;
@@ -764,8 +801,10 @@ void MainScene::onEventSelect(Engine& engine) {
             break;
 
         default:
-            return;
+            break;
     }
+
+    return true;
 }
 
 void MainScene::onEventBack(Engine& engine) {

@@ -22,7 +22,8 @@ public:
     void suspend(Engine& e) override;
     void resume(Engine& e) override;
     void render(Engine& e) override;
-    void update(Engine& e);
+    const char* title() override { return "LinHop"; }
+    bool update(Engine& e);
 
     struct Resources {};
 
@@ -66,6 +67,7 @@ public:
     std::unique_ptr<Label> label_settings_music_volume;
     std::unique_ptr<Label> label_settings_unlock_resizing;
     std::unique_ptr<Label> label_settings_reset_statistics;
+    std::unique_ptr<Label> label_settings_log;
     std::unique_ptr<Label> label_settings_back;
 
     std::unique_ptr<Label> label_game_score;
@@ -84,13 +86,13 @@ public:
     } menu_selected = MenuSelected::START;
 
     enum class SettingsSelected {
-        FX_ENABLED, MUSIC_VOLUME, RESET_STATISTICS, BACK, END
+        FX_ENABLED, MUSIC_VOLUME, RESET_STATISTICS, BACK, LOG, END
     } settings_selected = SettingsSelected::FX_ENABLED;
 
-    void onEventPointerMove(Engine& e);
-    void onEventPointerDown();
-    void onEventPointerUp(Engine& e);
-    void onEventSelect(Engine& e);
+    bool onEventPointerMove(Engine& e);
+    bool onEventPointerDown();
+    bool onEventPointerUp(Engine& e);
+    bool onEventSelect(Engine& e);
     void onEventUp();
     void onEventLeft();
     void onEventDown();
