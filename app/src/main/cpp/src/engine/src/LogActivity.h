@@ -56,48 +56,50 @@ protected:
 
         void set_text(std::string text, std::size_t max) {
 
-			std::size_t offset = 0;
-            if (text.size() < 1) {
+            if (text.empty()) {
                 return;
             }
 
-            if (text.size() <= max) {
-                this->lines.push_back(text);
-                return;
-            }
+            std::istringstream iss(text);
+            std::string line;
 
-			while (true) {
-
-                std::size_t t = text.rfind('\n', max + offset);
-                if (max < (max + offset) - t) {
-                    this->lines.push_back(text.substr(offset, t - offset));
-                    offset = t;
+            do {
+				if ((char)iss.rdbuf()->sgetc() == '\n') {
+                    this->lines.push_back(line);
+                    line.clear();
+                    iss.get();
                     continue;
                 }
 
-                std::size_t n = max + offset <= text.size()
-                    ? text.rfind(' ', max + offset)
-                    : text.rfind(' ', max + 2 * offset - text.size());
+                std::string word;
+                iss >> word;
 
-                if (n != std::string::npos) {
-					this->lines.push_back(text.substr(offset, n - offset));
-					if (n < offset) {
-						break;
-					}
-					offset = n + 1;
-                } else {
-					this->lines.push_back(text.substr(offset, max));
-					offset += max;
+                if (line.length() > 0 && line.length() + word.length() > max) {
+                    this->lines.push_back(line);
+                    line.clear();
                 }
-			}
+
+				if (word.length() > max) {
+					this->lines.push_back(word.substr(0, max));
+                    line.clear();
+                    word = word.substr(max, word.size());
+				}
+
+                line += word + " ";
+
+            } while (iss);
+
+            if (!line.empty()) {
+				this->lines.push_back(line);
+            }
         }
 
         void draw(const Graphics& g, Vec2 pos, Color c) {
-
-            std::for_each(this->lines.begin(), this->lines.end(), [&g, &pos, &c, this, i = 0](const std::string& text) mutable {
+            std::size_t i{ 0 };
+            for (const auto& text : this->lines) {
 				this->d->draw(g, text.c_str(), &Vec2{pos[0], pos[1] + static_cast<float>(i) * line_height}[0], c);
 				++i;
-			});
+            }
         }
 
         unsigned height() {

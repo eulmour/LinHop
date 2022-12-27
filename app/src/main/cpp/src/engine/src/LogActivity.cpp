@@ -8,40 +8,40 @@ LogActivity::LogActivity(Engine& e, std::string content)
 
 void LogActivity::resume(Engine& e) {
 	this->res = std::make_unique<LogActivity::Resources>();
-	this->res->ml_text.set_text(this->content, 28);
-	// this->res->ml_text.set_text(
-	// 	"Lorem Ipsum is simply dummy text of the "
-	// 	"printing and typesetting industry. Lorem "
-	// 	"Ipsum has been the industry's standard "
-	// 	"dummy text ever since the 1500s, when "
-	// 	"an unknown printer took a galley of "
-	// 	"type and scrambled it to make a type "
-	// 	"specimen book. It has survived not only "
-	// 	"five centuries, but also the leap into "
-	// 	"electronic typesetting, remaining essentially "
-	// 	"unchanged. It was popularised in the 1960s "
-	// 	"with the release of Letraset sheets "
-	// 	"containing Lorem Ipsum passages, and more "
-	// 	"recently with desktop publishing software "
-	// 	"like Aldus PageMaker including versions of "
-	// 	"Lorem Ipsum. Lorem Ipsum is simply dummy "
-	// 	"text of the printing and typesetting "
-	// 	"industry. Lorem Ipsum has been the "
-	// 	"industry's standard dummy text ever since "
-	// 	"the 1500s, when an unknown printer took a "
-	// 	"galley of type and scrambled it to make a "
-	// 	"type specimen book. It has survived not "
-	// 	"only five centuries, but also the leap "
-	// 	"into electronic typesetting, remaining "
-	// 	"essentially unchanged. It was popularised "
-	// 	"in the 1960s with the release of Letraset "
-	// 	"sheets containing Lorem Ipsum passages, "
-	// 	"and more recently with desktop publishing "
-	// 	"software like Aldus PageMaker including "
-	// 	"versions of Lorem Ipsum.", 28);
+	//this->res->ml_text.set_text(this->content, 28);
+	 //this->res->ml_text.set_text(
+	 //	"Lorem Ipsum is simply dummy text of the "
+	 //	"printing and typesetting industry. Lorem "
+	 //	"Ipsum has been the industry's standard "
+	 //	"dummy text ever since the 1500s, when "
+	 //	"an unknown printer took a galley of "
+	 //	"type and scrambled it to make a type "
+	 //	"specimen book. It has survived not only "
+	 //	"five centuries, but also the leap into "
+	 //	"electronic typesetting, remaining essentially "
+	 //	"unchanged. It was popularised in the 1960s "
+	 //	"with the release of Letraset sheets "
+	 //	"containing Lorem Ipsum passages, and more "
+	 //	"recently with desktop publishing software "
+	 //	"like Aldus PageMaker including versions of "
+	 //	"Lorem Ipsum. Lorem Ipsum is simply dummy "
+	 //	"text of the printing and typesetting "
+	 //	"industry. Lorem Ipsum has been the "
+	 //	"industry's standard dummy text ever since "
+	 //	"the 1500s, when an unknown printer took a "
+	 //	"galley of type and scrambled it to make a "
+	 //	"type specimen book. It has survived not "
+	 //	"only five centuries, but also the leap "
+	 //	"into electronic typesetting, remaining "
+	 //	"essentially unchanged. It was popularised "
+	 //	"in the 1960s with the release of Letraset "
+	 //	"sheets containing Lorem Ipsum passages, "
+	 //	"and more recently with desktop publishing "
+	 //	"software like Aldus PageMaker including "
+	 //	"versions of Lorem Ipsum.", 28);
 
 	//this->res->ml_text.set_text("Lorem Ipsum is simply dummy text of the printing and typesetting industry.", 28);
-	//this->res->ml_text.set_text("LoremIpsumissimplydummytextofthe printingandtypesettingindustry.", 28);
+	this->res->ml_text.set_text("LoremIpsumissimplydummytextofthe printingandtypesettingindustry.", 28);
 }
 
 void LogActivity::suspend(Engine& e) {
