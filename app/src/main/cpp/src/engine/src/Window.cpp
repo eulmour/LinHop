@@ -119,7 +119,13 @@ void Window::glfwSizeCallback_(GLFWwindow *window, int width, int height) {
 
 void Window::glfwFocusCallback_(GLFWwindow* window, int focused) {
 	auto* e = reinterpret_cast<Engine*>(glfwGetWindowUserPointer(window));
-    e->window->setFocused(focused == GLFW_TRUE);
+
+    if (!focused && !!glfwGetWindowAttrib(window, GLFW_FOCUSED)) {
+		e->window->setFocused(true);
+        return;
+    }
+
+    e->window->setFocused(!!focused);
 }
 
 Window::Window(const Config& config) {

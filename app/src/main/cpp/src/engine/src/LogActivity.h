@@ -15,6 +15,7 @@ struct LogActivity : public Scene {
     void resume(Engine& e) override;
     void suspend(Engine& e) override;
     void render(Engine& e) override;
+    virtual const char* title() override { return "Log"; }
 
 protected:
 

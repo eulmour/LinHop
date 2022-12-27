@@ -42,6 +42,7 @@ target_link_libraries(linhop_android
 
 if (MSVC)
     target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE /W4)
+    # add_definitions(-D_DISABLE_VECTOR_ANNOTATION)
     # target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE /W4 /fsanitize=address /Zi)
 else()
     target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic)

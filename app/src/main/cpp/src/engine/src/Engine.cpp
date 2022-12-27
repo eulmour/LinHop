@@ -31,11 +31,13 @@ void Engine::popScene() {
         return;
     }
 
-    this->scene.pop();
+	this->scene.top()->suspend(*this);
+	this->log() << this->scene.top()->title() << " suspended\n";
+	this->scene.pop();
 
     if (this->scene.size() > 0) {
-        this->scene.top()->resume(*this);
-        this->log() << this->scene.top()->title() << " resumed\n";
+		this->scene.top()->resume(*this);
+		this->log() << this->scene.top()->title() << " resumed\n";
     }
 }
 

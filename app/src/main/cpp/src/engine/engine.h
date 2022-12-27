@@ -25,6 +25,7 @@
             engine->run(); \
             delete engine; \
             delete app; \
+            return 0; \
         }
 #elif defined(__ANDROID__) || defined(ANDROID)
 #   define ENGINE_ENTRY(MainApplication) \
@@ -43,6 +44,7 @@
             engine->run(); \
             delete engine; \
             delete app; \
+            return 0; \
         }
 #endif
 

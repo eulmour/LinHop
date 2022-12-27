@@ -75,7 +75,7 @@ public:
 
 protected:
     IVec2 logical_size{};
-    bool focused{false};
+    bool focused{true};
     bool should_close{false};
 
     struct FrameInfo {

@@ -24,16 +24,16 @@ MainScene::MainScene(Engine& e) {
 
     srand((unsigned)time(nullptr) + 228);
 
-    try {
-        this->audio_main = std::make_unique<AudioSource>("audio/a.wav", .5f);
-        this->audio_alt = std::make_unique<AudioSource>("audio/b.wav", .5f);
-        this->audio_bounce = std::make_unique<AudioSource>("audio/bounce.wav", 1.f);
-        this->audio_fail_a = std::make_unique<AudioSource>("audio/fail.wav", 1.f);
-        this->audio_fail_b = std::make_unique<AudioSource>("audio/fail2.wav", 1.f);
-        this->audio_warning = std::make_unique<AudioSource>("audio/warning.wav", 1.f);
-    } catch (std::exception& exception) {
-        e.log() << "Failed to load audio sources: " << exception.what();
-    }
+    //try {
+    //    this->audio_main = std::make_unique<AudioSource>("audio/a.wav", .5f);
+    //    this->audio_alt = std::make_unique<AudioSource>("audio/b.wav", .5f);
+    //    this->audio_bounce = std::make_unique<AudioSource>("audio/bounce.wav", 1.f);
+    //    this->audio_fail_a = std::make_unique<AudioSource>("audio/fail.wav", 1.f);
+    //    this->audio_fail_b = std::make_unique<AudioSource>("audio/fail2.wav", 1.f);
+    //    this->audio_warning = std::make_unique<AudioSource>("audio/warning.wav", 1.f);
+    //} catch (std::exception& exception) {
+    //    e.log() << "Failed to load audio sources: " << exception.what();
+    //}
 
     struct file saveDataFile = {}; if (file_load(&saveDataFile, "savedata.dat")) {
         memcpy((void*)&this->save_data, saveDataFile.data, sizeof(SaveData));
@@ -129,11 +129,11 @@ MainScene::MainScene(Engine& e) {
         screenW - 80.f, 5.f
     });
 
-    try {
-        this->audio_engine = std::make_unique<Audio>();
-    } catch (const std::exception& exception) {
-        e.log() << "Failed to initialize audio engine: " << exception.what();
-    }
+    //try {
+    //    this->audio_engine = std::make_unique<Audio>();
+    //} catch (const std::exception& exception) {
+    //    e.log() << "Failed to initialize audio engine: " << exception.what();
+    //}
 }
 
 MainScene::~MainScene() {
@@ -160,7 +160,7 @@ void MainScene::suspend(Engine& e) {
     this->medium_text.reset();
     this->large_text.reset();
 
-    this->audio_engine->pauseAll();
+    //this->audio_engine->pauseAll();
 }
 
 void MainScene::resume(Engine& e) {
@@ -181,10 +181,57 @@ void MainScene::resume(Engine& e) {
     } catch (const std::exception& exception) {
         e.log() << exception.what() << "\nShader error. Please reload screen";
         e.show_log();
-        // e.window->close();
     }
 
-    this->audio_engine->playAll();
+    this->pressed = false;
+    this->pressed_once = false;
+    //this->audio_engine->playAll();
+}
+
+bool MainScene::input(Engine& e) {
+
+    if (e.input.isKeyHold(Input::Key::PointerMove)) {
+        if (!this->onEventPointerMove(e)) {
+            return false;
+        }
+    }
+    if (e.input.isKeyDown(Input::Key::Pointer)) {
+        if (!this->onEventPointerDown()) {
+            return false;
+        }
+    }
+    if (e.input.isKeyUp(Input::Key::Pointer)) {
+        if (!this->onEventPointerUp(e)) {
+            return false;
+        }
+    }
+
+    if (e.input.isKeyDown(Input::Key::Up))
+        this->onEventUp();
+    if (e.input.isKeyDown(Input::Key::Down))
+        this->onEventDown();
+    if (e.input.isKeyDown(Input::Key::Left))
+        this->onEventLeft();
+    if (e.input.isKeyDown(Input::Key::Right))
+        this->onEventRight();
+    if (e.input.isKeyDown(Input::Key::Select))
+        this->onEventSelect(e);
+
+    if (e.input.isKeyHold(Input::Key::Ctrl)) {
+        if (e.input.isKeyDown(Input::Key::A)) {
+            this->suspend(e);
+            this->resume(e);
+            e.log() << "Scene reloaded";
+        }
+    } else {
+		if (e.input.isKeyDown(Input::Key::Back)) {
+			this->onEventBack(e);
+        }
+    }
+    
+    if (e.window->isFocused() == false) {
+		this->game_state = GameState::PAUSED;
+    }
 }
 
 bool MainScene::update(Engine& engine) {
@@ -199,48 +246,6 @@ bool MainScene::update(Engine& engine) {
     background_color[0] += -bgColorDirection / 2.f;
     background_color[1] += bgColorDirection / 3.f;
     background_color[2] += bgColorDirection / 2.f;
-
-    // handle input
-    // if (engine.window->isFocused() == false)
-        // this->game_state = GameState::PAUSED;
-    if (engine.input.isKeyHold(Input::Key::PointerMove)) {
-        if (!this->onEventPointerMove(engine)) {
-            return false;
-        }
-    }
-    if (engine.input.isKeyDown(Input::Key::Pointer)) {
-        if (!this->onEventPointerDown()) {
-            return false;
-        }
-    }
-    if (engine.input.isKeyUp(Input::Key::Pointer)) {
-        if (!this->onEventPointerUp(engine)) {
-            return false;
-        }
-    }
-
-    if (engine.input.isKeyDown(Input::Key::Up))
-        this->onEventUp();
-    if (engine.input.isKeyDown(Input::Key::Down))
-        this->onEventDown();
-    if (engine.input.isKeyDown(Input::Key::Left))
-        this->onEventLeft();
-    if (engine.input.isKeyDown(Input::Key::Right))
-        this->onEventRight();
-    if (engine.input.isKeyDown(Input::Key::Select))
-        this->onEventSelect(engine);
-
-    if (engine.input.isKeyHold(Input::Key::Ctrl)) {
-        if (engine.input.isKeyDown(Input::Key::A)) {
-            this->suspend(engine);
-            this->resume(engine);
-            engine.log() << "Scene reloaded";
-        }
-    } else {
-		if (engine.input.isKeyDown(Input::Key::Back)) {
-			this->onEventBack(engine);
-        }
-    }
 
     // game logic
     switch (this->game_state) {
@@ -258,12 +263,12 @@ bool MainScene::update(Engine& engine) {
 
             if (ball->collision(*lines, ball->prev_pos)) {
                 sparks->push(ball->pos);
-                this->audio_engine->play(*this->audio_bounce);
+                //this->audio_engine->play(*this->audio_bounce);
             }
 
             if (ball->collision(*rand_lines, ball->prev_pos)) {
                 sparks->push(ball->pos);
-                this->audio_engine->play(*this->audio_bounce);
+                //this->audio_engine->play(*this->audio_bounce);
             }
 
             // If ball reaches half of the screen then update scroll
@@ -281,10 +286,10 @@ bool MainScene::update(Engine& engine) {
                 ball->pos[1] - scroll > screenH + ball->radius)
             {
                 if (game_state == GameState::INGAME) {
-                    if (util::rand(0, 1) == 0)
-                        this->audio_engine->play(*this->audio_fail_a);
-                    else
-                        this->audio_engine->play(*this->audio_fail_b);
+                    //if (util::rand(0, 1) == 0)
+                        //this->audio_engine->play(*this->audio_fail_a);
+                    //else
+                        //this->audio_engine->play(*this->audio_fail_b);
 
                     game_state = GameState::ENDGAME;
                 }
@@ -336,14 +341,14 @@ bool MainScene::update(Engine& engine) {
             // lasers
             if (game_score > 1000L) {
                 if (util::rand(0, 600) == 1) {
-                    this->audio_engine->play(*this->audio_warning);
+                    //this->audio_engine->play(*this->audio_warning);
 
                     lasers->trigger(engine.graphics,
                             util::rand(0.0f, screenW - (screenW/3.0f)));
                 }
 
-                if (lasers->live_time == 59)
-                    this->audio_engine->play(*this->audio_warning);
+                //if (lasers->live_time == 59)
+                    //this->audio_engine->play(*this->audio_warning);
             }
 
             break;
@@ -353,22 +358,22 @@ bool MainScene::update(Engine& engine) {
     }
 
     // play random music
-    if (this->audio_main
-        && this->audio_main->state != STATE_BUSY
-        && this->audio_alt->state != STATE_BUSY)
-    {
-       if (rand() % 2 == 0)
-            this->audio_engine->play(*this->audio_main);
-       else
-            this->audio_engine->play(*this->audio_alt);
-    }
+    //if (this->audio_main
+    //    && this->audio_main->state != STATE_BUSY
+    //    && this->audio_alt->state != STATE_BUSY)
+    //{
+    //   if (rand() % 2 == 0)
+    //        this->audio_engine->play(*this->audio_main);
+    //   else
+    //        this->audio_engine->play(*this->audio_alt);
+    //}
 
     return true;
 }
 
 void MainScene::render(Engine& e) {
 
-    if (!this->update(e)) {
+    if (!this->input(e) || !this->update(e)) {
         return;
     }
 
@@ -387,10 +392,10 @@ void MainScene::render(Engine& e) {
             if (game_state == GameState::INGAME)
                 game_state = GameState::ENDGAME;
 
-            if (util::rand(0, 1) == 0)
-                this->audio_engine->play(*this->audio_fail_a);
-            else
-                this->audio_engine->play(*this->audio_fail_b);
+            //if (util::rand(0, 1) == 0)
+            //    this->audio_engine->play(*this->audio_fail_a);
+            //else
+            //    this->audio_engine->play(*this->audio_fail_b);
         }
 
         sparks->push(glm::vec2{0.0f, 0.0f});

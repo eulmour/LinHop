@@ -30,7 +30,7 @@ private:
 struct Drawable {
 
     Drawable(Shader shader);
-    virtual ~Drawable() {}
+    virtual ~Drawable();
     void use() const { shader.use(); }
 
 protected:

@@ -18,7 +18,7 @@ void Ball::activate() {
 }
 
 void Ball::deactivate() {
-    this->rect_drawable.release();
+    this->rect_drawable.reset();
 }
 
 bool Ball::collision(const Lines& line_array, const glm::vec2 prev_position) {

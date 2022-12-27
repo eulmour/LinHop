@@ -14,6 +14,16 @@ Drawable::Drawable(Shader shader)
     : shader(std::move(shader))
 {}
 
+Drawable::~Drawable() {
+
+    if (this->state == STATE_OFF)
+        return;
+    if (this->vao)
+        glDeleteVertexArrays(1, &this->vao);
+    if (this->ebo)
+        glDeleteBuffers(1, &this->ebo);
+}
+
 // line
 Line::Line()
     : Line(Shader::Builder()
@@ -88,16 +98,8 @@ void Line::draw(const Graphics& g, const float ab[4], Color c, float width) cons
 }
 
 Line::~Line() {
-
-    if (this->state == STATE_OFF)
-        return;
-
-    if (this->vao)
-        glDeleteVertexArrays(1, &this->vao);
     if (this->vbo[0])
         glDeleteBuffers(1, &this->vbo[0]);
-    if (this->ebo)
-        glDeleteBuffers(1, &this->ebo);
 }
 
 // triangle
@@ -183,16 +185,8 @@ void Tri::draw(const Graphics& g, float pos[2], Color c) const {
 }
 
 Tri::~Tri() {
-
-    if (this->state == STATE_OFF)
-        return;
-
-    if (this->vao)
-        glDeleteVertexArrays(1, &this->vao);
     if (this->vbo[0])
         glDeleteBuffers(1, &this->vbo[0]);
-    if (this->ebo)
-        glDeleteBuffers(1, &this->ebo);
 }
 
 // rectangle
@@ -256,7 +250,7 @@ Rect::Rect() :
     glBindVertexArray(0);
 
     unsigned char pixels[4] = { 255, 255, 255, 255 };
-    this->texture = texture_create(1, 1, pixels);
+    this->useTexture(texture_create(1, 1, pixels));
 
     this->loc_projection = glGetUniformLocation(this->shader.id(), "projection");
     this->loc_model = glGetUniformLocation(this->shader.id(), "model");
@@ -294,16 +288,8 @@ void Rect::draw(const Graphics& g, float pos[2], Color c) const {
 }
 
 Rect::~Rect() {
-
-    if (this->state == STATE_OFF)
-        return;
-
-    if (this->vao)
-        glDeleteVertexArrays(1, &this->vao);
     if (this->vbo[0])
         glDeleteBuffers(1, &this->vbo[0]);
-    if (this->ebo)
-        glDeleteBuffers(1, &this->ebo);
     if (this->texture)
         texture_unload(this->texture);
 }
@@ -523,4 +509,11 @@ float Text::draw(const Graphics& g, const char* str, const float pos[2], Color c
     return shift;
 }
 
-Text::~Text() = default;
+Text::~Text() {
+    if (this->vbo[0])
+        glDeleteBuffers(1, &this->vbo[0]);
+
+    for (GLubyte c = 0; c < CHARACTERS_CAP; c++) {
+        texture_unload(this->characters.get()[c].texture);
+    }
+};

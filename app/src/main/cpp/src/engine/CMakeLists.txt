@@ -63,3 +63,12 @@ elseif(UNIX AND NOT APPLE)
         pulse
     )
 endif()
+
+if (MSVC)
+    target_compile_options(engine PRIVATE /W4)
+    # add_definitions(-D_DISABLE_VECTOR_ANNOTATION)
+    # target_compile_options(engine PRIVATE /W4 /fsanitize=address /Zi)
+else()
+    target_compile_options(engine PRIVATE -Wall -Wextra -Wpedantic)
+endif()
+

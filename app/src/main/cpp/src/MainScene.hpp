@@ -24,6 +24,7 @@ public:
     void render(Engine& e) override;
     const char* title() override { return "LinHop"; }
     bool update(Engine& e);
+    bool input(Engine& e);
 
     struct Resources {};
 
@@ -112,7 +113,7 @@ private:
         long fx_enabled;
         long unlock_resizing;
         float music_volume_float;
-    } save_data {0, 0, 1, 0, .8f };
+    } save_data { 0, 0, 1, 0, .8f };
 
     static constexpr float ball_strength_mod{ 25000 };
     static constexpr float ball_gravity_mod{ 8000 };
