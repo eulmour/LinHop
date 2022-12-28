@@ -7,9 +7,9 @@ LogActivity::LogActivity(Engine& e, std::string content)
 {}
 
 void LogActivity::resume(Engine& e) {
-	this->res = std::make_unique<LogActivity::Resources>();
-	//this->res->ml_text.set_text(this->content, 28);
-	 //this->res->ml_text.set_text(
+	this->res = std::make_unique<LogActivity::Resources>(e.graphics);
+	this->res->area.ml_text.set_text(this->content, 28);
+	 //this->res->area.ml_text.set_text(
 	 //	"Lorem Ipsum is simply dummy text of the "
 	 //	"printing and typesetting industry. Lorem "
 	 //	"Ipsum has been the industry's standard "
@@ -41,7 +41,7 @@ void LogActivity::resume(Engine& e) {
 	 //	"versions of Lorem Ipsum.", 28);
 
 	//this->res->ml_text.set_text("Lorem Ipsum is simply dummy text of the printing and typesetting industry.", 28);
-	this->res->ml_text.set_text("LoremIpsumissimplydummytextofthe printingandtypesettingindustry.", 28);
+	//this->res->ml_text.set_text("LoremIpsumissimplydummytextofthe printingandtypesettingindustry.", 28);
 }
 
 void LogActivity::suspend(Engine& e) {
@@ -50,7 +50,7 @@ void LogActivity::suspend(Engine& e) {
 
 void LogActivity::render(Engine& e) {
 
-	//update
+	// update
 	if (res->back_btn.clicked(e.input.getPointerArray()[0])) { // TODO collision
 		e.window->close();
 	}
@@ -58,20 +58,21 @@ void LogActivity::render(Engine& e) {
 		e.popScene();
 		return;
 	}
+
 	if (e.input.isKeyDown(Input::Key::Pointer)) {
-		this->originScroll = e.input.getPointerArray()[0][1];
+		this->res->area.on_touch(e.input);
 	}
 	if (e.input.isKeyHold(Input::Key::Pointer)) {
-		this->scroll = e.input.getPointerArray()[0][1] - this->originScroll;
+		this->res->area.on_hold(e.input);
 	}
 	if (e.input.isKeyUp(Input::Key::Pointer)) {
-		this->scroll = 0.f;
+		this->res->area.on_release(e.input);
 	}
 
 	// draw
     e.graphics.clear(Color{.5f, .5f, .5f, 1.f});
-	res->ml_text.draw(e.graphics, Vec2{ 20.f, 80.f + this->scroll }, Color{ 0.f, 0.f, 0.f, 1.f });
 
+	res->area.draw(e.graphics, res->d_default_text);
 	res->header_rect.scale = Vec2{ static_cast<float>(e.graphics.viewport()[0]), 59.f };
 	res->header_rect.use();
 	res->header_rect.draw(e.graphics, &Vec2{ 0.f, 0.f }[0] , Color{1.f, 1.f, 1.f, 0.8f});
