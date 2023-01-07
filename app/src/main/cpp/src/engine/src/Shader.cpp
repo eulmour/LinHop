@@ -71,12 +71,12 @@ Shader::Shader(
 }
 
 Shader::Shader(Shader&& other)
-    : program_id(other.id())
+    : u_res(std::move(other.u_res))
+    , u_color(std::move(other.u_color))
+    , program_id(other.id())
     , vertex_shader_id(std::move(other.vertex_shader_id))
     , fragment_shader_id(std::move(other.fragment_shader_id))
     , geometry_shader_id(std::move(other.geometry_shader_id))
-    , u_res(std::move(other.u_res))
-    , u_color(std::move(other.u_color))
 {
     other.program_id = (unsigned)-1;
 }

@@ -35,6 +35,7 @@ void Lines::draw(const Graphics& g) {
 }
 
 void Lines::Reset(const Graphics& g) {
+    (void)g;
     lines.clear();
 }
 

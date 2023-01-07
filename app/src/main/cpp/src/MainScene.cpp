@@ -150,6 +150,7 @@ MainScene::~MainScene() {
 
 void MainScene::suspend(Engine& e) {
 
+    (void)e;
     this->ball->deactivate();
     this->lines->deactivate();
     this->lasers->deactivate();
@@ -232,6 +233,8 @@ bool MainScene::input(Engine& e) {
     if (e.window->isFocused() == false) {
 		this->game_state = GameState::PAUSED;
     }
+
+    return true;
 }
 
 bool MainScene::update(Engine& engine) {

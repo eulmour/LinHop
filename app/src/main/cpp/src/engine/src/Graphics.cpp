@@ -16,6 +16,7 @@ static void GLAPIENTRY errorOccurredGL(
         GLsizei length, const GLchar *message, const void *userParam)
 {
     (void)length;
+    (void)userParam;
 
     if (severity == GL_DEBUG_SEVERITY_NOTIFICATION)
         return;

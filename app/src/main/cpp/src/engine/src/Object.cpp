@@ -471,7 +471,7 @@ float Text::draw(const Graphics& g, const char* str, const float pos[2], Color c
     for (const char* c = str; *c != '\0'; c++) {
 
         // struct character ch = this->characters[*c];
-        Character ch = this->characters.get()[*c];
+        Character ch = this->characters.get()[static_cast<int>(*c)];
 
         float xpos = shift + (float)ch.bearing[0] * this->scale;
         float ypos = pos[1] + (float)(this->characters.get()['H'].bearing[1] - ch.bearing[1]) * this->scale;

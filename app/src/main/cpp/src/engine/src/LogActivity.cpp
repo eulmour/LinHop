@@ -4,7 +4,9 @@
 
 LogActivity::LogActivity(Engine& e, std::string content)
 	: content(std::move(content))
-{}
+{
+	(void)e;
+}
 
 void LogActivity::resume(Engine& e) {
 	this->res = std::make_unique<LogActivity::Resources>(e.graphics);
@@ -45,6 +47,7 @@ void LogActivity::resume(Engine& e) {
 }
 
 void LogActivity::suspend(Engine& e) {
+	(void)e;
 	this->res.reset();
 }
 

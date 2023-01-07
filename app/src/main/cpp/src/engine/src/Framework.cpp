@@ -1,5 +1,6 @@
 #include "Framework.h"
 #include <memory.h>
+#include <stdarg.h>
 #include <cstring>
 #include <cerrno>
 #include <cstdio>

@@ -53,14 +53,14 @@ elseif(WIN32)
 elseif(UNIX AND NOT APPLE)
     target_link_libraries(engine
         GL
-        OpenGL
+        # OpenGL
         glfw
         glew
         stb_image
         freetype
         glm
         miniaudio
-        pulse
+        # pulse
     )
 endif()
 

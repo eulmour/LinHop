@@ -166,6 +166,9 @@ void Input::glfwCursorCallback_(GLFWwindow *window, double xpos, double ypos)
 
 void Input::glfwInputCallback_(GLFWwindow *window, int key, int scancode, int action, int mods)
 {
+    (void)scancode;
+    (void)mods;
+
     State newState;
 
     switch (action) {
@@ -204,6 +207,8 @@ void Input::glfwInputCallback_(GLFWwindow *window, int key, int scancode, int ac
 
 void Input::glfwMouseCallback_(GLFWwindow *window, int button, int action, int mods)
 {
+    (void)mods;
+
     State newState;
 
     switch (action) {

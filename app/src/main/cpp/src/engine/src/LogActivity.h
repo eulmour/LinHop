@@ -92,9 +92,9 @@ protected:
 			this->d->draw(g, this->text.c_str(), &pos[0] , Color{0.f, 0.f, 0.f, 1.f});
         }
     private:
-        std::string text;
         std::shared_ptr<Text> d;
         std::shared_ptr<Rect> d_rect;
+        std::string text;
     };
 
     struct ScrollArea : Object {
@@ -144,6 +144,7 @@ protected:
         }
 
         void on_release(Input& i) {
+            (void)i;
             if (scroll_ > 0.f || scroll_ < -this->ml_text.height() + this->size[1]) {
 				this->restoring = true;
             }

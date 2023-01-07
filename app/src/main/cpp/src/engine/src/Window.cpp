@@ -4,6 +4,7 @@
 #include "Framework.h"
 #include "Engine.h"
 #include "Input.h"
+#include <stdexcept>
 
 #if defined(__ANDROID__) || defined(ANDROID)
 
@@ -131,8 +132,9 @@ void Window::glfwFocusCallback_(GLFWwindow* window, int focused) {
 Window::Window(const Config& config) {
 
     /* Initialize the library */
-    if (!glfwInit())
-        exit(-1);
+    if (!glfwInit()) {
+        throw std::runtime_error("glfwInit failed");
+    }
 
     this->setLogicalSize(config.innerSize());
 
@@ -171,7 +173,7 @@ Window::Window(const Config& config) {
 
     if (!this->glfw_window) {
         glfwTerminate();
-        exit(-1);
+        throw std::runtime_error("glfwCreateWindow failed");
     }
 
     // Make the window's context current
@@ -187,8 +189,10 @@ Window::Window(const Config& config) {
         glfwSetWindowUserPointer(this->glfw_window, config.userPointer());
     }
 
-    if (glewInit() != GLEW_OK)
-        exit(-1);
+    if (glewInit() != GLEW_OK) {
+        glfwTerminate();
+        throw std::runtime_error("glewInit failed");
+    }
 
     LOGI("GL Init: %d", GL_VERSION);
 }

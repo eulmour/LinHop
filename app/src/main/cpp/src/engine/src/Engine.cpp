@@ -2,6 +2,7 @@
 
 #include <utility>
 #include <stdexcept>
+#include <exception>
 #include "EmptyScene.h"
 #include "LogActivity.h"
 
@@ -364,7 +365,13 @@ Engine::Engine(Game& mainApp, int argc, char *argv[])
 
 void Engine::run() {
 
-    this->load();
+    try {
+        this->load();
+    } catch(const std::exception& exception) {
+        LOGE_PRINT("%s", exception.what());
+        return;
+    }
+
     this->resume();
 
     if (this->scene.size() == 0) {

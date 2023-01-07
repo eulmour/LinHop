@@ -210,9 +210,13 @@ void Audio::play(AudioSource& source) {
     }
 }
 
-void Audio::pause(AudioSource& source) {}
+void Audio::pause(AudioSource& source) {
+    (void)source;
+}
 
-void Audio::stop(AudioSource& source) {}
+void Audio::stop(AudioSource& source) {
+    (void)source;
+}
 
 void Audio::playAll() {}
 
