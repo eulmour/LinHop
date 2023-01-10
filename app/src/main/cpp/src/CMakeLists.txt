@@ -19,14 +19,35 @@ if (ANDROID)
 			"${CMAKE_SHARED_LINKER_FLAGS} -u ANativeActivity_onCreate")
 endif()
 
+if (EMSCRIPTEN)
+    target_link_libraries(linhop PUBLIC "-s USE_GLFW=3")
+    target_link_libraries(linhop PUBLIC "-s USE_WEBGL2=1")
+    target_link_libraries(linhop PUBLIC "-s WASM=1")
+    target_link_libraries(linhop PUBLIC "-fwasm-exceptions")
+
+    configure_file(${CMAKE_SOURCE_DIR}/src/index.html index.html)
+
+    # file (GLOB files "${CMAKE_CURRENT_BINARY_DIR}/shaders/*" "${CMAKE_CURRENT_BINARY_DIR}/fonts/*" "${CMAKE_CURRENT_BINARY_DIR}/textures/*")
+    # foreach(file ${CMAKE_CURRENT_BINARY_DIR}/index.html ${files})
+    #     configure_file(${file} ${file})
+    # endforeach(file)
+
+    set_property(TARGET linhop APPEND_STRING PROPERTY LINK_FLAGS "--preload-file ${CMAKE_CURRENT_BINARY_DIR}/shaders/@/shaders/")
+    set_property(TARGET linhop APPEND_STRING PROPERTY LINK_FLAGS " --preload-file ${CMAKE_CURRENT_BINARY_DIR}/fonts/@/fonts/")
+    set_property(TARGET linhop APPEND_STRING PROPERTY LINK_FLAGS " --preload-file ${CMAKE_CURRENT_BINARY_DIR}/textures/@/textures/")
+else()
+    target_include_directories(linhop PRIVATE
+        ${CMAKE_SOURCE_DIR}/src/engine/vendor/glew
+    )
+endif()
+
 target_include_directories(linhop PRIVATE
-    ${CMAKE_SOURCE_DIR}/src/engine/vendor/glew
     ${CMAKE_SOURCE_DIR}/src/engine/vendor/glm/glm
 )
 
-target_link_libraries(linhop engine glm)
+target_link_libraries(linhop PRIVATE engine glm)
 
- # Android target
+# Android target
 add_library(linhop_android SHARED Main.hpp Main.cpp ${linhop_src})
 
 target_include_directories(linhop_android PRIVATE

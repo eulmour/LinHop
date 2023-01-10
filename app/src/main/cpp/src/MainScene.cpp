@@ -47,14 +47,14 @@ MainScene::MainScene(Engine& e) {
 
     // class
     lines       = std::make_unique<Lines>();
+    lines->Reset(e.graphics);
+
     rand_lines  = std::make_unique<Lines>();
     sparks      = std::make_unique<Sparks>();
     lasers      = std::make_unique<Lasers>();
     ball_tail   = std::make_unique<Tail>(.7f);
     cursor_tail = std::make_unique<Tail>(.08f);
     ball        = std::make_unique<Ball>(e.graphics);
-
-    lines->Reset(e.graphics);
 
     // labels
     this->label_menu_title = std::make_unique<Label>("LinHop", glm::vec2 {

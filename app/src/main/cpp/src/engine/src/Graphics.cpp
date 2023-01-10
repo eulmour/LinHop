@@ -128,15 +128,22 @@ Graphics& Graphics::init() {
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_CULL_FACE);
-    glDisable(GL_DEPTH_TEST);
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-#if !defined(__ANDROID__) && !defined(ANDROID)
+#if !defined(__ANDROID__) && !defined(ANDROID) && !defined(__EMSCRIPTEN__)
     glEnable(GL_DEBUG_OUTPUT);
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
     glDebugMessageCallback(errorOccurredGL, this);
 #endif
 
+#ifdef __EMSCRIPTEN__
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
+#else
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    glDisable(GL_DEPTH_TEST);
+#endif
+
+    engine_catch_error();
     return *this;
 }
 

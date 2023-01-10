@@ -5,6 +5,9 @@
 #include <exception>
 #include "EmptyScene.h"
 #include "LogActivity.h"
+#ifdef __EMSCRIPTEN__
+#   include <emscripten/emscripten.h>
+#endif
 
 Engine::~Engine()
 {
@@ -363,6 +366,11 @@ Engine::Engine(Game& mainApp, int argc, char *argv[])
     , data{argc, argv}
 {}
 
+static std::function<void()> registered_loop;
+static void loop_iteration() {
+	registered_loop();
+}
+
 void Engine::run() {
 
     try {
@@ -382,15 +390,23 @@ void Engine::run() {
     this->scene.top()->resume(*this);
     this->log() << this->scene.top()->title() << " resumed\n";
 
-    while (!this->window->isShouldClose()) {
-
+    registered_loop = [&]() {
         // Poll for and process events
         this->input.clearStates();
         glfwPollEvents();
 
         // Render
         this->render();
+    };
+
+#ifdef __EMSCRIPTEN__
+    emscripten_set_main_loop(loop_iteration, 0, 1);
+#else
+    while (!this->window->isShouldClose()) {
+        loop_iteration();
     }
+#endif
+    glfwTerminate();
 }
 
 #endif

@@ -7,6 +7,7 @@
 #include <stdexcept>
 #include <memory>
 #include <functional>
+#include <sstream>
 #include "stb_image.h"
 
 #if !defined(__ANDROID__) && !defined(ANDROID)
@@ -70,39 +71,39 @@ void engine_log_message(const char* fmt, ...) {
     errno = 0;
 }
 
-void engine_check_error() {
+void engine_catch_error() {
 
     GLenum error = glGetError();
 
-    const char* const prefix = "GL error:";
+    std::unordered_map<unsigned int, std::string> errors {
+        {GL_INVALID_ENUM, "GL_INVALID_ENUM"},
+        {GL_INVALID_VALUE, "GL_INVALID_VALUE"},
+        {GL_INVALID_OPERATION, "GL_INVALID_OPERATION"},
+        {GL_OUT_OF_MEMORY, "GL_OUT_OF_MEMORY"},
+        {GL_INVALID_FRAMEBUFFER_OPERATION, "GL_INVALID_FRAMEBUFFER_OPERATION"},
+    };
 
-    while(error != GL_NO_ERROR)
-    {
-        switch (error) {
-            case GL_NO_ERROR:
-                LOGE("%s GL_NO_ERROR", prefix); break;
-            case GL_INVALID_ENUM:
-                LOGE("%s GL_INVALID_ENUM", prefix); break;
-            case GL_INVALID_VALUE:
-                LOGE("%s GL_INVALID_VALUE", prefix); break;
-            case GL_INVALID_OPERATION:
-                LOGE("%s GL_INVALID_OPERATION", prefix); break;
-            case GL_OUT_OF_MEMORY:
-                LOGE("%s GL_OUT_OF_MEMORY", prefix); break;
-            case GL_INVALID_FRAMEBUFFER_OPERATION:
-                LOGE("%s GL_INVALID_FRAMEBUFFER_OPERATION", prefix); break;
-            default:
-                LOGE("GL error: %d", error);
+    std::stringstream ss;
+
+    while(error != GL_NO_ERROR) {
+
+        try {
+            ss << "GL error: " << errors.at(error) << "\n";
+        } catch (...) {
+            throw std::runtime_error("Unknown GL error");
         }
 
         error = glGetError();
+    }
+
+    if (ss.rdbuf()->in_avail() != 0) {
+        throw std::runtime_error(ss.str());
     }
 }
 
 unsigned int create_shader(unsigned int shader_type, const char* src) {
 
     GLuint shader = glCreateShader(shader_type);
-    engine_check_error();
     glShaderSource(shader, 1, &src, NULL);
     glCompileShader(shader);
 
@@ -126,6 +127,7 @@ unsigned int create_shader(unsigned int shader_type, const char* src) {
         abort();
     }
 
+    engine_catch_error();
     return shader;
 }
 
@@ -316,7 +318,7 @@ void file_unload(struct file* file) {
 }
 
 #if defined(__ANDROID__) || defined(ANDROID)
-#include <unistd.h>
+#   include <unistd.h>
 
 int file_load_asset(struct file* file, const char* path) {
 
@@ -350,8 +352,7 @@ int engine_get_cwd(char* buf, std::size_t max_size) {
 }
 
 #elif defined (__unix__) || defined (__unix)
-
-#include "unistd.h"
+#   include "unistd.h"
 
 int file_load_asset(struct file* file, const char* path) {
     return file_load(file, path);
@@ -361,9 +362,12 @@ int engine_get_cwd(char* buf, std::size_t max_size) {
     return getcwd(buf, max_size) != NULL;
 }
 
-#elif defined (WIN32) || defined (_WIN32)
+int engine_file_exists_(const char *path) {
+    return access( path, F_OK ) == 0;
+}
 
-#include <Windows.h>
+#elif defined (WIN32) || defined (_WIN32)
+#   include <Windows.h>
 
 int file_load_asset(struct file* file, const char* path) {
     return file_load(file, path);
@@ -371,6 +375,11 @@ int file_load_asset(struct file* file, const char* path) {
 
 int engine_get_cwd(char* buf, std::size_t max_size) {
     return GetCurrentDirectoryA(static_cast<DWORD>(max_size), buf) != 0;
+}
+
+int engine_file_exists_(const char* path) {
+	DWORD dwAttrib = GetFileAttributes(path);
+	return (dwAttrib != INVALID_FILE_ATTRIBUTES && !(dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
 }
 
 #endif

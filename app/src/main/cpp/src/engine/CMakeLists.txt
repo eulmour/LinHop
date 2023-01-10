@@ -3,7 +3,6 @@ project("engine" CXX)
 set (CMAKE_CXX_STANDARD 17)
 
 add_definitions(-DGLEW_STATIC)
-add_definitions(-DSOUNDIO_STATIC_LIBRARY)
 add_definitions(-DENGINE_WRITE_LOGS)
 
 file(GLOB FILES_SRC CONFIGURE_DEPENDS "*.h" "src/*.h" "src/*cpp")
@@ -17,16 +16,23 @@ endif()
 add_subdirectory("vendor")
 
 target_include_directories(engine PRIVATE
-    ${CMAKE_CURRENT_LIST_DIR}/vendor/android
     ${CMAKE_CURRENT_LIST_DIR}/vendor/stb_image
     ${CMAKE_CURRENT_LIST_DIR}/vendor/freetype/include
     ${CMAKE_CURRENT_LIST_DIR}/vendor/miniaudio
-    ${CMAKE_CURRENT_LIST_DIR}/vendor/glew
-    ${CMAKE_CURRENT_LIST_DIR}/vendor/glwf/include
     ${CMAKE_CURRENT_LIST_DIR}/vendor/glm
 )
 
+if (NOT EMSCRIPTEN)
+    target_include_directories(engine PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/vendor/glew
+        ${CMAKE_CURRENT_LIST_DIR}/vendor/glwf/include
+    )
+endif()
+
 if (ANDROID)
+    target_include_directories(engine PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/vendor/android
+    )
     target_link_libraries(engine
         EGL
         GLESv1_CM
@@ -50,6 +56,12 @@ elseif(WIN32)
         glm
         miniaudio
     )
+elseif(EMSCRIPTEN)
+    target_link_libraries(engine PUBLIC "-s USE_GLFW=3")
+    target_link_libraries(engine PUBLIC "-s USE_WEBGL2=1")
+    target_link_libraries(engine PUBLIC "-s WASM=1")
+    target_link_libraries(engine PUBLIC "-fwasm-exceptions")
+    target_link_libraries(engine PRIVATE stb_image freetype glm miniaudio)
 elseif(UNIX AND NOT APPLE)
     target_link_libraries(engine
         GL

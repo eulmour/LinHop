@@ -90,7 +90,7 @@ Shader::~Shader() {
 unsigned Shader::compile(unsigned shader_type, const char* src) {
 
     GLuint shader = glCreateShader(shader_type);
-    engine_check_error();
+    engine_catch_error();
     glShaderSource(shader, 1, &src, NULL);
     glCompileShader(shader);
 

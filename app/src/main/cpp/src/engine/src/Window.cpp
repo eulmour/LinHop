@@ -176,24 +176,29 @@ Window::Window(const Config& config) {
         throw std::runtime_error("glfwCreateWindow failed");
     }
 
+    if (config.userPointer() != nullptr) {
+        glfwSetWindowUserPointer(this->glfw_window, config.userPointer());
+    }
+
     // Make the window's context current
     glfwMakeContextCurrent(this->glfw_window);
     glfwSetFramebufferSizeCallback(this->glfw_window, Window::glfwSizeCallback_);
-    glfwSwapInterval(config.vsync() ? 1 : 0);
     glfwSetCursorPosCallback(this->glfw_window, Input::glfwCursorCallback_);
     glfwSetKeyCallback(this->glfw_window, Input::glfwInputCallback_);
     glfwSetMouseButtonCallback(this->glfw_window, Input::glfwMouseCallback_);
     glfwSetWindowFocusCallback(this->glfw_window, Window::glfwFocusCallback_);
 
-    if (config.userPointer() != nullptr) {
-        glfwSetWindowUserPointer(this->glfw_window, config.userPointer());
-    }
+#ifndef __EMSCRIPTEN__
+    glfwSwapInterval(config.vsync() ? 1 : 0);
+    glewExperimental = GL_TRUE;
+#endif
 
     if (glewInit() != GLEW_OK) {
         glfwTerminate();
         throw std::runtime_error("glewInit failed");
     }
 
+    engine_catch_error();
     LOGI("GL Init: %d", GL_VERSION);
 }
 

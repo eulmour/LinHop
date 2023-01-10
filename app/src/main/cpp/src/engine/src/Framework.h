@@ -98,7 +98,8 @@ extern "C" {
 
 void engine_log_message(const char* fmt, ...);
 int engine_get_cwd(char* buf, std::size_t max_size);
-void engine_check_error();
+void engine_catch_error();
+int engine_file_exists_(const char *path);
 
 unsigned int create_shader(unsigned int shader_type, const char *src);
 unsigned int create_program(const char *vertex_src, const char *fragment_src);

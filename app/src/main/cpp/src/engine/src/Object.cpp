@@ -1,7 +1,11 @@
 #include "Object.h"
-#include "Internal.h"
+#include "Data.h"
 #include <cstring>
 #include <stdexcept>
+
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtc/type_ptr.hpp"
 
 #if !defined(__ANDROID__) && !defined(ANDROID)
 #include "GL/glew.h"
@@ -363,7 +367,7 @@ Text::Text(const char* font, float size) :
         FT_Done_FreeType(ft); return;
     }
 
-    if (FT_New_Memory_Face(ft, static_cast<const FT_Byte*>(file.data), (FT_Long)file.size, 0, &face))
+    if (FT_New_Memory_Face(ft, static_cast<const FT_Byte*>(file.data), (FT_Long)file.size, 0, &face)))
         LOGE("FreeType: Failed to load font");
 
     file_unload(&file);
@@ -371,11 +375,14 @@ Text::Text(const char* font, float size) :
 #else
 
     if (!engine_file_exists_(font)) {
-        throw std::runtime_error("Failed to load font, file does not exists.");
+        // throw std::runtime_error("Failed to load font, file does not exist.");
+        LOGE("Failed to find %s, file does not exist.\n", font);
     }
 
     if (FT_New_Face(ft, font, 0, &face)) {
-        throw std::runtime_error("FreeType: Failed to load font.");
+        FT_New_Memory_Face(ft, static_cast<const FT_Byte*>(BIN_OCRAEXT_TTF_), (FT_Long)sizeof(BIN_OCRAEXT_TTF_), 0, &face);
+        LOGE("FreeType: Failed to load font. Using defaults.\n");
+        // throw std::runtime_error("FreeType: Failed to load font.");
     }
 
 #endif

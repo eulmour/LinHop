@@ -17,7 +17,12 @@ public:
     }
 
     void init(Engine& e) override {
-        e.pushScene(std::make_unique<MainScene>(e));
+        try {
+			e.pushScene(std::make_unique<MainScene>(e));
+        } catch (std::exception& exception) {
+            e.log() << exception.what() << "\n";
+            e.show_log();
+        }
     }
 };
 
