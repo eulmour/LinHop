@@ -374,15 +374,12 @@ Text::Text(const char* font, float size) :
 
 #else
 
-    if (!engine_file_exists_(font)) {
-        // throw std::runtime_error("Failed to load font, file does not exist.");
-        LOGE("Failed to find %s, file does not exist.\n", font);
-    }
-
-    if (FT_New_Face(ft, font, 0, &face)) {
+    if (font == nullptr) {
         FT_New_Memory_Face(ft, static_cast<const FT_Byte*>(BIN_OCRAEXT_TTF_), (FT_Long)sizeof(BIN_OCRAEXT_TTF_), 0, &face);
-        LOGE("FreeType: Failed to load font. Using defaults.\n");
-        // throw std::runtime_error("FreeType: Failed to load font.");
+    } else if (!engine_file_exists_(font)) {
+        throw std::runtime_error("Failed to load "+std::string(font)+", file does not exist.");
+    } else if (FT_New_Face(ft, font, 0, &face)) {
+        throw std::runtime_error("FreeType: Failed to load font.");
     }
 
 #endif

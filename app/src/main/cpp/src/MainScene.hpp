@@ -87,7 +87,7 @@ public:
     } menu_selected = MenuSelected::START;
 
     enum class SettingsSelected {
-        FX_ENABLED, MUSIC_VOLUME, RESET_STATISTICS, BACK, LOG, END
+        FX_ENABLED, MUSIC_VOLUME, RESET_STATISTICS, LOG, BACK, END
     } settings_selected = SettingsSelected::FX_ENABLED;
 
     bool onEventPointerMove(Engine& e);

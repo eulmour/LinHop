@@ -392,11 +392,12 @@ void Engine::run() {
 
     registered_loop = [&]() {
         // Poll for and process events
-        this->input.clearStates();
         glfwPollEvents();
 
         // Render
         this->render();
+
+        this->input.clearStates();
     };
 
 #ifdef __EMSCRIPTEN__

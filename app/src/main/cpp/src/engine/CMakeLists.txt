@@ -57,11 +57,15 @@ elseif(WIN32)
         miniaudio
     )
 elseif(EMSCRIPTEN)
+    # target_link_libraries(linhop PUBLIC "-g")
+    target_link_libraries(engine PUBLIC "-s ALLOW_MEMORY_GROWTH=1")
     target_link_libraries(engine PUBLIC "-s USE_GLFW=3")
     target_link_libraries(engine PUBLIC "-s USE_WEBGL2=1")
+    target_link_libraries(engine PUBLIC "-s USE_FREETYPE=1")
+    target_link_libraries(engine PUBLIC "-s STB_IMAGE=1")
     target_link_libraries(engine PUBLIC "-s WASM=1")
     target_link_libraries(engine PUBLIC "-fwasm-exceptions")
-    target_link_libraries(engine PRIVATE stb_image freetype glm miniaudio)
+    target_link_libraries(engine PRIVATE glm miniaudio)
 elseif(UNIX AND NOT APPLE)
     target_link_libraries(engine
         GL

@@ -34,10 +34,9 @@ SettingsScene::SettingsScene(Engine& e) {
 }
 
 void SettingsScene::resume(Engine&) {
-    const char *const fontPath = "fonts/OCRAEXT.TTF";
-    this->small_text = std::make_unique<Text>(fontPath, SettingsScene::small_text_size);
-    this->medium_text = std::make_unique<Text>(fontPath, SettingsScene::medium_text_size);
-    this->large_text = std::make_unique<Text>(fontPath, SettingsScene::large_text_size);
+    this->small_text = std::make_unique<Text>(nullptr, SettingsScene::small_text_size);
+    this->medium_text = std::make_unique<Text>(nullptr, SettingsScene::medium_text_size);
+    this->large_text = std::make_unique<Text>(nullptr, SettingsScene::large_text_size);
 }
 
 void SettingsScene::suspend(Engine&) {

@@ -169,7 +169,7 @@ protected:
         Rect header_rect;
         std::shared_ptr<Rect> button_rect{std::make_shared<Rect>()};
         // TODO use embedded default font and font shader
-		std::shared_ptr<Text> d_default_text{ std::make_shared<Text>("fonts/OCRAEXT.TTF", LogActivity::text_size) };
+		std::shared_ptr<Text> d_default_text{ std::make_shared<Text>(nullptr, LogActivity::text_size) };
         Button back_btn{ d_default_text, button_rect, "<- Back" };
         ScrollArea area;
     };

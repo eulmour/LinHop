@@ -20,9 +20,7 @@ if (ANDROID)
 endif()
 
 if (EMSCRIPTEN)
-    target_link_libraries(linhop PUBLIC "-s USE_GLFW=3")
-    target_link_libraries(linhop PUBLIC "-s USE_WEBGL2=1")
-    target_link_libraries(linhop PUBLIC "-s WASM=1")
+    target_link_libraries(linhop PUBLIC "-g")
     target_link_libraries(linhop PUBLIC "-fwasm-exceptions")
 
     configure_file(${CMAKE_SOURCE_DIR}/src/index.html index.html)
@@ -33,8 +31,8 @@ if (EMSCRIPTEN)
     # endforeach(file)
 
     set_property(TARGET linhop APPEND_STRING PROPERTY LINK_FLAGS "--preload-file ${CMAKE_CURRENT_BINARY_DIR}/shaders/@/shaders/")
-    set_property(TARGET linhop APPEND_STRING PROPERTY LINK_FLAGS " --preload-file ${CMAKE_CURRENT_BINARY_DIR}/fonts/@/fonts/")
     set_property(TARGET linhop APPEND_STRING PROPERTY LINK_FLAGS " --preload-file ${CMAKE_CURRENT_BINARY_DIR}/textures/@/textures/")
+    set_property(TARGET linhop APPEND_STRING PROPERTY LINK_FLAGS " --preload-file ${CMAKE_CURRENT_BINARY_DIR}/fonts/@/fonts/")
 else()
     target_include_directories(linhop PRIVATE
         ${CMAKE_SOURCE_DIR}/src/engine/vendor/glew

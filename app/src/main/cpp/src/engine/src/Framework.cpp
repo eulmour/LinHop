@@ -174,6 +174,10 @@ unsigned int texture_create(int width, int height, const void* data) {
 
 unsigned int texture_load_from_file(const char* path) {
 
+    if (!engine_file_exists_(path)) {
+        throw std::runtime_error("File " + std::string(path) + " does not exist");
+    }
+
 #ifdef ENGINE_FLIP_VERTICALLY
     stbi_set_flip_vertically_on_load(1);
 #endif
@@ -193,7 +197,7 @@ unsigned int texture_load_from_file(const char* path) {
 #endif
 
     if (buffer == nullptr) {
-        throw std::runtime_error("Failed to load texture");
+        throw std::runtime_error("Failed to load " + std::string(path) + ", " + std::string(stbi_failure_reason()));
     }
 
     unsigned texture = texture_create(width, height, buffer);

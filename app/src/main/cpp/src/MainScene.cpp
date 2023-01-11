@@ -169,11 +169,9 @@ void MainScene::resume(Engine& e) {
     this->line = std::make_unique<Line>();
 
     try {
-        const char *const fontPath = "fonts/OCRAEXT.TTF";
-
-        this->small_text = std::make_unique<Text>(fontPath, MainScene::small_text_size);
-        this->medium_text = std::make_unique<Text>(fontPath, MainScene::medium_text_size);
-        this->large_text = std::make_unique<Text>(fontPath, MainScene::large_text_size);
+        this->small_text = std::make_unique<Text>(nullptr, MainScene::small_text_size);
+        this->medium_text = std::make_unique<Text>(nullptr, MainScene::medium_text_size);
+        this->large_text = std::make_unique<Text>(nullptr, MainScene::large_text_size);
 
         this->ball->activate();
         this->lines->activate();
