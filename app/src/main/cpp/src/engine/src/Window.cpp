@@ -65,7 +65,7 @@ Window::Window(const Config& config) {
     eglQuerySurface(this->display, this->surface, EGL_WIDTH, &w);
     eglQuerySurface(this->display, this->surface, EGL_HEIGHT, &h);
 
-    this->setLogicalSize({w, h});
+    this->logical_size({w, h});
 
     LOGI("GL Init: %d", GL_VERSION);
 }
@@ -101,7 +101,7 @@ void Window::swapBuffers() {
     eglSwapBuffers(this->display, this->surface);
 }
 
-float Window::getDeltaTime() {
+float Window::delta_time() {
     return this->frameInfo.delta_time;
 }
 
@@ -114,7 +114,7 @@ Window::Config &Window::Config::androidApp(android_app *androidApp) {
 
 void Window::glfwSizeCallback_(GLFWwindow *window, int width, int height) {
 	auto* e = reinterpret_cast<Engine*>(glfwGetWindowUserPointer(window));
-    e->window->setLogicalSize({width,height});
+    e->window->logical_size({width,height});
     e->graphics.viewport({width, height});
 }
 
@@ -136,7 +136,7 @@ Window::Window(const Config& config) {
         throw std::runtime_error("glfwInit failed");
     }
 
-    this->setLogicalSize(config.innerSize());
+    this->logical_size(config.innerSize());
 
 #ifdef __EMSCRIPTEN__
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -223,7 +223,7 @@ void Window::swapBuffers() {
     glfwSwapBuffers(this->glfw_window);
 }
 
-float Window::getDeltaTime() {
+float Window::delta_time() {
 //    auto currentFrame = static_cast<float>(glfwGetTime());
 //    this->frameInfo.deltaTime = currentFrame - this->frameInfo.lastFrameTime;
 //    this->frameInfo.lastFrameTime = currentFrame;
@@ -231,9 +231,19 @@ float Window::getDeltaTime() {
     return this->frameInfo.delta_time;
 }
 
+IVec2 Window::size() {
+    int w, h;
+    glfwGetWindowSize(this->glfw_window, &w, &h);
+    return IVec2{ w, h };
+}
+void Window::size(IVec2 size) {
+    glfwSetWindowSize(this->glfw_window, size[0], size[1]);
+    this->logical_size(size);
+}
+
 #endif
 
-float Window::getDeltaTimeLast() const { return this->frameInfo.last_frame_time; }
+float Window::delta_time_last() const { return this->frameInfo.last_frame_time; }
 
 Window::Config &Window::Config::title(std::string title) {
     this->title_ = std::move(title);

@@ -59,9 +59,15 @@ void Engine::load()
     builder->window_config.userPointer(reinterpret_cast<void*>(this));
     this->window = std::make_unique<Window>(builder->window_config);
 
+#ifdef __EMSCRIPTEN__
+    int w = EM_ASM_INT( return window.innerWidth; );
+    int h = EM_ASM_INT( return window.innerHeight; );
+    window->size({w, h});
+#endif
+
     graphics
         .init()
-        .viewport(window->getLogicalSize())
+        .viewport(window->logical_size())
         .clear({0.0f, 0.1f, 0.2f, 1.0f});
 
     // Check openGL on the system
@@ -79,7 +85,7 @@ void Engine::load()
     }
 
     // TODO dynamic game scale (requires a lot of work)
-    glViewport(0, 0, this->window->getLogicalSize()[0], this->window->getLogicalSize()[1]);
+    glViewport(0, 0, this->window->logical_size()[0], this->window->logical_size()[1]);
 
     this->state = STATE_READY;
 

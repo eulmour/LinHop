@@ -115,6 +115,13 @@ private:
         float music_volume_float;
     } save_data { 0, 0, 1, 0, .8f };
 
+    float min_x{};
+    float max_x{};
+    float area_width{ 450.f };
+    float area_height{ 800.f };
+    float ratio{ area_width / area_height };
+
+    constexpr static float required_ratio{ 450.f / 800.f };
     static constexpr float ball_strength_mod{ 25000 };
     static constexpr float ball_gravity_mod{ 8000 };
     static constexpr float rand_lines_density{ 350.f }; // lower = higher

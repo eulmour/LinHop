@@ -67,14 +67,16 @@ public:
     bool isFocused() const { return this->focused; }
     void swapBuffers();
 
-    float getDeltaTime();
-    [[nodiscard]] float getDeltaTimeLast() const;
-    [[nodiscard]] IVec2 getLogicalSize() const { return logical_size; };
-    void setLogicalSize(IVec2 size) { this->logical_size = size; }
+    float delta_time();
+    [[nodiscard]] float delta_time_last() const;
+    IVec2 size();
+    void size(IVec2 size);
+    [[nodiscard]] IVec2 logical_size() const { return logical_size_; };
+    void logical_size(IVec2 size) { this->logical_size_ = size; }
     void setFocused(bool flag) { this->focused = flag; }
 
 protected:
-    IVec2 logical_size{};
+    IVec2 logical_size_{};
     bool focused{true};
     bool should_close{false};
 

@@ -184,6 +184,20 @@ void MainScene::resume(Engine& e) {
 
     this->pressed = false;
     this->pressed_once = false;
+
+    this->ratio = static_cast<float>(e.graphics.viewport()[0]) / static_cast<float>(e.graphics.viewport()[1]);
+
+    if (this->ratio > this->required_ratio) {
+        this->area_width = e.graphics.viewport()[0] / this->ratio * this->required_ratio;
+    }
+
+    if (this->ratio < this->required_ratio) {
+        this->area_height = e.graphics.viewport()[1] / this->required_ratio * this->ratio;
+    }
+
+    this->min_x = static_cast<float>(e.graphics.viewport()[0]) / 2.f - area_width / 2.f;
+    this->max_x = static_cast<float>(e.graphics.viewport()[0]) / 2.f + area_width / 2.f;
+
     //this->audio_engine->playAll();
 }
 
@@ -240,7 +254,7 @@ bool MainScene::update(Engine& engine) {
     PROLOG(engine)
 
 	// update background color
-	static float bgColorDirection = 0.005f * engine.window->getDeltaTime();
+	static float bgColorDirection = 0.005f * engine.window->delta_time();
     if (background_color[0] > 0.2f || background_color[0] < 0.0f)
         bgColorDirection = -bgColorDirection;
 
@@ -260,7 +274,7 @@ bool MainScene::update(Engine& engine) {
             ball->bounce_strength = 1.f + static_cast<float>(game_score) / ball_strength_mod;
             ball->gravity = 9.8f + static_cast<float>(game_score) / ball_gravity_mod;
 
-            ball->move(engine.window->getDeltaTime());
+            ball->move(engine.window->delta_time());
 
             if (ball->collision(*lines, ball->prev_pos)) {
                 sparks->push(ball->pos);
@@ -283,7 +297,7 @@ bool MainScene::update(Engine& engine) {
             }
 
             // If the ball is out of screen then stop the game
-            if (ball->pos[0] < 0 || ball->pos[0] > screenW ||
+            if (ball->pos[0] < this->min_x || ball->pos[0] > this->max_x ||
                 ball->pos[1] - scroll > screenH + ball->radius)
             {
                 if (game_state == GameState::INGAME) {
@@ -416,15 +430,15 @@ void MainScene::render(Engine& e) {
     if (game_mode == GameMode::CLASSIC)
         lines->draw(e.graphics);
 
-    ball->draw(e.graphics);
-    rand_lines->draw(e.graphics);
-
     // gui text
     switch (game_state) {
         case GameState::PAUSED:
         case GameState::MENU:
 
             this->label_menu_title->draw(e.graphics, *this->large_text);
+
+            ball->draw(e.graphics);
+            rand_lines->draw(e.graphics);
 
             this->label_menu_continue
                 ->setColor(menu_selected == MenuSelected::CONTINUE ? COLOR_SELECTED : COLOR_IDLE)
@@ -522,10 +536,47 @@ void MainScene::render(Engine& e) {
                 }, 5.f);
             }
 
+            if (this->ratio > this->required_ratio) {
+
+                this->line->draw(e.graphics, &Vec4{
+                    min_x,
+                    0.f,
+                    min_x,
+                    screenH
+                }[0], Color{0.4f, 0.3f, 1.f, 0.1f}, 5.f);
+
+                this->line->draw(e.graphics, &Vec4{
+                    max_x,
+                    0.f,
+                    max_x,
+                    screenH
+                }[0], Color{0.4f, 0.3f, 1.f, 0.1f}, 5.f);
+
+            }
+            // else if (this->ratio < this->required_ratio) {
+
+            //     this->line->draw(e.graphics, &Vec4{
+            //         0.f,
+            //         (screenH / 2.f) - area_height / 2.f,
+            //         screenW,
+            //         (screenH / 2.f) - area_height / 2.f
+            //     }[0], Color{0.4f, 0.3f, 1.f, 0.1f}, 5.f);
+
+            //     this->line->draw(e.graphics, &Vec4{
+            //         0.f,
+            //         (screenH / 2.f) + area_height / 2.f,
+            //         screenW,
+            //         (screenH / 2.f) + area_height / 2.f
+            //     }[0], Color{0.4f, 0.3f, 1.f, 0.1f}, 5.f);
+            // }
+
+            ball->draw(e.graphics);
+            rand_lines->draw(e.graphics);
+
 #ifndef NDEBUG
 
 //            this->labelGameFps
-//                ->setText(std::to_string(static_cast<int>(1 / engine.window->getDeltaTime())) + std::string(" fps"))
+//                ->setText(std::to_string(static_cast<int>(1 / engine.window->delta_time())) + std::string(" fps"))
 //                .setColor(gameMode == GameMode::CLASSIC ? COLOR_SELECTED : COLOR_HIDDEN)
 //                .draw();
 
@@ -540,6 +591,9 @@ void MainScene::render(Engine& e) {
 
         case GameState::ENDGAME:
 
+            ball->draw(e.graphics);
+            rand_lines->draw(e.graphics);
+
             this->label_endgame_score
                 ->setText("Score: " + std::to_string(game_score))
                 .setColor(game_mode == GameMode::CLASSIC ? COLOR_SELECTED : COLOR_HIDDEN)
@@ -553,26 +607,12 @@ void MainScene::render(Engine& e) {
             break;
     }
 
-    // std::memcpy(this->line.color, (float[4]){1.f, 1.f, 1.f, 1.f}, sizeof(float[4]));
-
-    // float debugLine[4] = {
-    //     screenW/2.f, 0.f,
-    //     screenW/2.f, screenH
-    // };
-    // float debugLineHor[4] = {
-    //     0.f, screenH/2.f,
-    //     screenW, screenH/2.f
-    // };
-    // drawable.draw(&this->line, debugLine);
-    // drawable.draw(&this->line, debugLineHor);
-
     this->prev_mouse_pos = {
         pointerX,
         pointerY + scroll,
     };
 
     this->pressed_once = false;
-    // engine.window->close(); // TODO REMOVE
 }
 
 void MainScene::reset(Engine& engine) {
@@ -620,6 +660,16 @@ bool MainScene::onEventPointerMove(Engine& engine) {
 
     // gestures
     switch (this->game_state) {
+
+        case GameState::INGAME:
+            if (pointerPos[0] < this->min_x) {
+                pointerPos[0] = this->min_x;
+            }
+
+            if (pointerPos[0] > this->max_x) {
+                pointerPos[0] = this->max_x;
+            }
+            break;
 
         case GameState::MENU:
         case GameState::PAUSED:
