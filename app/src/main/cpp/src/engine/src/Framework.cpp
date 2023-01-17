@@ -8,6 +8,7 @@
 #include <memory>
 #include <functional>
 #include <sstream>
+#include <unordered_map>
 #include "stb_image.h"
 
 #if !defined(__ANDROID__) && !defined(ANDROID)
@@ -355,7 +356,7 @@ int engine_get_cwd(char* buf, std::size_t max_size) {
     return getcwd(buf, max_size) != NULL;
 }
 
-#elif defined (__unix__) || defined (__unix)
+#elif defined (__unix__) || (defined (__APPLE__) && defined(__MACH__))
 #   include "unistd.h"
 
 int file_load_asset(struct file* file, const char* path) {

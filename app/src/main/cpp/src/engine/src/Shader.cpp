@@ -6,6 +6,12 @@
 #include <exception>
 #include "Framework.h"
 
+#ifdef __APPLE__
+#define SHADER_GL_VERSION "#version 330 core\n"
+#else
+#define SHADER_GL_VERSION "#version 300 es \n"
+#endif
+
 #if !defined(__ANDROID__) && !defined(ANDROID)
 #include "GL/glew.h"
 #include "GLFW/glfw3.h"
@@ -177,7 +183,7 @@ Shader Shader::Builder::from_file(const std::string& path) {
 Shader::Builder& Shader::Builder::vertex(const std::string& shader_src) {
 
     const std::string src =
-        "#version 300 es\n"
+        SHADER_GL_VERSION
 		"#ifdef GL_ES\n"
         "precision mediump float;\n"
 		"#endif\n"
@@ -191,7 +197,7 @@ Shader::Builder& Shader::Builder::vertex(const std::string& shader_src) {
 Shader::Builder& Shader::Builder::fragment(const std::string& shader_src) {
 
     const std::string src =
-        "#version 300 es\n"
+        SHADER_GL_VERSION
 
 		"#ifdef GL_ES\n"
         "precision mediump float;\n"
@@ -209,7 +215,7 @@ Shader::Builder& Shader::Builder::fragment(const std::string& shader_src) {
 Shader::Builder& Shader::Builder::geometry(const std::string& shader_src) {
 
     const std::string src =
-        "#version 300 es\n"
+        SHADER_GL_VERSION
 		"#ifdef GL_ES\n"
         "precision mediump float;\n"
 		"#endif\n"

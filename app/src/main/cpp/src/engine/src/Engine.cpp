@@ -1,5 +1,6 @@
 #include "Engine.h"
 
+#include <iostream>
 #include <utility>
 #include <stdexcept>
 #include <exception>
@@ -67,7 +68,7 @@ void Engine::load()
 
     graphics
         .init()
-        .viewport(window->logical_size())
+        .viewport(window->physical_size())
         .clear({0.0f, 0.1f, 0.2f, 1.0f});
 
     // Check openGL on the system
@@ -85,7 +86,7 @@ void Engine::load()
     }
 
     // TODO dynamic game scale (requires a lot of work)
-    glViewport(0, 0, this->window->logical_size()[0], this->window->logical_size()[1]);
+    glViewport(0, 0, this->window->physical_size()[0], this->window->physical_size()[1]);
 
     this->state = STATE_READY;
 
@@ -123,6 +124,7 @@ void Engine::render()
 
 void Engine::show_log()
 {
+    std::cerr << this->log_stream.str() << std::endl;
     auto log_screen = std::unique_ptr<Scene>(reinterpret_cast<Scene*>(new LogActivity(*this, this->log_stream.str())));
     this->pushScene(std::move(log_screen));
 }

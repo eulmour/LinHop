@@ -69,14 +69,14 @@ public:
 
     float delta_time();
     [[nodiscard]] float delta_time_last() const;
-    IVec2 size();
+    [[nodiscard]] IVec2 size() { return logical_size_; }
     void size(IVec2 size);
-    [[nodiscard]] IVec2 logical_size() const { return logical_size_; };
-    void logical_size(IVec2 size) { this->logical_size_ = size; }
+    [[nodiscard]] IVec2 physical_size() const { return physical_size_; };
     void setFocused(bool flag) { this->focused = flag; }
 
 protected:
     IVec2 logical_size_{};
+    IVec2 physical_size_{};
     bool focused{true};
     bool should_close{false};
 
@@ -93,8 +93,9 @@ protected:
 #else
     GLFWwindow* glfw_window{};
 
-    static void glfwSizeCallback_(GLFWwindow* window, int width, int height);
-    static void glfwFocusCallback_(GLFWwindow* window, int focused);
+    static void glfw_framebuffer_size_callback(GLFWwindow* window, int width, int height);
+    static void glfw_window_size_callback(GLFWwindow* window, int width, int height);
+    static void glfw_window_focus_callback(GLFWwindow* window, int focused);
 
 #endif
 };

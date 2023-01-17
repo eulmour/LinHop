@@ -1,8 +1,8 @@
 #include "SettingsScene.hpp"
 
 #define PROLOG(e) \
-    float screenW = static_cast<float>(e.window->logical_size()[0]); \
-    float screenH = static_cast<float>(e.window->logical_size()[1]);
+    float screenW = static_cast<float>(e.window->physical_size()[0]); \
+    float screenH = static_cast<float>(e.window->physical_size()[1]);
 
 SettingsScene::SettingsScene(Engine& e) {
 

@@ -134,7 +134,7 @@ Graphics& Graphics::init() {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 #endif
 
-#if !defined(__ANDROID__) && !defined(ANDROID) && !defined(__EMSCRIPTEN__)
+#if !defined(__ANDROID__) && !defined(ANDROID) && !defined(__EMSCRIPTEN__) && !defined(__APPLE__)
     glEnable(GL_DEBUG_OUTPUT);
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
     glDebugMessageCallback(errorOccurredGL, this);

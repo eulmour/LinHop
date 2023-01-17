@@ -69,7 +69,18 @@ elseif(EMSCRIPTEN)
 elseif(UNIX AND NOT APPLE)
     target_link_libraries(engine
         GL
-        # OpenGL
+        glfw
+        glew
+        stb_image
+        freetype
+        glm
+        miniaudio
+        # pulse
+    )
+elseif(APPLE)
+    find_library(OPENGL_LIB OpenGL)
+    target_link_libraries(engine
+        ${OPENGL_LIB}
         glfw
         glew
         stb_image

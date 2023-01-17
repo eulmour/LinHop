@@ -8,7 +8,7 @@ public:
         auto& builder = (new EngineConfig())
             ->windowConfig(Window::Config()
                 .title("LinHop")
-                .innerSize(480, 800)
+                .innerSize(450, 800)
                 .resizeable(false)
                 .vsync(true)
             );

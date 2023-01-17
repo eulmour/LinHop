@@ -412,14 +412,26 @@ Text::Text(const char* font, float size) :
         glTexImage2D(
             GL_TEXTURE_2D,
             0,
+
+#if defined(__ANDROID__) || defined(ANDROID)
             GL_LUMINANCE,
+#else
+            GL_RED,
+#endif
             (GLsizei)face->glyph->bitmap.width,
             (GLsizei)face->glyph->bitmap.rows,
             0,
+
+#if defined(__ANDROID__) || defined(ANDROID)
             GL_LUMINANCE,
+#else
+            GL_RED,
+#endif
             GL_UNSIGNED_BYTE,
             face->glyph->bitmap.buffer
         );
+
+        engine_catch_error();
 
         // set texture options
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);

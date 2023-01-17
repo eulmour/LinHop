@@ -112,13 +112,18 @@ Window::Config &Window::Config::androidApp(android_app *androidApp) {
 
 #else
 
-void Window::glfwSizeCallback_(GLFWwindow *window, int width, int height) {
+void Window::glfw_window_size_callback(GLFWwindow* window, int width, int height) {
 	auto* e = reinterpret_cast<Engine*>(glfwGetWindowUserPointer(window));
-    e->window->logical_size({width,height});
-    e->graphics.viewport({width, height});
+    e->window->logical_size_ = {width, height};
 }
 
-void Window::glfwFocusCallback_(GLFWwindow* window, int focused) {
+void Window::glfw_framebuffer_size_callback(GLFWwindow *window, int width, int height) {
+	auto* e = reinterpret_cast<Engine*>(glfwGetWindowUserPointer(window));
+    e->graphics.viewport({width, height});
+    e->window->physical_size_ = {width, height};
+}
+
+void Window::glfw_window_focus_callback(GLFWwindow* window, int focused) {
 	auto* e = reinterpret_cast<Engine*>(glfwGetWindowUserPointer(window));
 
     if (!focused && !!glfwGetWindowAttrib(window, GLFW_FOCUSED)) {
@@ -136,16 +141,21 @@ Window::Window(const Config& config) {
         throw std::runtime_error("glfwInit failed");
     }
 
-    this->logical_size(config.innerSize());
-
 #ifdef __EMSCRIPTEN__
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+#elif __APPLE__
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 #else
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
+#   ifndef NDEBUG
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
+#   endif
 #endif
 
     glfwWindowHint(GLFW_RESIZABLE, config.resizeable() ? GLFW_TRUE : GLFW_FALSE);
@@ -188,11 +198,15 @@ Window::Window(const Config& config) {
 
     // Make the window's context current
     glfwMakeContextCurrent(this->glfw_window);
-    glfwSetFramebufferSizeCallback(this->glfw_window, Window::glfwSizeCallback_);
+    glfwSetWindowSizeCallback(this->glfw_window, Window::glfw_window_size_callback);
+    glfwSetFramebufferSizeCallback(this->glfw_window, Window::glfw_framebuffer_size_callback);
     glfwSetCursorPosCallback(this->glfw_window, Input::glfwCursorCallback_);
     glfwSetKeyCallback(this->glfw_window, Input::glfwInputCallback_);
     glfwSetMouseButtonCallback(this->glfw_window, Input::glfwMouseCallback_);
-    glfwSetWindowFocusCallback(this->glfw_window, Window::glfwFocusCallback_);
+    glfwSetWindowFocusCallback(this->glfw_window, Window::glfw_window_focus_callback);
+    
+    glfwGetWindowSize(this->glfw_window, &this->logical_size_[0], &this->logical_size_[1]);
+    glfwGetFramebufferSize(this->glfw_window, &this->physical_size_[0], &physical_size_[1]);
 
 #ifndef __EMSCRIPTEN__
     glfwSwapInterval(config.vsync() ? 1 : 0);
@@ -231,14 +245,15 @@ float Window::delta_time() {
     return this->frameInfo.delta_time;
 }
 
-IVec2 Window::size() {
-    int w, h;
-    glfwGetWindowSize(this->glfw_window, &w, &h);
-    return IVec2{ w, h };
-}
+// IVec2 Window::size() {
+    // IVec2 size;
+    // glfwGetWindowSize(this->glfw_window, &size[0], &size[1]);
+    // return size;
+// }
+
 void Window::size(IVec2 size) {
     glfwSetWindowSize(this->glfw_window, size[0], size[1]);
-    this->logical_size(size);
+    this->logical_size_ = size;
 }
 
 #endif
