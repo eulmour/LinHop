@@ -21,17 +21,17 @@ public:
     static constexpr float terminal_velocity{1.5f};
     glm::vec2 pos{}, prev_pos{}, vel{ 0.0f, 0.0f };
 
-    explicit Ball(const Graphics& g);
+    explicit Ball(const wuh::Graphics& g);
     ~Ball();
     bool collision(const Lines& line_array, glm::vec2 prev_position);
     void move(float dt);
-    void draw(const Graphics& g) const;
-    void reset(const Graphics& g);
+    void draw(const wuh::Graphics& g) const;
+    void reset(const wuh::Graphics& g);
     void activate();
     void deactivate();
 
 private:
-    std::unique_ptr<Rect> rect_drawable;
+    std::unique_ptr<wuh::Rect> rect_drawable;
 };
 
 #endif //LINHOP_BALL_HPP

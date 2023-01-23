@@ -15,6 +15,8 @@
 
 #include "miniaudio.h"
 
+namespace wuh {
+
 struct AudioInternal {
     ma_device_config deviceConfig;
     ma_device device;
@@ -118,7 +120,7 @@ void data_callback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uin
 
 }
 
-AudioSource::AudioSource(const char* path, float vol) {
+AudioSource::AudioSource(const char* path, float vol) : file(path) {
 
     this->vol = vol;
 
@@ -132,12 +134,10 @@ AudioSource::AudioSource(const char* path, float vol) {
 
      /* In this example, all decoders need to have the same output format. */
     internal_ptr->decoderConfig = ma_decoder_config_init(AUDIO_SAMPLE_FORMAT, AUDIO_NUM_CHANNELS, AUDIO_SAMPLE_RATE);
-    if (!file_load_asset(&this->file_data, path))
-        throw std::runtime_error("Could not load audio source file");
 
     result = ma_decoder_init_memory(
-        this->file_data.data,
-        this->file_data.size,
+        this->file.data(),
+        this->file.size(),
         &internal_ptr->decoderConfig,
         &internal_ptr->decoder);
 
@@ -809,3 +809,5 @@ void Audio::stopAll() {}
 //     file_unload(&source->wav_file);
 //     source->state = STATE_OFF;
 // }
+
+} // end of namespace wuh

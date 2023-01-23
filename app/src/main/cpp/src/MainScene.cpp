@@ -2,15 +2,15 @@
 #include <memory>
 
 // colors --- I used macros because cglm don't deal with consts
-#define COLOR_SELECTED Color{ 0.6f, 0.9f, 1.0f, 1.f }
-#define COLOR_HIDDEN Color{ 0.5f, 0.35f, 0.6f, 1.f }
-#define COLOR_IDLE Color{ 0.4f, 0.55f, 0.6f, 1.f }
-#define COLOR_DISABLED Color{ 0.2f, 0.35f, 0.4f, 1.f }
+#define COLOR_SELECTED wuh::Color{ 0.6f, 0.9f, 1.0f, 1.f }
+#define COLOR_HIDDEN wuh::Color{ 0.5f, 0.35f, 0.6f, 1.f }
+#define COLOR_IDLE wuh::Color{ 0.4f, 0.55f, 0.6f, 1.f }
+#define COLOR_DISABLED wuh::Color{ 0.2f, 0.35f, 0.4f, 1.f }
 
-#define PROLOG(e) float& pointerX = e.input.getPointerArray()[0][0]; \
-    float& pointerY = e.input.getPointerArray()[0][1]; \
-    float screenW = static_cast<float>(e.graphics.viewport()[0]); \
-    float screenH = static_cast<float>(e.graphics.viewport()[1]);
+#define PROLOG(e) float& pointerX = e.input.pointers()[0][0]; \
+    float& pointerY = e.input.pointers()[0][1]; \
+    float screenW = static_cast<float>(e.graphics.size()[0]); \
+    float screenH = static_cast<float>(e.graphics.size()[1]);
 
 // TODO wrap engine in namespace
 using namespace linhop;
@@ -18,7 +18,7 @@ using namespace linhop;
 // global
 float scroll = 0.f;
 
-MainScene::MainScene(Engine& e) {
+MainScene::MainScene(wuh::Engine& e) {
 
     PROLOG(e)
 
@@ -35,9 +35,12 @@ MainScene::MainScene(Engine& e) {
     //    e.log() << "Failed to load audio sources: " << exception.what();
     //}
 
-    struct file saveDataFile = {}; if (file_load(&saveDataFile, "savedata.dat")) {
-        memcpy((void*)&this->save_data, saveDataFile.data, sizeof(SaveData));
-        file_unload(&saveDataFile);
+    try {
+        wuh::File save_data_file("savedata.dat");
+        memcpy((void*)&this->save_data, save_data_file.data(), sizeof(SaveData));
+    } catch (const std::exception& exception) {
+        e.log() << exception.what() << "\n";
+        e.show_log();
     }
 
     // init clicks
@@ -138,7 +141,8 @@ MainScene::MainScene(Engine& e) {
 
 MainScene::~MainScene() {
 
-    file_save("savedata.dat", (void*)&this->save_data, sizeof(SaveData));
+    // wuh::file_save("savedata.dat", (void*)&this->save_data, sizeof(SaveData));
+    wuh::File::save("savedata.dat", (void*)&this->save_data, sizeof(SaveData));
     //audio_destroy(&this->audio_engine);
     //audio_source_unload(&this->audio_main);
     //audio_source_unload(&this->audio_alt);
@@ -148,7 +152,7 @@ MainScene::~MainScene() {
     //audio_source_unload(&this->audio_warning);
 }
 
-void MainScene::suspend(Engine& e) {
+void MainScene::suspend(wuh::Engine& e) {
 
     (void)e;
     this->ball->deactivate();
@@ -164,14 +168,14 @@ void MainScene::suspend(Engine& e) {
     //this->audio_engine->pauseAll();
 }
 
-void MainScene::resume(Engine& e) {
+void MainScene::resume(wuh::Engine& e) {
 
-    this->line = std::make_unique<Line>();
+    this->line = std::make_unique<wuh::Line>();
 
     try {
-        this->small_text = std::make_unique<Text>(nullptr, MainScene::small_text_size);
-        this->medium_text = std::make_unique<Text>(nullptr, MainScene::medium_text_size);
-        this->large_text = std::make_unique<Text>(nullptr, MainScene::large_text_size);
+        this->small_text = std::make_unique<wuh::Text>(nullptr, MainScene::small_text_size);
+        this->medium_text = std::make_unique<wuh::Text>(nullptr, MainScene::medium_text_size);
+        this->large_text = std::make_unique<wuh::Text>(nullptr, MainScene::large_text_size);
 
         this->ball->activate();
         this->lines->activate();
@@ -185,71 +189,71 @@ void MainScene::resume(Engine& e) {
     this->pressed = false;
     this->pressed_once = false;
 
-    this->ratio = static_cast<float>(e.graphics.viewport()[0]) / static_cast<float>(e.graphics.viewport()[1]);
+    this->ratio = static_cast<float>(e.graphics.size()[0]) / static_cast<float>(e.graphics.size()[1]);
 
     if (this->ratio > this->required_ratio) {
-        this->area_width = e.graphics.viewport()[0] / this->ratio * this->required_ratio;
+        this->area_width = e.graphics.size()[0] / this->ratio * this->required_ratio;
     }
 
     if (this->ratio < this->required_ratio) {
-        this->area_height = e.graphics.viewport()[1] / this->required_ratio * this->ratio;
+        this->area_height = e.graphics.size()[1] / this->required_ratio * this->ratio;
     }
 
-    this->min_x = static_cast<float>(e.graphics.viewport()[0]) / 2.f - area_width / 2.f;
-    this->max_x = static_cast<float>(e.graphics.viewport()[0]) / 2.f + area_width / 2.f;
+    this->min_x = static_cast<float>(e.graphics.size()[0]) / 2.f - area_width / 2.f;
+    this->max_x = static_cast<float>(e.graphics.size()[0]) / 2.f + area_width / 2.f;
 
     //this->audio_engine->playAll();
 }
 
-bool MainScene::input(Engine& e) {
+bool MainScene::input(wuh::Engine& e) {
 
-    if (e.input.isKeyHold(Input::Key::PointerMove)) {
+    if (e.input.key_hold(wuh::Input::Key::PointerMove)) {
         if (!this->onEventPointerMove(e)) {
             return false;
         }
     }
-    if (e.input.isKeyDown(Input::Key::Pointer)) {
+    if (e.input.key_down(wuh::Input::Key::Pointer)) {
         if (!this->onEventPointerDown()) {
             return false;
         }
     }
-    if (e.input.isKeyUp(Input::Key::Pointer)) {
+    if (e.input.key_up(wuh::Input::Key::Pointer)) {
         if (!this->onEventPointerUp(e)) {
             return false;
         }
     }
 
-    if (e.input.isKeyDown(Input::Key::Up))
+    if (e.input.key_down(wuh::Input::Key::Up))
         this->onEventUp();
-    if (e.input.isKeyDown(Input::Key::Down))
+    if (e.input.key_down(wuh::Input::Key::Down))
         this->onEventDown();
-    if (e.input.isKeyDown(Input::Key::Left))
+    if (e.input.key_down(wuh::Input::Key::Left))
         this->onEventLeft();
-    if (e.input.isKeyDown(Input::Key::Right))
+    if (e.input.key_down(wuh::Input::Key::Right))
         this->onEventRight();
-    if (e.input.isKeyDown(Input::Key::Select))
+    if (e.input.key_down(wuh::Input::Key::Select))
         this->onEventSelect(e);
 
-    if (e.input.isKeyHold(Input::Key::Ctrl)) {
-        if (e.input.isKeyDown(Input::Key::A)) {
+    if (e.input.key_hold(wuh::Input::Key::Ctrl)) {
+        if (e.input.key_down(wuh::Input::Key::A)) {
             this->suspend(e);
             this->resume(e);
             e.log() << "Scene reloaded";
         }
     } else {
-		if (e.input.isKeyDown(Input::Key::Back)) {
+		if (e.input.key_down(wuh::Input::Key::Back)) {
 			this->onEventBack(e);
         }
     }
     
-    if (e.window->isFocused() == false) {
+    if (e.window->focused() == false) {
 		this->game_state = GameState::PAUSED;
     }
 
     return true;
 }
 
-bool MainScene::update(Engine& engine) {
+bool MainScene::update(wuh::Engine& engine) {
 
     PROLOG(engine)
 
@@ -386,7 +390,7 @@ bool MainScene::update(Engine& engine) {
     return true;
 }
 
-void MainScene::render(Engine& e) {
+void MainScene::render(wuh::Engine& e) {
 
     if (!this->input(e) || !this->update(e)) {
         return;
@@ -531,26 +535,26 @@ void MainScene::render(Engine& e) {
             if (game_mode == GameMode::CLASSIC) {
 #endif
                 this->line->use();
-                this->line->draw(e.graphics, &glm::vec4 {last_click[0], last_click[1] - scroll, pointerX, pointerY}[0], Color {
+                this->line->draw(e.graphics, &glm::vec4 {last_click[0], last_click[1] - scroll, pointerX, pointerY}[0], wuh::Color {
                     0.5f, 0.5f, 0.5f, 1.0f
                 }, 5.f);
             }
 
             if (this->ratio > this->required_ratio) {
 
-                this->line->draw(e.graphics, &Vec4{
+                this->line->draw(e.graphics, &wuh::Vec4{
                     min_x,
                     0.f,
                     min_x,
                     screenH
-                }[0], Color{0.4f, 0.3f, 1.f, 0.1f}, 5.f);
+                }[0], wuh::Color{0.4f, 0.3f, 1.f, 0.1f}, 5.f);
 
-                this->line->draw(e.graphics, &Vec4{
+                this->line->draw(e.graphics, &wuh::Vec4{
                     max_x,
                     0.f,
                     max_x,
                     screenH
-                }[0], Color{0.4f, 0.3f, 1.f, 0.1f}, 5.f);
+                }[0], wuh::Color{0.4f, 0.3f, 1.f, 0.1f}, 5.f);
 
             }
             // else if (this->ratio < this->required_ratio) {
@@ -615,13 +619,13 @@ void MainScene::render(Engine& e) {
     this->pressed_once = false;
 }
 
-void MainScene::reset(Engine& engine) {
+void MainScene::reset(wuh::Engine& engine) {
 
     cursor_tail->reset();
 
     this->prev_mouse_pos = {
-        static_cast<float>(engine.graphics.viewport()[0]) / 2.f,
-        static_cast<float>(engine.graphics.viewport()[1])
+        static_cast<float>(engine.graphics.size()[0]) / 2.f,
+        static_cast<float>(engine.graphics.size()[1])
     };
 
     this->last_click = this->prev_mouse_pos;
@@ -647,16 +651,16 @@ void MainScene::reset(Engine& engine) {
     lines->Reset(engine.graphics);
 
     lines->lines.emplace_back( // First line
-        glm::vec2{ 0.f, static_cast<float>(engine.graphics.viewport()[1]) },
-        glm::vec2{static_cast<float>(engine.graphics.viewport()[0]), static_cast<float>(engine.graphics.viewport()[1]) },
-        Color{ 1.0f, 1.0f, 1.0f, 1.0f },
+        glm::vec2{ 0.f, static_cast<float>(engine.graphics.size()[1]) },
+        glm::vec2{static_cast<float>(engine.graphics.size()[0]), static_cast<float>(engine.graphics.size()[1]) },
+        wuh::Color{ 1.0f, 1.0f, 1.0f, 1.0f },
         false
     );
 }
 
-bool MainScene::onEventPointerMove(Engine& engine) {
+bool MainScene::onEventPointerMove(wuh::Engine& engine) {
 
-    auto& pointerPos = engine.input.getPointerArray()[0];
+    auto& pointerPos = engine.input.pointers()[0];
 
     // gestures
     switch (this->game_state) {
@@ -781,11 +785,11 @@ bool MainScene::onEventPointerDown() {
     return true;
 }
 
-bool MainScene::onEventPointerUp(Engine& engine) {
+bool MainScene::onEventPointerUp(wuh::Engine& engine) {
 
     if (this->game_state == GameState::INGAME) {
         glm::vec2 newPos = {
-            engine.input.getPointerArray()[0][0], engine.input.getPointerArray()[0][1] + scroll
+            engine.input.pointers()[0][0], engine.input.pointers()[0][1] + scroll
         };
         
         this->lines->Push(newPos, last_click);
@@ -798,7 +802,7 @@ bool MainScene::onEventPointerUp(Engine& engine) {
     return onEventPointerMove(engine);
 }
 
-bool MainScene::onEventSelect(Engine& engine) {
+bool MainScene::onEventSelect(wuh::Engine& engine) {
 
     switch (game_state) {
 
@@ -810,7 +814,8 @@ bool MainScene::onEventSelect(Engine& engine) {
                 case SettingsSelected::RESET_STATISTICS:
                     save_data.max_score_classic = 0L;
                     save_data.max_score_hidden = 0L;
-                    file_remove("savedata.dat");
+                    wuh::File::remove("savedata.dat");
+                    // wuh::file_remove("savedata.dat");
                     break;
                 case SettingsSelected::LOG:
                     game_state = GameState::PAUSED;
@@ -863,7 +868,7 @@ bool MainScene::onEventSelect(Engine& engine) {
     return true;
 }
 
-void MainScene::onEventBack(Engine& engine) {
+void MainScene::onEventBack(wuh::Engine& engine) {
 
     switch (game_state) {
 

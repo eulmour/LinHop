@@ -9,11 +9,11 @@ class Label : public IGameObject {
 
 public:
     Label(std::string text, glm::vec2 pos);
-    void draw(const Graphics& g, const Text& drawable);
+    void draw(const wuh::Graphics& g, const wuh::Text& drawable);
     Label& setText(std::string newText) { this->text = std::move(newText); return *this; }
     Label& setPos(glm::vec2 newPos) { this->pos = newPos; return *this; }
-    Label& setColor(Color newColor) { this->color = newColor; return *this; }
-    bool isCollide(const Text& drawable, glm::vec2 position);
+    Label& setColor(wuh::Color newColor) { this->color = newColor; return *this; }
+    bool isCollide(const wuh::Text& drawable, glm::vec2 position);
 
     void activate() override {}
     void deactivate() override {}

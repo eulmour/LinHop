@@ -7,6 +7,8 @@
 #include <memory>
 #include <optional>
 
+namespace wuh {
+
 struct Shader {
 
     Shader() = delete;
@@ -59,5 +61,7 @@ protected:
     std::optional<unsigned> fragment_shader_id;
     std::optional<unsigned> geometry_shader_id;
 };
+
+} // end of namespace wuh
 
 #endif // ENGINE_SHADER

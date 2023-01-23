@@ -1,4 +1,5 @@
 #include "Object.h"
+#include "File.h"
 #include "Data.h"
 #include <cstring>
 #include <stdexcept>
@@ -13,6 +14,8 @@
 #endif
 
 #include <cmath>
+
+namespace wuh {
 
 Drawable::Drawable(Shader shader)
     : shader(std::move(shader))
@@ -71,7 +74,7 @@ void Line::draw(const Graphics& g, const float ab[4], Color c, float width) cons
 
     Shader::uniform_vec2(
         this->shader.u_res,
-        Vec2{static_cast<float>(g.viewport()[0]), static_cast<float>(g.viewport()[1])});
+        Vec2{static_cast<float>(g.size()[0]), static_cast<float>(g.size()[1])});
 
     Shader::uniform_vec4(this->shader.u_color, c);
 
@@ -168,8 +171,8 @@ void Tri::draw(const Graphics& g, float pos[2], Color c) const {
 
     glm::mat4 projection = glm::ortho(
         0.0f,
-        static_cast<GLfloat>(g.viewport()[0]),
-        static_cast<GLfloat>(g.viewport()[1]),
+        static_cast<GLfloat>(g.size()[0]),
+        static_cast<GLfloat>(g.size()[1]),
         0.0f,
         -1.0f,
         1.0f
@@ -268,8 +271,8 @@ void Rect::draw(const Graphics& g, float pos[2], Color c) const {
 
     glm::mat4 projection = glm::ortho(
         0.0f,
-        static_cast<GLfloat>(g.viewport()[0]),
-        static_cast<GLfloat>(g.viewport()[1]),
+        static_cast<GLfloat>(g.size()[0]),
+        static_cast<GLfloat>(g.size()[1]),
         0.0f,
         -1.0f,
         1.0f
@@ -376,7 +379,7 @@ Text::Text(const char* font, float size) :
 
     if (font == nullptr) {
         FT_New_Memory_Face(ft, static_cast<const FT_Byte*>(BIN_OCRAEXT_TTF_), (FT_Long)sizeof(BIN_OCRAEXT_TTF_), 0, &face);
-    } else if (!engine_file_exists_(font)) {
+    } else if (!File::exists(font)) {
         throw std::runtime_error("Failed to load "+std::string(font)+", file does not exist.");
     } else if (FT_New_Face(ft, font, 0, &face)) {
         throw std::runtime_error("FreeType: Failed to load font.");
@@ -431,7 +434,7 @@ Text::Text(const char* font, float size) :
             face->glyph->bitmap.buffer
         );
 
-        engine_catch_error();
+        Graphics::catch_error();
 
         // set texture options
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -473,8 +476,8 @@ float Text::draw(const Graphics& g, const char* str, const float pos[2], Color c
 
     glm::mat4 projection = glm::ortho(
         0.0f,
-        static_cast<GLfloat>(g.viewport()[0]),
-        static_cast<GLfloat>(g.viewport()[1]),
+        static_cast<GLfloat>(g.size()[0]),
+        static_cast<GLfloat>(g.size()[1]),
         0.0f,
         -1.0f,
         1.0f
@@ -533,3 +536,5 @@ Text::~Text() {
         texture_unload(this->characters.get()[c].texture);
     }
 };
+
+} // end of namespace wuh

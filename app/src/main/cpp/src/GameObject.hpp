@@ -14,7 +14,7 @@ public:
 
 protected:
     glm::vec2 pos{0.f};
-    Color color{1.f, 1.f, 1.f, 1.f};
+    wuh::Color color{1.f, 1.f, 1.f, 1.f};
 };
 
 #endif //LINHOP_GAMEOBJECT_HPP

@@ -11,8 +11,8 @@ public:
     explicit Lasers();
     ~Lasers();
 
-    void trigger(const Graphics& g, float position);
-    void draw(const Graphics& g, const Line& drawable);
+    void trigger(const wuh::Graphics& g, float position);
+    void draw(const wuh::Graphics& g, const wuh::Line& drawable);
     void activate();
     void deactivate();
 
@@ -31,7 +31,7 @@ public:
 
     std::list<Laser> lasers;
 private:
-    std::unique_ptr<Rect> rect_drawable;
+    std::unique_ptr<wuh::Rect> rect_drawable;
 };
 
 #endif //LINHOP_LASERS_HPP

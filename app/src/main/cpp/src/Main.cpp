@@ -1,24 +1,24 @@
 #include "Main.hpp"
 #include "MainScene.hpp"
 
-class Application : public Game {
+class Application : public wuh::Game {
 
 public:
-    std::unique_ptr<EngineConfig> config() override {
-        auto& builder = (new EngineConfig())
-            ->windowConfig(Window::Config()
+    std::unique_ptr<wuh::EngineConfig> config() override {
+        auto& builder = (new wuh::EngineConfig())
+            ->window(wuh::Window::Config()
                 .title("LinHop")
-                .innerSize(450, 800)
+                .size(450, 800)
                 .resizeable(false)
                 .vsync(true)
             );
 
-        return std::unique_ptr<EngineConfig>(&builder);
+        return std::unique_ptr<wuh::EngineConfig>(&builder);
     }
 
-    void init(Engine& e) override {
+    void init(wuh::Engine& e) override {
         try {
-			e.pushScene(std::make_unique<MainScene>(e));
+			e.push_scene(std::make_unique<MainScene>(e));
         } catch (std::exception& exception) {
             e.log() << exception.what() << "\n";
             e.show_log();

@@ -14,34 +14,36 @@
 #include <string>
 #include <functional>
 
+namespace wuh {
+
 class Window {
 
 public:
     struct Config {
 
         Config& title(std::string title);
-        Config& innerSize(int width, int height);
+        Config& size(int width, int height);
         Config& resizeable(bool resizeable);
         Config& fullscreen(bool fullscreen);
         Config& maximized(bool maximized);
         Config& vsync(bool vsync);
         Config& visible(bool visible);
         Config& decorated(bool decorated);
-        Config& userPointer(void* ptr);
+        Config& user_pointer(void* ptr);
 
         [[nodiscard]] std::string title() const { return this->title_; }
-        [[nodiscard]] IVec2 innerSize() const { return this->inner_size_; }
+        [[nodiscard]] IVec2 size() const { return this->size_; }
         [[nodiscard]] bool resizeable() const { return this->resizeable_; }
         [[nodiscard]] bool fullscreen() const { return this->fullscreen_; }
         [[nodiscard]] bool maximized() const { return this->maximized_; }
         [[nodiscard]] bool vsync() const { return this->vsync_; }
         [[nodiscard]] bool visible() const{ return this->visible_; }
         [[nodiscard]] bool decorated() const { return this->decorated_; }
-        [[nodiscard]] void* userPointer() const { return this->user_ptr_; }
+        [[nodiscard]] void* user_pointer() const { return this->user_ptr_; }
 
     private:
         std::string title_{"Application"};
-        IVec2 inner_size_{480, 800};
+        IVec2 size_{450, 800};
         bool resizeable_{true};
         bool fullscreen_{false};
         bool maximized_{false};
@@ -52,10 +54,10 @@ public:
 
 #if defined(__ANDROID__) || defined(ANDROID)
     public:
-        Config& androidApp(android_app* androidApp);
-        [[nodiscard]] android_app* androidApp() const { return this->m_AndroidApp; }
+        Config& android_app(android_app* android_app);
+        [[nodiscard]] android_app* android_app() const { return this->android_app_; }
     private:
-        android_app* m_AndroidApp;
+        android_app* android_app_;
 #endif
     };
 
@@ -63,27 +65,27 @@ public:
     ~Window();
 
     void close();
-    bool isShouldClose();
-    bool isFocused() const { return this->focused; }
-    void swapBuffers();
+    bool should_close();
+    bool focused() const { return this->focused_; }
+    void swap_buffers();
 
     float delta_time();
     [[nodiscard]] float delta_time_last() const;
     [[nodiscard]] IVec2 size() { return logical_size_; }
     void size(IVec2 size);
     [[nodiscard]] IVec2 physical_size() const { return physical_size_; };
-    void setFocused(bool flag) { this->focused = flag; }
+    void focused(bool flag) { this->focused_ = flag; }
 
 protected:
     IVec2 logical_size_{};
     IVec2 physical_size_{};
-    bool focused{true};
-    bool should_close{false};
+    bool focused_{true};
+    bool should_close_{false};
 
     struct FrameInfo {
         float delta_time {1.f / 60.f};
         float last_frame_time {1.f / 60.f};
-    } frameInfo;
+    } frame_info_;
 
 #if defined(__ANDROID__) || defined(ANDROID)
     android_app* android_app_ptr;
@@ -99,5 +101,7 @@ protected:
 
 #endif
 };
+
+} // end of namespace wuh
 
 #endif //ENGINE_WINDOW_H

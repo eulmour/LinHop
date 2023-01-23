@@ -7,6 +7,8 @@
 #include <memory>
 #define CHARACTERS_CAP 128
 
+namespace wuh {
+
 struct Object {
 
     Vec2& pos() { return this->pos_; }
@@ -108,5 +110,7 @@ struct Text : public Drawable {
     unsigned loc_color;
     std::unique_ptr<Character> characters;
 };
+
+} // end of namespace wuh
 
 #endif //ENGINE_OBJECT_H

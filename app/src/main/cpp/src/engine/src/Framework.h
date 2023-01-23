@@ -71,6 +71,8 @@
 #   define LOGE LOGE_PRINT
 #endif
 
+namespace wuh {
+
 using Color = std::array<float, 4>;
 using Vec2 = std::array<float, 2>;
 using Vec3 = std::array<float, 3>;
@@ -85,21 +87,11 @@ enum state {
     STATE_BUSY
 };
 
-struct file {
-    char* path;
-    std::size_t path_size;
-    std::size_t size;
-    void* data;
-};
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 void engine_log_message(const char* fmt, ...);
-int engine_get_cwd(char* buf, std::size_t max_size);
-void engine_catch_error();
-int engine_file_exists_(const char *path);
 
 unsigned int create_shader(unsigned int shader_type, const char *src);
 unsigned int create_program(const char *vertex_src, const char *fragment_src);
@@ -108,14 +100,10 @@ unsigned int texture_create(int width, int height, const void* data);
 unsigned int texture_load_from_file(const char *path);
 void texture_unload(unsigned int id);
 
-int file_load(struct file *file, const char *path);
-int file_load_asset(struct file *file, const char *path);
-int file_save(const char* path, void* data, std::size_t size);
-int file_remove(const char* path);
-void file_unload(struct file *file);
-
 #ifdef __cplusplus
 }
 #endif
+
+} // end of namespace wuh
 
 #endif //ENGINE_FRAMEWORK_H

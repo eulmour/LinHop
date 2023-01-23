@@ -6,6 +6,8 @@
 #include "Input.h"
 #include <stdexcept>
 
+namespace wuh {
+
 #if defined(__ANDROID__) || defined(ANDROID)
 
 /**
@@ -35,7 +37,7 @@ Window::Window(const Config& config) {
     EGLint numConfigs;
     EGLConfig eglConfig;
 
-    this->android_app_ptr = config.androidApp();
+    this->android_app_ptr = config.android_app();
 
     this->display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
 
@@ -89,15 +91,15 @@ Window::~Window() {
 }
 
 void Window::close() {
-    this->should_close = true;
+    this->should_close_ = true;
     ANativeActivity_finish(android_app_ptr->activity);
 }
 
-bool Window::isShouldClose() {
-    return this->should_close;
+bool Window::should_close() {
+    return this->should_close_;
 }
 
-void Window::swapBuffers() {
+void Window::swap_buffers() {
     eglSwapBuffers(this->display, this->surface);
 }
 
@@ -105,8 +107,8 @@ float Window::delta_time() {
     return this->frameInfo.delta_time;
 }
 
-Window::Config &Window::Config::androidApp(android_app *androidApp) {
-    this->m_AndroidApp = androidApp;
+Window::Config &Window::Config::android_app(android_app *android_app) {
+    this->android_app_ = android_app;
     return *this;
 }
 
@@ -127,11 +129,11 @@ void Window::glfw_window_focus_callback(GLFWwindow* window, int focused) {
 	auto* e = reinterpret_cast<Engine*>(glfwGetWindowUserPointer(window));
 
     if (!focused && !!glfwGetWindowAttrib(window, GLFW_FOCUSED)) {
-		e->window->setFocused(true);
+		e->window->focused(true);
         return;
     }
 
-    e->window->setFocused(!!focused);
+    e->window->focused(!!focused);
 }
 
 Window::Window(const Config& config) {
@@ -173,8 +175,8 @@ Window::Window(const Config& config) {
     /* Create a windowed mode window and its OpenGL context */
     if (!config.fullscreen()) {
         this->glfw_window = glfwCreateWindow(
-            config.innerSize()[0],
-            config.innerSize()[1],
+            config.size()[0],
+            config.size()[1],
             config.title().c_str(), nullptr, nullptr);
     } else {
 
@@ -192,8 +194,8 @@ Window::Window(const Config& config) {
         throw std::runtime_error("glfwCreateWindow failed");
     }
 
-    if (config.userPointer() != nullptr) {
-        glfwSetWindowUserPointer(this->glfw_window, config.userPointer());
+    if (config.user_pointer() != nullptr) {
+        glfwSetWindowUserPointer(this->glfw_window, config.user_pointer());
     }
 
     // Make the window's context current
@@ -218,22 +220,22 @@ Window::Window(const Config& config) {
         throw std::runtime_error("glewInit failed");
     }
 
-    engine_catch_error();
+    Graphics::catch_error();
     LOGI("GL Init: %d", GL_VERSION);
 }
 
 Window::~Window() = default;
 
 void Window::close() {
-    should_close = true;
+    should_close_ = true;
     glfwSetWindowShouldClose(this->glfw_window, 1);
 }
 
-bool Window::isShouldClose() {
+bool Window::should_close() {
     return glfwWindowShouldClose(this->glfw_window);
 }
 
-void Window::swapBuffers() {
+void Window::swap_buffers() {
     glfwSwapBuffers(this->glfw_window);
 }
 
@@ -242,7 +244,7 @@ float Window::delta_time() {
 //    this->frameInfo.deltaTime = currentFrame - this->frameInfo.lastFrameTime;
 //    this->frameInfo.lastFrameTime = currentFrame;
 //    this->frameInfo.deltaTime = this->frameInfo.lastFrameTime = 1.f / 60.f;
-    return this->frameInfo.delta_time;
+    return this->frame_info_.delta_time;
 }
 
 // IVec2 Window::size() {
@@ -258,15 +260,15 @@ void Window::size(IVec2 size) {
 
 #endif
 
-float Window::delta_time_last() const { return this->frameInfo.last_frame_time; }
+float Window::delta_time_last() const { return this->frame_info_.last_frame_time; }
 
 Window::Config &Window::Config::title(std::string title) {
     this->title_ = std::move(title);
     return *this;
 }
 
-Window::Config &Window::Config::innerSize(int width, int height) {
-    this->inner_size_ = {width, height};
+Window::Config &Window::Config::size(int width, int height) {
+    this->size_ = {width, height};
     return *this;
 }
 
@@ -300,7 +302,9 @@ Window::Config &Window::Config::decorated(bool decorated) {
     return *this;
 }
 
-Window::Config &Window::Config::userPointer(void* ptr) {
+Window::Config &Window::Config::user_pointer(void* ptr) {
     this->user_ptr_ = ptr;
     return *this;
 }
+
+} // end of namespace wuh

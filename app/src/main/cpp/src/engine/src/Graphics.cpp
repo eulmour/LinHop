@@ -1,6 +1,12 @@
 #include "Graphics.h"
 #include "Framework.h"
 #include <stdio.h>
+#include <string>
+#include <sstream>
+#include <stdexcept>
+#include <iomanip>
+#include <iostream>
+#include <unordered_map>
 
 #if defined(__ANDROID__) || defined(ANDROID)
 #include <android/sensor.h>
@@ -9,6 +15,8 @@
 #include "GL/glew.h"
 #include "GLFW/glfw3.h"
 #endif
+
+namespace wuh {
 
 #ifndef ANDROID
 static void GLAPIENTRY errorOccurredGL(
@@ -21,105 +29,108 @@ static void GLAPIENTRY errorOccurredGL(
     if (severity == GL_DEBUG_SEVERITY_NOTIFICATION)
         return;
 
-    const char* _source;
-    const char* _type;
-    const char* _severity;
+    const char* source_str;
+    const char* type_str;
+    const char* severity_str;
 
     switch (source) {
         case GL_DEBUG_SOURCE_API:
-            _source = "API";
+            source_str = "API";
             break;
 
         case GL_DEBUG_SOURCE_WINDOW_SYSTEM:
-            _source = "WINDOW SYSTEM";
+            source_str = "WINDOW SYSTEM";
             break;
 
         case GL_DEBUG_SOURCE_SHADER_COMPILER:
-            _source = "SHADER COMPILER";
+            source_str = "SHADER COMPILER";
             break;
 
         case GL_DEBUG_SOURCE_THIRD_PARTY:
-            _source = "THIRD PARTY";
+            source_str = "THIRD PARTY";
             break;
 
         case GL_DEBUG_SOURCE_APPLICATION:
-            _source = "APPLICATION";
+            source_str = "APPLICATION";
             break;
 
         case GL_DEBUG_SOURCE_OTHER:
-            _source = "UNKNOWN";
+            source_str = "UNKNOWN";
             break;
 
         default:
-            _source = "UNKNOWN";
+            source_str = "UNKNOWN";
             break;
     }
 
     switch (type) {
         case GL_DEBUG_TYPE_ERROR:
-            _type = "ERROR";
+            type_str = "ERROR";
             break;
 
         case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
-            _type = "DEPRECATED BEHAVIOR";
+            type_str = "DEPRECATED BEHAVIOR";
             break;
 
         case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
-            _type = "UDEFINED BEHAVIOR";
+            type_str = "UDEFINED BEHAVIOR";
             break;
 
         case GL_DEBUG_TYPE_PORTABILITY:
-            _type = "PORTABILITY";
+            type_str = "PORTABILITY";
             break;
 
         case GL_DEBUG_TYPE_PERFORMANCE:
-            _type = "PERFORMANCE";
+            type_str = "PERFORMANCE";
             break;
 
         case GL_DEBUG_TYPE_OTHER:
-            _type = "OTHER";
+            type_str = "OTHER";
             break;
 
         case GL_DEBUG_TYPE_MARKER:
-            _type = "MARKER";
+            type_str = "MARKER";
             break;
 
         default:
-            _type = "UNKNOWN";
+            type_str = "UNKNOWN";
             break;
     }
 
     switch (severity) {
         case GL_DEBUG_SEVERITY_HIGH:
-            _severity = "HIGH";
+            severity_str = "HIGH";
             break;
 
         case GL_DEBUG_SEVERITY_MEDIUM:
-            _severity = "MEDIUM";
+            severity_str = "MEDIUM";
             break;
 
         case GL_DEBUG_SEVERITY_LOW:
-            _severity = "LOW";
+            severity_str = "LOW";
             break;
 
         case GL_DEBUG_SEVERITY_NOTIFICATION:
-            _severity = "NOTIFICATION";
+            severity_str = "NOTIFICATION";
             break;
 
         default:
-            _severity = "UNKNOWN";
+            severity_str = "UNKNOWN";
             break;
     }
+    
+    std::stringstream ss;
+    ss  << "Message from OpenGL: source: " << source_str
+        << ", type: " << type_str
+        << ", id: 0x" << std::uppercase << std::setfill('0') << std::setw(4) << std::hex << id
+        << " , severity: " << severity_str << "\n"
+        << message << "\n";
 
-    printf("Message from OpenGL: source: %s, type: %s, "
-           "id: 0x%x, severity: %s\n",
-           _source, _type, id, _severity);
-
-    printf("%s\n", message);
-
-    // if (type == GL_DEBUG_SEVERITY_HIGH) {
-        // exit(-1);
-    // }
+    if (severity == GL_DEBUG_SEVERITY_HIGH) {
+        throw std::runtime_error(ss.str());
+    } else {
+        std::cout << ss.rdbuf();
+    }
 }
 #endif
 
@@ -140,7 +151,7 @@ Graphics& Graphics::init() {
     glDebugMessageCallback(errorOccurredGL, this);
 #endif
 
-    engine_catch_error();
+    Graphics::catch_error();
     return *this;
 }
 
@@ -162,4 +173,34 @@ Graphics& Graphics::viewport(IVec2 size) {
     return *this;
 }
 
-const IVec2& Graphics::viewport() const { return this->viewport_; }
+void Graphics::catch_error() {
+
+    GLenum error = glGetError();
+
+    std::unordered_map<unsigned int, std::string> errors {
+        {GL_INVALID_ENUM, "GL_INVALID_ENUM"},
+        {GL_INVALID_VALUE, "GL_INVALID_VALUE"},
+        {GL_INVALID_OPERATION, "GL_INVALID_OPERATION"},
+        {GL_OUT_OF_MEMORY, "GL_OUT_OF_MEMORY"},
+        {GL_INVALID_FRAMEBUFFER_OPERATION, "GL_INVALID_FRAMEBUFFER_OPERATION"},
+    };
+
+    std::stringstream ss;
+
+    while (error != GL_NO_ERROR) {
+
+        try {
+            ss << "GL error: " << errors.at(error) << "\n";
+        } catch (...) {
+            throw std::runtime_error("Unknown GL error");
+        }
+
+        error = glGetError();
+    }
+
+    if (ss.rdbuf()->in_avail() != 0) {
+        throw std::runtime_error(ss.str());
+    }
+}
+
+} // end of namespace wuh

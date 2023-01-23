@@ -1,4 +1,5 @@
 #include "Shader.h"
+#include "Graphics.h"
 #include <exception>
 #include <array>
 #include <fstream>
@@ -9,7 +10,7 @@
 #ifdef __APPLE__
 #define SHADER_GL_VERSION "#version 330 core\n"
 #else
-#define SHADER_GL_VERSION "#version 300 es \n"
+#define SHADER_GL_VERSION "#version 300 es\n"
 #endif
 
 #if !defined(__ANDROID__) && !defined(ANDROID)
@@ -25,6 +26,8 @@
         "vec4(-(right + left) / (right - left), -(top + bottom) / (top - bottom), -(zFar + zNear) / (zFar - zNear), 1.0)\n"\
     ");\n"\
 "}\n"
+
+namespace wuh {
 
 Shader::Shader(
     unsigned vertex_id,
@@ -96,7 +99,7 @@ Shader::~Shader() {
 unsigned Shader::compile(unsigned shader_type, const char* src) {
 
     GLuint shader = glCreateShader(shader_type);
-    engine_catch_error();
+    Graphics::catch_error();
     glShaderSource(shader, 1, &src, NULL);
     glCompileShader(shader);
 
@@ -224,3 +227,5 @@ Shader::Builder& Shader::Builder::geometry(const std::string& shader_src) {
 	this->shader_id[static_cast<int>(Shader::Builder::Type::GEOMETRY)] = Shader::compile(GL_GEOMETRY_SHADER, src.c_str());
     return *this;
 }
+
+} // end of namespace wuh

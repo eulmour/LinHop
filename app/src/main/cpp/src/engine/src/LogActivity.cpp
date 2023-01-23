@@ -2,6 +2,8 @@
 #include <sstream>
 #include <fstream>
 
+namespace wuh {
+
 LogActivity::LogActivity(Engine& e, std::string content)
 	: content(std::move(content))
 {
@@ -54,21 +56,21 @@ void LogActivity::suspend(Engine& e) {
 void LogActivity::render(Engine& e) {
 
 	// update
-	if (res->back_btn.clicked(e.input.getPointerArray()[0])) { // TODO collision
+	if (res->back_btn.clicked(e.input.pointers()[0])) { // TODO collision
 		e.window->close();
 	}
-	if (e.input.isKeyUp(Input::Key::Back)) {
-		e.popScene();
+	if (e.input.key_up(Input::Key::Back)) {
+		e.pop_scene();
 		return;
 	}
 
-	if (e.input.isKeyDown(Input::Key::Pointer)) {
+	if (e.input.key_down(Input::Key::Pointer)) {
 		this->res->area.on_touch(e.input);
 	}
-	if (e.input.isKeyHold(Input::Key::Pointer)) {
+	if (e.input.key_hold(Input::Key::Pointer)) {
 		this->res->area.on_hold(e.input);
 	}
-	if (e.input.isKeyUp(Input::Key::Pointer)) {
+	if (e.input.key_up(Input::Key::Pointer)) {
 		this->res->area.on_release(e.input);
 	}
 
@@ -76,14 +78,16 @@ void LogActivity::render(Engine& e) {
     e.graphics.clear(Color{.5f, .5f, .5f, 1.f});
 
 	res->area.draw(e.graphics, res->d_default_text);
-	res->header_rect.scale = Vec2{ static_cast<float>(e.graphics.viewport()[0]), 59.f };
+	res->header_rect.scale = Vec2{ static_cast<float>(e.graphics.size()[0]), 59.f };
 	res->header_rect.use();
 	res->header_rect.draw(e.graphics, &Vec2{ 0.f, 0.f }[0] , Color{1.f, 1.f, 1.f, 0.8f});
 
 	res->separator.use();
 	res->separator.draw(e.graphics, &Vec4{
-		0.f, 60.f, static_cast<float>(e.graphics.viewport()[0]), 60.f
+		0.f, 60.f, static_cast<float>(e.graphics.size()[0]), 60.f
 		}[0], Color{0.f, 0.f, 0.f, 1.f}, 2.f);
 
 	res->back_btn.draw(e.graphics, Vec2{20.f, 20.f});
 }
+
+} // end of namespace wuh

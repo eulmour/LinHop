@@ -1,10 +1,14 @@
 #include "SettingsScene.hpp"
 
-#define PROLOG(e) \
-    float screenW = static_cast<float>(e.window->physical_size()[0]); \
-    float screenH = static_cast<float>(e.window->physical_size()[1]);
+// #define PROLOG(e) \
+    // float screenW = static_cast<float>(e.window->physical_size()[0]); \
+    // float screenH = static_cast<float>(e.window->physical_size()[1]);
 
-SettingsScene::SettingsScene(Engine& e) {
+#define PROLOG(e) \
+    float screenW = static_cast<float>(e.window->size()[0]); \
+    float screenH = static_cast<float>(e.window->size()[1]);
+
+SettingsScene::SettingsScene(wuh::Engine& e) {
 
     PROLOG(e)
 
@@ -27,28 +31,31 @@ SettingsScene::SettingsScene(Engine& e) {
         screenW/2 - 58, screenH / 2.f + 280.f
     });
 
-    struct file saveDataFile = {}; if (file_load(&saveDataFile, "savedata.dat")) {
-        memcpy((void*)&this->save_data, saveDataFile.data, sizeof(SaveData));
-        file_unload(&saveDataFile);
+    try {
+        wuh::File save_data_file("savedata.dat");
+        memcpy((void*)&this->save_data, save_data_file.data(), sizeof(SaveData));
+    } catch (const std::exception& exception) {
+        e.log() << exception.what() << "\n";
+        e.show_log();
     }
 }
 
-void SettingsScene::resume(Engine&) {
-    this->small_text = std::make_unique<Text>(nullptr, SettingsScene::small_text_size);
-    this->medium_text = std::make_unique<Text>(nullptr, SettingsScene::medium_text_size);
-    this->large_text = std::make_unique<Text>(nullptr, SettingsScene::large_text_size);
+void SettingsScene::resume(wuh::Engine&) {
+    this->small_text = std::make_unique<wuh::Text>(nullptr, SettingsScene::small_text_size);
+    this->medium_text = std::make_unique<wuh::Text>(nullptr, SettingsScene::medium_text_size);
+    this->large_text = std::make_unique<wuh::Text>(nullptr, SettingsScene::large_text_size);
 }
 
-void SettingsScene::suspend(Engine&) {
+void SettingsScene::suspend(wuh::Engine&) {
     this->small_text.reset();
     this->medium_text.reset();
     this->large_text.reset();
 }
 
-void SettingsScene::update(Engine&) {
+void SettingsScene::update(wuh::Engine&) {
 }
 
-void SettingsScene::render(Engine& e) {
+void SettingsScene::render(wuh::Engine& e) {
 
     this->update(e);
 
@@ -93,7 +100,8 @@ void SettingsScene::onEventSelect() {
 
             save_data.max_score_classic = 0L;
             save_data.max_score_hidden = 0L;
-            file_remove("savedata.dat");
+            // wuh::file_remove("savedata.dat");
+            wuh::File::remove("savedata.dat");
 
             break; // end of RESET_STATISTICS
 

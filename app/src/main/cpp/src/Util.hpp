@@ -25,7 +25,7 @@ int orientation(const glm::vec2 p, const glm::vec2 q, const glm::vec2 r);
 bool intersect(glm::vec2 a1_pos, glm::vec2 a2_pos, glm::vec2 b1_pos, glm::vec2 b2_pos);
 int sign(int value);
 int checkLineSides(const glm::vec2 a_pos, const glm::vec2 b_pos, const glm::vec2 ball);
-Color randColor(float factor = 0.5f, float alpha = 1.0f);
+wuh::Color randColor(float factor = 0.5f, float alpha = 1.0f);
 
 template <typename T>
 static T normalize(T range_min, T range_max, T from)

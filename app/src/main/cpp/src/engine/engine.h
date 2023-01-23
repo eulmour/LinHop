@@ -21,7 +21,7 @@
                              _In_ int nCmdShow) { \
             (void)hInstance, (void)hPrevInstance, (void)lpCmdLine, (void)nCmdShow; \
             auto* app = new MainApplication(); \
-            auto* engine = new Engine(*app, __argc, __argv); \
+            auto* engine = new wuh::Engine(*app, __argc, __argv); \
             engine->run(); \
             delete engine; \
             delete app; \
@@ -31,7 +31,7 @@
 #   define ENGINE_ENTRY(MainApplication) \
         void android_main(struct android_app* state) { \
             auto* app = new MainApplication(); \
-            auto* engine = new Engine(*app, state); \
+            auto* engine = new wuh::Engine(*app, state); \
             engine->run(); \
             delete engine; \
             delete app; \
@@ -40,7 +40,7 @@
 #   define ENGINE_ENTRY(MainApplication) \
         int main(int argc, char *argv[]) { \
             auto* app = new MainApplication(); \
-            auto* engine = new Engine(*app, argc, argv); \
+            auto* engine = new wuh::Engine(*app, argc, argv); \
             engine->run(); \
             delete engine; \
             delete app; \

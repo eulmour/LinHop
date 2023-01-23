@@ -1,4 +1,6 @@
 #include "Framework.h"
+#include "Graphics.h"
+#include "File.h"
 #include <memory.h>
 #include <stdarg.h>
 #include <cstring>
@@ -19,6 +21,8 @@
 #if defined (WIN32) || defined (_WIN32)
     #include <Windows.h>
 #endif
+
+namespace wuh {
 
 void engine_log_message(const char* fmt, ...) {
 
@@ -72,36 +76,6 @@ void engine_log_message(const char* fmt, ...) {
     errno = 0;
 }
 
-void engine_catch_error() {
-
-    GLenum error = glGetError();
-
-    std::unordered_map<unsigned int, std::string> errors {
-        {GL_INVALID_ENUM, "GL_INVALID_ENUM"},
-        {GL_INVALID_VALUE, "GL_INVALID_VALUE"},
-        {GL_INVALID_OPERATION, "GL_INVALID_OPERATION"},
-        {GL_OUT_OF_MEMORY, "GL_OUT_OF_MEMORY"},
-        {GL_INVALID_FRAMEBUFFER_OPERATION, "GL_INVALID_FRAMEBUFFER_OPERATION"},
-    };
-
-    std::stringstream ss;
-
-    while(error != GL_NO_ERROR) {
-
-        try {
-            ss << "GL error: " << errors.at(error) << "\n";
-        } catch (...) {
-            throw std::runtime_error("Unknown GL error");
-        }
-
-        error = glGetError();
-    }
-
-    if (ss.rdbuf()->in_avail() != 0) {
-        throw std::runtime_error(ss.str());
-    }
-}
-
 unsigned int create_shader(unsigned int shader_type, const char* src) {
 
     GLuint shader = glCreateShader(shader_type);
@@ -128,7 +102,7 @@ unsigned int create_shader(unsigned int shader_type, const char* src) {
         abort();
     }
 
-    engine_catch_error();
+    Graphics::catch_error();
     return shader;
 }
 
@@ -175,7 +149,7 @@ unsigned int texture_create(int width, int height, const void* data) {
 
 unsigned int texture_load_from_file(const char* path) {
 
-    if (!engine_file_exists_(path)) {
+    if (!File::exists(path)) {
         throw std::runtime_error("File " + std::string(path) + " does not exist");
     }
 
@@ -213,178 +187,4 @@ void texture_unload(unsigned int id) {
     glDeleteTextures(1, &id);
 }
 
-int file_load(struct file *file, const char *path) {
-
-    if (!path)
-        return 0;
-
-    FILE* f = fopen(path, "r"); if(!f) {
-        LOGW("IO: Opening file \"%s\" for read failed", path);
-        return 0;
-    }
-
-    fseek(f, 0, SEEK_END);
-    file->size = ftell(f);
-    fseek(f, 0, SEEK_SET);
-
-#if defined(ANDROID)
-
-    const char absolute_wd_path[] = "data/data/com.pachuch.linhop/files/";
-    std::size_t parameter_path_length = strlen(path);
-    file->path_size = parameter_path_length + sizeof(absolute_wd_path);
-    file->path = (char*)malloc(file->path_size);
-
-    memcpy(file->path, absolute_wd_path, sizeof(absolute_wd_path));
-    memcpy(file->path + sizeof(absolute_wd_path) - sizeof(char), path, parameter_path_length + 1);
-
-#else
-
-    file->path_size = strlen(path) + sizeof(path[0]);
-    if (!(file->path = (char*)malloc(file->path_size * sizeof(char)))) {
-        LOGE("Unable to allocate memory");
-        return 0;
-    }
-
-    memcpy(file->path, path, file->path_size * sizeof(char));
-
-#endif
-
-    if ((file->data = malloc(file->size)) == NULL) {
-        LOGE("Unable to allocate memory");
-		fclose(f);
-        return 0;
-    }
-
-    fread(file->data, file->size, 1, f);
-    fclose(f);
-
-#ifndef NDEBUG
-    LOGI("IO: File read \"%s\"", path);
-#endif
-
-    return 1;
-}
-
-int file_save(const char* path, void* data, std::size_t size) {
-
-    if (!path)
-        return 0;
-
-    char* new_path = NULL;
-    std::size_t new_length = 0;
-
-#if defined(ANDROID)
-
-    const char absolute_wd_path[] = "data/data/com.pachuch.linhop/files/";
-
-    std::size_t parameter_path_length = strlen(path);
-    new_length = parameter_path_length + sizeof(absolute_wd_path);
-    new_path = (char*)malloc(new_length);
-
-    memcpy(new_path, absolute_wd_path, sizeof(absolute_wd_path));
-    memcpy(new_path + sizeof(absolute_wd_path) - sizeof(char), path, parameter_path_length + 1);
-
-#else
-
-    new_length = strlen(path) + sizeof(path[0]);
-    if ((new_path = (char*)malloc(new_length * sizeof(char))) == NULL) {
-		LOGE("Unable to allocate memory");
-        return 0;
-    }
-
-    memcpy(new_path, path, new_length * sizeof(char));
-
-#endif
-
-    FILE* f = fopen(new_path, "wb"); if(!f) {
-        LOGW("IO: Opening file \"%s\" for write failed", new_path);
-        return 0;
-    }
-
-#ifndef NDEBUG
-    LOGI("IO: Writing to file \"%s\"", path);
-#endif
-
-    fwrite(data, size, 1, f);
-    fclose(f);
-    free(new_path);
-
-    return 1;
-}
-
-int file_remove(const char* path) {
-    return remove(path) == 0;
-}
-
-void file_unload(struct file* file) {
-    free(file->data);
-    free((void*)file->path);
-    memset((void*)file, 0, sizeof(struct file));
-}
-
-#if defined(__ANDROID__) || defined(ANDROID)
-#   include <unistd.h>
-
-int file_load_asset(struct file* file, const char* path) {
-
-    if (!engine_instance->asset_mgr)
-        return 0;
-
-    AAsset* asset = AAssetManager_open(engine_instance->asset_mgr, path, AASSET_MODE_BUFFER);
-
-    if (asset != NULL) {
-
-        // copy file path
-        file->path_size = strnlen(path, 255);
-        file->path = (char*)malloc((file->path_size + 1) * sizeof(char));
-        memcpy((void*)file->path, path, (file->path_size + 1) * sizeof(char));
-
-        file->size = AAsset_getLength(asset);
-        file->data = malloc(file->size);
-        memcpy(file->data, AAsset_getBuffer(asset), file->size);
-        AAsset_close(asset);
-
-        return 1;
-
-    } else {
-        LOGE("ERROR: Failed to read file to string, asset not found. (file: %s)", path);
-        return 0;
-    }
-}
-
-int engine_get_cwd(char* buf, std::size_t max_size) {
-    return getcwd(buf, max_size) != NULL;
-}
-
-#elif defined (__unix__) || (defined (__APPLE__) && defined(__MACH__))
-#   include "unistd.h"
-
-int file_load_asset(struct file* file, const char* path) {
-    return file_load(file, path);
-}
-
-int engine_get_cwd(char* buf, std::size_t max_size) {
-    return getcwd(buf, max_size) != NULL;
-}
-
-int engine_file_exists_(const char *path) {
-    return access( path, F_OK ) == 0;
-}
-
-#elif defined (WIN32) || defined (_WIN32)
-#   include <Windows.h>
-
-int file_load_asset(struct file* file, const char* path) {
-    return file_load(file, path);
-}
-
-int engine_get_cwd(char* buf, std::size_t max_size) {
-    return GetCurrentDirectoryA(static_cast<DWORD>(max_size), buf) != 0;
-}
-
-int engine_file_exists_(const char* path) {
-	DWORD dwAttrib = GetFileAttributes(path);
-	return (dwAttrib != INVALID_FILE_ATTRIBUTES && !(dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
-}
-
-#endif
+} // end of namespace wuh

@@ -4,8 +4,11 @@
 #define AUDIO_MAX_SOURCES 10
 
 #include "Framework.h"
+#include "File.h"
 #include <vector>
 #include <memory>
+
+namespace wuh {
 
 struct AudioInternal;
 struct AudioSourceInternal;
@@ -14,7 +17,7 @@ struct AudioSource {
 
     enum state state;
     float vol;
-    struct file file_data;
+    File file;
     int16_t* data;
 
     size_t id;
@@ -60,5 +63,7 @@ protected:
     float master_vol;
     // short buffer[512][2];
 };
+
+} // end of namespace wuh
 
 #endif //ENGINE_AUDIO_H

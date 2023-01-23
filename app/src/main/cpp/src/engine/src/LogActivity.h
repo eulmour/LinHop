@@ -8,6 +8,8 @@
 #include <vector>
 #include <algorithm>
 
+namespace wuh {
+
 struct LogActivity : public Scene {
 
     explicit LogActivity(Engine& e, std::string content);
@@ -99,15 +101,15 @@ protected:
 
     struct ScrollArea : Object {
 
-        ScrollArea(Vec2 pos, Vec2 size) : pos(pos), size(size) {}
+        ScrollArea(Vec2 pos, Vec2 size) : pos_(pos), size_(size) {}
 
         void draw(const Graphics& g, std::shared_ptr<Text> d) {
 
-			this->ml_text.draw(g, d, Vec2{ 20.f, this->pos[1] + 20.f + scroll_ }, Color{ 0.f, 0.f, 0.f, 1.f });
+			this->ml_text.draw(g, d, Vec2{ 20.f, pos_[1] + 20.f + scroll_ }, Color{ 0.f, 0.f, 0.f, 1.f });
 
-            if (this->restoring) {
+            if (restoring_) {
 
-                float max_height = std::min(0.f, -(this->ml_text.height() - this->size[1]));
+                float max_height = std::min(0.f, -(this->ml_text.height() - size_[1]));
                 constexpr static float error = -.1f;
 
 				if (scroll_ >= error) {
@@ -115,26 +117,26 @@ protected:
 				} else if (scroll_ <= max_height - error) {
                     scroll_ = ((scroll_ - max_height) / 1.2f) + max_height;
                 } else {
-					this->restoring = false;
+					restoring_ = false;
                 }
             }
         }
 
         void on_touch(Input& i) {
-			this->origin_scroll = i.getPointerArray()[0][1];
-			this->prev_scroll = scroll_;
+			origin_scroll_ = i.pointers()[0][1];
+			prev_scroll_ = scroll_;
         }
 
         void on_hold(Input& i) {
 
-            const float new_scroll = (i.getPointerArray()[0][1] - this->origin_scroll) + this->prev_scroll;
+            const float new_scroll = (i.pointers()[0][1] - origin_scroll_) + prev_scroll_;
 
 			if (new_scroll >= 0.f) {
                 scroll_ = new_scroll / 2.f;
                 return;
             }
 
-            float max_height = std::min(0.f, -(this->ml_text.height() - this->size[1]));
+            float max_height = std::min(0.f, -(this->ml_text.height() - size_[1]));
             if (new_scroll <= max_height) {
 				scroll_ = ((new_scroll - max_height) / 2.f) + max_height;
                 return;
@@ -145,24 +147,24 @@ protected:
 
         void on_release(Input& i) {
             (void)i;
-            if (scroll_ > 0.f || scroll_ < -this->ml_text.height() + this->size[1]) {
-				this->restoring = true;
+            if (scroll_ > 0.f || scroll_ < -this->ml_text.height() + size_[1]) {
+				restoring_ = true;
             }
         }
 
 		MultilineText ml_text{ "", 1 };
     protected:
-		Vec2 pos;
-		Vec2 size;
-		bool restoring{ false };
-		float scroll_{ 0.f }, outer_scroll{ 0.f }, prev_scroll{ 0.f }, origin_scroll{ 0.f };
+		Vec2 pos_;
+		Vec2 size_;
+		bool restoring_{ false };
+		float scroll_{ 0.f }, outer_scroll_{ 0.f }, prev_scroll_{ 0.f }, origin_scroll_{ 0.f };
     };
 
 	struct Resources {
         Resources(const Graphics& g)
             : area(
                 Vec2{ 0.f, 60.f },
-                Vec2{ static_cast<float>(g.viewport()[0]), static_cast<float>(g.viewport()[1]) - 60.f })
+                Vec2{ static_cast<float>(g.size()[0]), static_cast<float>(g.size()[1]) - 60.f })
         {}
 
         Line separator;
@@ -182,3 +184,5 @@ protected:
 };
 
 #endif // ENGINE_DEBUG_SCREEN_H
+
+} // end of namespace wuh

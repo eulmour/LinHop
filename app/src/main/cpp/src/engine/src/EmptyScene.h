@@ -3,6 +3,8 @@
 
 #include "Engine.h"
 
+namespace wuh {
+
 class EmptyScene : public Scene {
 
 public:
@@ -19,5 +21,7 @@ public:
     };
     static Color getBackgroundColor() { return {0.f, 0.f, 0.f, 0.f}; }
 };
+
+} // end of namespace wuh
 
 #endif //ENGINE_EMPTYSCENE_H

@@ -7,9 +7,9 @@
 #include "glm/vec2.hpp"
 #include "glm/vec4.hpp"
 
-struct MyLine : public Line {
+struct MyLine : public wuh::Line {
     MyLine()
-        : Line(Shader::Builder()
+        : wuh::Line(wuh::Shader::Builder()
 /*            .vertex(
                 "layout(location = 0) in vec2 position;\n"
 
@@ -33,11 +33,11 @@ struct MyLine : public Line {
                 "}")
             .build())*/
             .from_file("shaders/line_segment.glsl"))
-        , u_position(Shader::uniform_location(this->shader.id(), "u_position"))
+        , u_position(wuh::Shader::uniform_location(this->shader.id(), "u_position"))
     {}
 
-    void position(Vec4 pos) {
-        Shader::uniform_vec4(u_position, pos);
+    void position(wuh::Vec4 pos) {
+        wuh::Shader::uniform_vec4(u_position, pos);
     }
 
     unsigned u_position;
@@ -45,31 +45,31 @@ struct MyLine : public Line {
 
 struct Circle {
     glm::vec2 pos{};
-    Color color{};
+    wuh::Color color{};
     const unsigned int steps{static_cast<unsigned int>(3 + rand() % 7)};
     const float angle{3.1415926f * 2.0f / static_cast<float>(steps)};
     const float radius{20.0f};
 
     Circle();
-    Circle(glm::vec2 pos, Color color);
-    void draw(const Graphics& g, const Line& d, float width);
+    Circle(glm::vec2 pos, wuh::Color color);
+    void draw(const wuh::Graphics& g, const wuh::Line& d, float width);
 };
 
 struct Lines {
 
     Lines();
     void Push(glm::vec2 second, glm::vec2 first, bool isCol = true);
-    void draw(const Graphics& g);
-    void Reset(const Graphics& g);
+    void draw(const wuh::Graphics& g);
+    void Reset(const wuh::Graphics& g);
 
     struct Segment {
         bool collinear;
         glm::vec2 a_pos{};
         glm::vec2 b_pos{};
-        Vec4 color;
+        wuh::Vec4 color;
         Circle circle[2];
 
-        Segment(glm::vec2 a_pos, glm::vec2 b_pos, Color color, bool is_col = true);
+        Segment(glm::vec2 a_pos, glm::vec2 b_pos, wuh::Color color, bool is_col = true);
     };
 
     void activate();
@@ -80,7 +80,7 @@ struct Lines {
 private:
     static constexpr float width = 5.f;
     std::unique_ptr<MyLine> d_segment;
-    std::unique_ptr<Line> d_circle_segment;
+    std::unique_ptr<wuh::Line> d_circle_segment;
 };
 
 #endif //LINHOP_LINES_HPP

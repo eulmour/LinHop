@@ -12,6 +12,8 @@
 #include "Framework.h"
 #include <array>
 
+namespace wuh {
+
 class Input {
 
 public:
@@ -32,16 +34,16 @@ public:
     using InputArray = std::array<State, static_cast<int>(Key::EOL)>;
 
     Input();
-    void clearStates();
-    bool isKeyDown(Key key);
-    bool isKeyHold(Key key);
-    bool isKeyUp(Key key);
+    void clear_states();
+    bool key_down(Key key);
+    bool key_hold(Key key);
+    bool key_up(Key key);
     [[nodiscard]] State& get(Key key);
-    [[nodiscard]] InputArray& getInputArray() { return inputs; }
-    [[nodiscard]] PointerArray& getPointerArray() { return pointers; }
+    [[nodiscard]] InputArray& inputs() { return inputs_; }
+    [[nodiscard]] PointerArray& pointers() { return pointers_; }
 
 #if defined(__ANDROID__) || defined(ANDROID)
-    static int32_t androidHandleInput(android_app* app, AInputEvent* event);
+    static int32_t android_handle_input(android_app* app, AInputEvent* event);
 #else
     static void glfwCursorCallback_(GLFWwindow* window, double xpos, double ypos);
     static void glfwInputCallback_(GLFWwindow* window, int key, int scancode, int action, int mods);
@@ -50,8 +52,10 @@ public:
 
 protected:
 
-    InputArray inputs{};
-    PointerArray pointers{}; // pointer count
+    InputArray inputs_{};
+    PointerArray pointers_{}; // pointer count
 };
+
+} // end of namespace wuh
 
 #endif //ENGINE_INPUT_H

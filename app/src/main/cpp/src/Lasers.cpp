@@ -4,13 +4,13 @@
 
 #include "glm/vec4.hpp"
 
-#define LASERS_LINES_DEFAULT_COLOR Color{ 1.0f, 0.0f, 0.0f, 0.85f }
-#define LASERS_INNER_DEFAULT_COLOR Color{ 1.0f, 0.0f, 0.0f, 0.5f }
+#define LASERS_LINES_DEFAULT_COLOR wuh::Color{ 1.0f, 0.0f, 0.0f, 0.85f }
+#define LASERS_INNER_DEFAULT_COLOR wuh::Color{ 1.0f, 0.0f, 0.0f, 0.5f }
 
 Lasers::Lasers() {}
 Lasers::~Lasers() = default;
 
-void Lasers::trigger(const Graphics& g, float position) {
+void Lasers::trigger(const wuh::Graphics& g, float position) {
 
     if (live_time == 0) {
 
@@ -18,17 +18,17 @@ void Lasers::trigger(const Graphics& g, float position) {
 
         lasers.emplace_back(
             glm::vec2{ position, 0.0f },
-            glm::vec2{ position, static_cast<float>(g.viewport()[1]) });
+            glm::vec2{ position, static_cast<float>(g.size()[1]) });
 
-        const auto area_width = g.viewport()[0] / 3.0f;
+        const auto area_width = g.size()[0] / 3.0f;
         lasers.emplace_back(
             glm::vec2{position + area_width, 0.0f },
-            glm::vec2{position + area_width, static_cast<float>(g.viewport()[1]) }
+            glm::vec2{position + area_width, static_cast<float>(g.size()[1]) }
         );
     }
 }
 
-void Lasers::draw(const Graphics& g, const Line& drawable)
+void Lasers::draw(const wuh::Graphics& g, const wuh::Line& drawable)
 {
     if (lasers.size() > 0) {
         if (live_time < 1) {
@@ -36,7 +36,8 @@ void Lasers::draw(const Graphics& g, const Line& drawable)
         } else {
 
             for (const Lasers::Laser& laser : lasers) {
-                drawable.draw(g, &glm::vec4{laser.a[0], laser.a[1], laser.b[0], laser.b[1] }[0], LASERS_LINES_DEFAULT_COLOR);
+                drawable.use();
+                drawable.draw(g, &glm::vec4{laser.a[0], laser.a[1], laser.b[0], laser.b[1] }[0], LASERS_LINES_DEFAULT_COLOR, 5.f);
             }
 
             if (live_time < 60) {
@@ -44,7 +45,7 @@ void Lasers::draw(const Graphics& g, const Line& drawable)
                 this->rect_drawable->rot = 0.f;
 
                 this->rect_drawable->scale[0] = lasers.back().a[0] - lasers.front().a[0];
-                this->rect_drawable->scale[1] = static_cast<float>(g.viewport()[1]);
+                this->rect_drawable->scale[1] = static_cast<float>(g.size()[1]);
                 this->rect_drawable->draw(g, &glm::vec2{lasers.front().a[0], lasers.front().a[1] }[0], LASERS_INNER_DEFAULT_COLOR);
             }
 
@@ -54,7 +55,7 @@ void Lasers::draw(const Graphics& g, const Line& drawable)
 }
 
 void Lasers::activate() {
-    this->rect_drawable = std::make_unique<Rect>();
+    this->rect_drawable = std::make_unique<wuh::Rect>();
     this->rect_drawable->scale[0] = 50.f;
     this->rect_drawable->scale[1] = 50.f;
     // this->rect_drawable->useTexture(texture_load_from_file("textures/pixel.png"));

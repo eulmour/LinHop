@@ -6,7 +6,7 @@ extern float scroll;
 
 Sparks::~Sparks() = default;
 
-void Sparks::draw(const Graphics& g) {
+void Sparks::draw(const wuh::Graphics& g) {
 
     auto current = sparks.begin();
     auto end = sparks.end();
@@ -16,7 +16,7 @@ void Sparks::draw(const Graphics& g) {
 
         this->rect_drawable->rot = util::degrees(std::atan2(-current->vel[0], -current->vel[1]));
         this->rect_drawable->scale = current->size;
-        this->rect_drawable->draw(g, &glm::vec2{current->pos[0], current->pos[1] - scroll }[0], Color{
+        this->rect_drawable->draw(g, &glm::vec2{current->pos[0], current->pos[1] - scroll }[0], wuh::Color{
             current->color[0],
             current->color[1],
             current->color[2],
@@ -40,8 +40,8 @@ void Sparks::push(glm::vec2 position) {
 }
 
 void Sparks::activate() {
-    this->rect_drawable = std::make_unique<Rect>();
-    this->rect_drawable->useTexture(texture_load_from_file("textures/sparkle.png"));
+    this->rect_drawable = std::make_unique<wuh::Rect>();
+    this->rect_drawable->useTexture(wuh::texture_load_from_file("textures/sparkle.png"));
     this->rect_drawable->scale[0] = 50.f; // TODO ?
     this->rect_drawable->scale[1] = 50.f;
 }

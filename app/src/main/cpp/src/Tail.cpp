@@ -12,7 +12,7 @@ void Tail::push(glm::vec2 a, glm::vec2 b) {
     tail.push_front(TailLine(a, b));
 }
 
-void Tail::draw(const Graphics& g, const Line& drawable) {
+void Tail::draw(const wuh::Graphics& g, const wuh::Line& drawable) {
 
     auto current = tail.begin();
     auto end = tail.end();

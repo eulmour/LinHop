@@ -99,7 +99,7 @@ int sign(int value) {
     return value >= 0 ? 1 : -1;
 }
 
-Color randColor(float factor, float alpha) {
+wuh::Color randColor(float factor, float alpha) {
     return {
         std::min(static_cast<float>(std::rand() % 255) / 255 + factor, 1.0f),
         std::min(static_cast<float>(std::rand() % 255) / 255 + factor, 1.0f),

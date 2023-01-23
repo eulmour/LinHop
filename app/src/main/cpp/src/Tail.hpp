@@ -23,7 +23,7 @@ public:
     };
 
     void push(glm::vec2 a, glm::vec2 b);
-    void draw(const Graphics& g, const Line& drawable);
+    void draw(const wuh::Graphics& g, const wuh::Line& drawable);
     void reset();
 
 public:

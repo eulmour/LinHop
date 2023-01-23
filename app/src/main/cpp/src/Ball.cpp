@@ -5,16 +5,16 @@ extern float scroll;
 
 using namespace linhop;
 
-Ball::Ball(const Graphics& g) : pos{static_cast<float>(g.viewport()[0]) / 2.f, static_cast<float>(g.viewport()[1]) / 2.f}
+Ball::Ball(const wuh::Graphics& g) : pos{static_cast<float>(g.size()[0]) / 2.f, static_cast<float>(g.size()[1]) / 2.f}
 {}
 
 Ball::~Ball() {}
 
 void Ball::activate() {
-    this->rect_drawable = std::make_unique<Rect>();
+    this->rect_drawable = std::make_unique<wuh::Rect>();
     this->rect_drawable->scale[0] = radius * 2;
     this->rect_drawable->scale[1] = radius * 2;
-    this->rect_drawable->useTexture(texture_load_from_file("textures/circle.png"));
+    this->rect_drawable->useTexture(wuh::texture_load_from_file("textures/circle.png"));
 }
 
 void Ball::deactivate() {
@@ -61,15 +61,15 @@ void Ball::move(float dt) {
         --bounce_cool_down;
 }
 
-void Ball::draw(const Graphics& g) const {
-    this->rect_drawable->draw(g, &glm::vec2{pos[0] - radius, pos[1] - scroll - radius}[0], Color{1.f, 1.f, 1.f, 1.f});
+void Ball::draw(const wuh::Graphics& g) const {
+    this->rect_drawable->draw(g, &glm::vec2{pos[0] - radius, pos[1] - scroll - radius}[0], wuh::Color{1.f, 1.f, 1.f, 1.f});
 }
 
-void Ball::reset(const Graphics& g) {
+void Ball::reset(const wuh::Graphics& g) {
 
     this->pos = {
-        static_cast<float>(g.viewport()[0]) / 2.f,
-        static_cast<float>(g.viewport()[1]) / 2.f + 30.f
+        static_cast<float>(g.size()[0]) / 2.f,
+        static_cast<float>(g.size()[1]) / 2.f + 30.f
     };
 
     this->vel = { 0.f, 0.f };

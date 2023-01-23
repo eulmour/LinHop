@@ -6,16 +6,16 @@
 #include "Util.hpp"
 #include "Label.hpp"
 
-class SettingsScene : public Scene {
+class SettingsScene : public wuh::Scene {
 
 public:
-    explicit SettingsScene(Engine& e);
+    explicit SettingsScene(wuh::Engine& e);
     ~SettingsScene() override = default;
-    void resume(Engine& engine) override;
-    void suspend(Engine& engine) override;
-    void update(Engine& engine);
-    void render(Engine& engine) override;
-    Color getBackgroundColor() const { return { 0.f, 0.f, 0.f, 1.f }; }
+    void resume(wuh::Engine& engine) override;
+    void suspend(wuh::Engine& engine) override;
+    void update(wuh::Engine& engine);
+    void render(wuh::Engine& engine) override;
+    wuh::Color getBackgroundColor() const { return { 0.f, 0.f, 0.f, 1.f }; }
     void onEventPointerMove();
     void onEventPointerDown();
     void onEventPointerUp();
@@ -31,9 +31,9 @@ private:
     static constexpr float medium_text_size = 50.f;
     static constexpr float large_text_size = 72.f;
 
-    std::unique_ptr<Text> small_text;
-    std::unique_ptr<Text> medium_text;
-    std::unique_ptr<Text> large_text;
+    std::unique_ptr<wuh::Text> small_text;
+    std::unique_ptr<wuh::Text> medium_text;
+    std::unique_ptr<wuh::Text> large_text;
 
     std::unique_ptr<Label> label_settings_title;
     std::unique_ptr<Label> label_settings_fx;
@@ -54,10 +54,10 @@ private:
         FX_ENABLED, MUSIC_VOLUME, RESET_STATISTICS, BACK, END
     } settings_selected = SettingsSelected::FX_ENABLED;
 
-    static constexpr Color COLOR_SELECTED { 0.6f, 0.9f, 1.0f, 1.f };
-    static constexpr Color COLOR_HIDDEN { 0.5f, 0.35f, 0.6f, 1.f };
-    static constexpr Color COLOR_IDLE { 0.4f, 0.55f, 0.6f, 1.f };
-    static constexpr Color COLOR_DISABLED { 0.2f, 0.35f, 0.4f, 1.f };
+    static constexpr wuh::Color COLOR_SELECTED { 0.6f, 0.9f, 1.0f, 1.f };
+    static constexpr wuh::Color COLOR_HIDDEN { 0.5f, 0.35f, 0.6f, 1.f };
+    static constexpr wuh::Color COLOR_IDLE { 0.4f, 0.55f, 0.6f, 1.f };
+    static constexpr wuh::Color COLOR_DISABLED { 0.2f, 0.35f, 0.4f, 1.f };
 };
 
 template<>

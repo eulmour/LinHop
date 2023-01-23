@@ -16,7 +16,7 @@ public:
 
     struct Spark {
         glm::vec2 pos, vel{0.f, 0.f};
-        Vec2 size;
+        wuh::Vec2 size;
         glm::vec4 color{};
         unsigned int life{50};
         static constexpr float max_size{15.f};
@@ -27,7 +27,7 @@ public:
     };
 
     void push(glm::vec2 position);
-    void draw(const Graphics& g);
+    void draw(const wuh::Graphics& g);
     void activate();
     void deactivate();
 
@@ -37,7 +37,7 @@ private:
     static constexpr std::size_t spark_life{50};
     static constexpr std::size_t spark_amount{6};
     static constexpr float spark_gravity{2.5f};
-    std::unique_ptr<Rect> rect_drawable;
+    std::unique_ptr<wuh::Rect> rect_drawable;
 };
 
 #endif //LINHOP_SPARKS_HPP

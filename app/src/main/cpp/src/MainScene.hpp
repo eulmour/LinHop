@@ -12,37 +12,37 @@
 #include "Lasers.hpp"
 #include "Label.hpp"
 
-class MainScene : public Scene {
+class MainScene : public wuh::Scene {
 public:
     MainScene() = delete;
-    explicit MainScene(Engine& e);
+    explicit MainScene(wuh::Engine& e);
 
     ~MainScene() override;
 
-    void suspend(Engine& e) override;
-    void resume(Engine& e) override;
-    void render(Engine& e) override;
+    void suspend(wuh::Engine& e) override;
+    void resume(wuh::Engine& e) override;
+    void render(wuh::Engine& e) override;
     const char* title() override { return "LinHop"; }
-    bool update(Engine& e);
-    bool input(Engine& e);
+    bool update(wuh::Engine& e);
+    bool input(wuh::Engine& e);
 
     struct Resources {};
 
     std::unique_ptr<Resources> res;
 
-    std::unique_ptr<Audio> audio_engine;
-    std::unique_ptr<AudioSource> audio_main;
-    std::unique_ptr<AudioSource> audio_alt;
-    std::unique_ptr<AudioSource> audio_bounce;
-    std::unique_ptr<AudioSource> audio_fail_a;
-    std::unique_ptr<AudioSource> audio_fail_b;
-    std::unique_ptr<AudioSource> audio_warning;
+    std::unique_ptr<wuh::Audio> audio_engine;
+    std::unique_ptr<wuh::AudioSource> audio_main;
+    std::unique_ptr<wuh::AudioSource> audio_alt;
+    std::unique_ptr<wuh::AudioSource> audio_bounce;
+    std::unique_ptr<wuh::AudioSource> audio_fail_a;
+    std::unique_ptr<wuh::AudioSource> audio_fail_b;
+    std::unique_ptr<wuh::AudioSource> audio_warning;
 
     // drawables
-    std::unique_ptr<Line> line;
-    std::unique_ptr<Text> small_text;
-    std::unique_ptr<Text> medium_text;
-    std::unique_ptr<Text> large_text;
+    std::unique_ptr<wuh::Line> line;
+    std::unique_ptr<wuh::Text> small_text;
+    std::unique_ptr<wuh::Text> medium_text;
+    std::unique_ptr<wuh::Text> large_text;
 
     // classes
     std::unique_ptr<Lines> lines, rand_lines;
@@ -90,22 +90,22 @@ public:
         FX_ENABLED, MUSIC_VOLUME, RESET_STATISTICS, LOG, BACK, END
     } settings_selected = SettingsSelected::FX_ENABLED;
 
-    bool onEventPointerMove(Engine& e);
+    bool onEventPointerMove(wuh::Engine& e);
     bool onEventPointerDown();
-    bool onEventPointerUp(Engine& e);
-    bool onEventSelect(Engine& e);
+    bool onEventPointerUp(wuh::Engine& e);
+    bool onEventSelect(wuh::Engine& e);
     void onEventUp();
     void onEventLeft();
     void onEventDown();
     void onEventRight();
-    void onEventBack(Engine& e);
+    void onEventBack(wuh::Engine& e);
 
 private:
-    void reset(Engine& e);
+    void reset(wuh::Engine& e);
 
     glm::vec2 prev_mouse_pos {0};
     glm::vec2 last_click {0};
-    Color background_color{0.0f, 0.1f, 0.2f, 1.f};
+    wuh::Color background_color{0.0f, 0.1f, 0.2f, 1.f};
 
     struct SaveData {
         long max_score_classic;

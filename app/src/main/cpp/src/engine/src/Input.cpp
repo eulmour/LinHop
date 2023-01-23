@@ -5,9 +5,11 @@
 #include <unordered_map>
 #include <stdexcept>
 
+namespace wuh {
+
 #if defined(__ANDROID__) || defined(ANDROID)
 
-int32_t Input::androidHandleInput(struct android_app* app, AInputEvent* event) {
+int32_t Input::android_handle_input(struct android_app* app, AInputEvent* event) {
 
     auto *pEngine = (Engine *) app->userData;
     int32_t eventType = AInputEvent_getType(event);
@@ -17,7 +19,7 @@ int32_t Input::androidHandleInput(struct android_app* app, AInputEvent* event) {
         int32_t motionAction = AMotionEvent_getAction(event);
         int32_t motionType = motionAction & AMOTION_EVENT_ACTION_MASK;
         size_t pointerCount = AMotionEvent_getPointerCount(event); // TODO may overflow buffer
-        auto& pointerArray = pEngine->input.getPointerArray();
+        auto& pointerArray = pEngine->input.pointers();
 
         if (pointerCount < 1)
             return 0;
@@ -163,8 +165,8 @@ void Input::glfwCursorCallback_(GLFWwindow *window, double xpos, double ypos)
     float x_multiplier = e->window->physical_size()[0] / e->window->size()[0];
     float y_multiplier = e->window->physical_size()[1] / e->window->size()[1];
 
-    e->input.getPointerArray()[0][0] = static_cast<float>(xpos) * x_multiplier;
-    e->input.getPointerArray()[0][1] = static_cast<float>(ypos) * y_multiplier;
+    e->input.pointers()[0][0] = static_cast<float>(xpos) * x_multiplier;
+    e->input.pointers()[0][1] = static_cast<float>(ypos) * y_multiplier;
     e->input.get(Key::PointerMove) = State::Hold;
 }
 
@@ -236,12 +238,12 @@ void Input::glfwMouseCallback_(GLFWwindow *window, int button, int action, int m
 #endif
 
 Input::Input() {
-    this->pointers.fill(std::array<float, 2>{0.f, 0.f});
-    this->clearStates();
+    this->pointers_.fill(std::array<float, 2>{0.f, 0.f});
+    this->clear_states();
 }
 
-void Input::clearStates() {
-	std::for_each(this->inputs.begin(), this->inputs.end(), [](Input::State& state) {
+void Input::clear_states() {
+	std::for_each(this->inputs_.begin(), this->inputs_.end(), [](Input::State& state) {
 		if (state == Input::State::Hold || state == Input::State::Pressed) {
 			state = Input::State::Hold;
 		} else {
@@ -250,15 +252,15 @@ void Input::clearStates() {
 	});
 }
 
-bool Input::isKeyDown(Input::Key key) {
+bool Input::key_down(Input::Key key) {
     return this->get(key) == State::Pressed;
 }
 
-bool Input::isKeyHold(Input::Key key) {
+bool Input::key_hold(Input::Key key) {
     return this->get(key) == State::Hold;
 }
 
-bool Input::isKeyUp(Input::Key key) {
+bool Input::key_up(Input::Key key) {
     return this->get(key) == State::Released;
 }
 
@@ -268,5 +270,7 @@ Input::State& Input::get(Input::Key key) {
     if (iKey < 0 || iKey > static_cast<int>(Input::Key::EOL))
         throw std::out_of_range("Key not found");
 
-    return this->inputs[static_cast<int>(key)];
+    return this->inputs_[static_cast<int>(key)];
 }
+
+} // end of namespace wuh

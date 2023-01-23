@@ -19,6 +19,8 @@
 #include "GLFW/glfw3.h"
 #endif
 
+namespace wuh {
+
 class Engine;
 
 struct Scene {
@@ -34,7 +36,7 @@ struct Scene {
 };
 
 struct EngineConfig {
-    EngineConfig& windowConfig(Window::Config config);
+    EngineConfig& window(Window::Config config);
     Window::Config window_config;
 };
 
@@ -55,27 +57,27 @@ public:
     void pause();
     void render();
     void show_log();
-    std::stringstream& log() { return this->log_stream; }
+    std::stringstream& log() { return log_stream_; }
 
-    void pushScene(std::unique_ptr<Scene> scene);
-    void popScene();
+    void push_scene(std::unique_ptr<Scene> scene);
+    void pop_scene();
 
     std::unique_ptr<Window> window;
     Graphics graphics;
     Input input;
 
 private:
-    bool paused{ true };
-    enum state state{ STATE_OFF };
-    Game& main_app;
-    std::stack<std::unique_ptr<Scene>> scene;
-    std::stringstream log_stream;
+    bool paused_{ true };
+    enum state state_{ STATE_OFF };
+    Game& main_app_;
+    std::stack<std::unique_ptr<Scene>> scene_;
+    std::stringstream log_stream_;
 
 #if defined(__ANDROID__) || defined(ANDROID)
     public:
         Engine(Game& main_app, android_app* android_app_ptr);
 
-        android_app* androidApp;
+        android_app* android_app;
 
         ASensorManager*     sensorManager{nullptr};
         const ASensor*      accelerometerSensor{nullptr};
@@ -100,4 +102,5 @@ public:
 #endif
 };
 
+} // end of namespace wuh
 #endif //ENGINE_ENGINE_H
