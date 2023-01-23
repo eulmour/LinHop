@@ -57,7 +57,7 @@ void File::remove(const char* path) {
 }
 
 void File::save(const char* path, void* data, std::size_t size) {
-    save(path, data, size);
+    ::save(path, data, size);
 }
 
 void File::save() const {

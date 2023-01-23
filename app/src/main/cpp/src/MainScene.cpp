@@ -815,7 +815,6 @@ bool MainScene::onEventSelect(wuh::Engine& engine) {
                     save_data.max_score_classic = 0L;
                     save_data.max_score_hidden = 0L;
                     wuh::File::remove("savedata.dat");
-                    // wuh::file_remove("savedata.dat");
                     break;
                 case SettingsSelected::LOG:
                     game_state = GameState::PAUSED;
