@@ -5,7 +5,7 @@
 #include <stdexcept>
 #include <exception>
 #include "File.h"
-#include "EmptyScene.h"
+#include "DummyActivity.h"
 #include "LogActivity.h"
 #ifdef __EMSCRIPTEN__
 #   include <emscripten/emscripten.h>
@@ -13,40 +13,44 @@
 
 namespace wuh {
 
+#if defined(__ANDROID__) || defined(ANDROID)
+struct android_app* android_app = nullptr;
+#endif
+
 Engine::~Engine()
 {
     if (state_ != STATE_OFF)
         this->unload();
 }
 
-void Engine::push_scene(std::unique_ptr<Scene> scene) {
+void Engine::push_activity(std::unique_ptr<Activity> activity) {
 
-    if (!!scene) {
-        if (scene_.size() != 0) {
-            scene_.top()->suspend(*this);
-            this->log() << scene_.top()->title() << " suspended\n";
+    if (activity) {
+        if (!activity_.empty()) {
+            activity_.top()->suspend(*this);
+            this->log() << activity_.top()->title() << " suspended\n";
         }
-        scene_.push(std::move(scene));
-        if (!paused_) {
-            scene_.top()->resume(*this);
-            this->log() << scene_.top()->title() << " resumed\n";
-        }
+        activity_.push(std::move(activity));
+        activity_.top()->resume(*this);
+        this->log() << activity_.top()->title() << " resumed\n";
     }
 }
 
-void Engine::pop_scene() {
-    if (scene_.size() < 1) {
+void Engine::pop_activity() {
+    if (activity_.empty()) {
         return;
     }
 
-	scene_.top()->suspend(*this);
-	this->log() << scene_.top()->title() << " suspended\n";
-	scene_.pop();
+	activity_.top()->suspend(*this);
+	this->log() << activity_.top()->title() << " suspended\n";
+	activity_.pop();
 
-    if (scene_.size() > 0) {
-		scene_.top()->resume(*this);
-		this->log() << scene_.top()->title() << " resumed\n";
+    if (activity_.empty()) {
+        main_app_.init(*this);
     }
+
+    activity_.top()->resume(*this);
+    this->log() << activity_.top()->title() << " resumed\n";
 }
 
 void Engine::load()
@@ -57,7 +61,8 @@ void Engine::load()
     auto builder = main_app_.config();
 
 #if defined(__ANDROID__) || defined(ANDROID)
-    builder->window_config.android_app(this->android_app);
+    ::wuh::android_app = this->android_app;
+    builder->window_config.android_app_ptr(this->android_app);
 #endif
 
     builder->window_config.user_pointer(reinterpret_cast<void*>(this));
@@ -78,10 +83,12 @@ void Engine::load()
     // Check openGL on the system
     int opengl_info[] = { GL_VENDOR, GL_RENDERER, GL_VERSION /*, GL_EXTENSIONS */ };
 
-    for (int value = 0; value != sizeof(opengl_info) / sizeof(int); value++) {
-        const GLubyte* temp_str = glGetString(opengl_info[value]);
-        LOGI("OpenGL Info: %s", temp_str);
-        this->log() << "OpenGL Info: " << temp_str << "\n\n";
+    for (int value : opengl_info) {
+        const GLubyte* temp_str = glGetString(value);
+        if (temp_str != nullptr) {
+            LOGI("OpenGL Info: %s", temp_str);
+            this->log() << "OpenGL Info: " << temp_str << "\n\n";
+        }
     }
 
     try {
@@ -94,16 +101,12 @@ void Engine::load()
 
     state_ = STATE_READY;
 
-#if defined(__ANDROID__) || defined(ANDROID)
-    this->engine.asset_mgr = this->android_app->activity->assetManager;
-#endif
-
-    if (scene_.size() == 0) { // TODO manage how to load app once
+    if (activity_.empty()) { // TODO manage how to load app once
         main_app_.init(*this);
     }
 
-    if (scene_.size() == 0) {
-        LOGW("Unable to run engine: No scene available");
+    if (activity_.empty()) {
+        LOGW("Unable to run engine: No activity available");
         this->window->close();
     }
 }
@@ -119,8 +122,8 @@ void Engine::unload()
 
 void Engine::render()
 {
-    /* Rendering scene */
-    scene_.top()->render(*this);
+    /* Rendering activity */
+    activity_.top()->render(*this);
 
     /* Swap front and back buffers */
     this->window->swap_buffers();
@@ -128,8 +131,8 @@ void Engine::render()
 
 void Engine::show_log()
 {
-    auto log_screen = std::unique_ptr<Scene>(reinterpret_cast<Scene*>(new LogActivity(*this, log_stream_.str())));
-    this->push_scene(std::move(log_screen));
+    auto log_screen = std::unique_ptr<Activity>(reinterpret_cast<Activity*>(new LogActivity(*this, log_stream_.str())));
+    this->push_activity(std::move(log_screen));
 }
 
 void Engine::resume() {
@@ -144,7 +147,7 @@ void Engine::pause() {
 
 #include <dlfcn.h>
 
-Engine::Engine(Game& main_app, android_app* android_app_ptr)
+Engine::Engine(Game& main_app, struct android_app* android_app_ptr)
     : main_app_(main_app), android_app(android_app_ptr) {
 
     this->android_app->userData = this;
@@ -192,14 +195,13 @@ void Engine::run() {
                     ASensorEvent event;
                     while (ASensorEventQueue_getEvents(this->sensorEventQueue,
                                                        &event, 1) > 0) {
-                        this->engine.acceleration = event.acceleration;
+                        this->acceleration = event.acceleration;
                     }
                 }
             }
 
             // Check if we are exiting.
             if (this->android_app->destroyRequested != 0) {
-                engine_destroy(&this->engine);
                 return;
             }
         }
@@ -220,7 +222,7 @@ void Engine::run() {
 *    Workaround ASensorManager_getInstance() deprecation false alarm
 *    for Android-N and before, when compiling with NDK-r15
 */
-ASensorManager* Engine::acquireASensorManagerInstance(android_app* app) {
+ASensorManager* Engine::acquireASensorManagerInstance(struct android_app* app) {
 
     typedef ASensorManager *(*PF_GETINSTANCEFORPACKAGE)(const char *name);
     void* androidHandle = dlopen("libandroid.so", RTLD_NOW);
@@ -276,59 +278,51 @@ void Engine::androidHandleCmd(struct android_app* app, int32_t cmd) {
     switch (cmd) {
 
         case APP_CMD_SAVE_STATE:
-            // The system has asked us to save our current state. Do so.
             pEngine->android_app->savedState = malloc(sizeof(Engine::SavedState));
             *((Engine::SavedState*)pEngine->android_app->savedState) = pEngine->savedState;
             pEngine->android_app->savedStateSize = sizeof(Engine::SavedState);
             break;
 
         case APP_CMD_INIT_WINDOW:
-            // The window is being shown, get it ready.
             if (pEngine->android_app->window != nullptr) {
                 pEngine->load();
             }
             break;
 
         case APP_CMD_TERM_WINDOW:
-            // The window is being hidden or closed, clean it up.
             pEngine->unload();
             break;
 
         case APP_CMD_GAINED_FOCUS:
-            // When our app gains focus, we start monitoring the accelerometer.
             if (pEngine->accelerometerSensor != nullptr) {
                 ASensorEventQueue_enableSensor(pEngine->sensorEventQueue,
                                                pEngine->accelerometerSensor);
-                // We'd like to get 60 events per second (in microseconds).
                 ASensorEventQueue_setEventRate(pEngine->sensorEventQueue,
                                                pEngine->accelerometerSensor, (1000L / 60) * 1000);
             }
 
-            pEngine->current_scene->resume(*pEngine);
+            pEngine->activity_.top()->resume(*pEngine);
             pEngine->resume();
-            pEngine->state = STATE_BUSY;
+            pEngine->state_ = STATE_BUSY;
             break;
 
         case APP_CMD_LOST_FOCUS:
-            // When our app loses focus, we stop monitoring the accelerometer.
-            // This is to avoid consuming battery while not being used.
             if (pEngine->accelerometerSensor != nullptr) {
                 ASensorEventQueue_disableSensor(pEngine->sensorEventQueue,
                                                 pEngine->accelerometerSensor);
             }
 
-            // Also stop animating.
-            pEngine->current_scene->suspend(*pEngine);
+            pEngine->activity_.top()->suspend(*pEngine);
             pEngine->pause();
-            pEngine->state = STATE_READY;
+            pEngine->state_ = STATE_READY;
             break;
 
         case APP_CMD_WINDOW_RESIZED:
-            if (pEngine->state == STATE_BUSY) {
-                pEngine->current_scene->suspend(*pEngine);
+            if (pEngine->state_ == STATE_BUSY) {
+                pEngine->activity_.top()->suspend(*pEngine);
                 pEngine->unload();
                 pEngine->load();
-                pEngine->current_scene->resume(*pEngine);
+                pEngine->activity_.top()->resume(*pEngine);
             }
             break;
 
@@ -393,13 +387,13 @@ void Engine::run() {
 
     this->resume();
 
-    if (scene_.size() == 0) {
-        LOGW("Unable to run engine: No scene available");
-        scene_.push(std::make_unique<EmptyScene>());
+    if (activity_.size() == 0) {
+        LOGW("Unable to run engine: No activity available");
+        activity_.push(std::make_unique<DummyActivity>());
     }
 
-    scene_.top()->resume(*this);
-    this->log() << scene_.top()->title() << " resumed\n";
+    activity_.top()->resume(*this);
+    this->log() << activity_.top()->title() << " resumed\n";
 
     registered_loop = [&]() {
         // Poll for and process events

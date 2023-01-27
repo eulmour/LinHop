@@ -32,7 +32,7 @@ int32_t Input::android_handle_input(struct android_app* app, AInputEvent* event)
                     pointerArray[i][1] = AMotionEvent_getY(event, i);
                 }
 
-                pEngine->input.get(InputKey::PointerMove) = InputState::Hold;
+                pEngine->input.get(Input::Key::PointerMove) = Input::State::Hold;
                 return 1;
 
             case AMOTION_EVENT_ACTION_DOWN:
@@ -44,10 +44,10 @@ int32_t Input::android_handle_input(struct android_app* app, AInputEvent* event)
                 }
 
                 try {
-                    auto& oldState = pEngine->input.get(InputKey::Pointer);
+                    auto& oldState = pEngine->input.get(Input::Key::Pointer);
 
-                    if (oldState != InputState::Pressed) {
-                        oldState = InputState::Pressed;
+                    if (oldState != Input::State::Pressed) {
+                        oldState = Input::State::Pressed;
                     }
 
                 } catch (std::out_of_range& e) {
@@ -60,10 +60,10 @@ int32_t Input::android_handle_input(struct android_app* app, AInputEvent* event)
             case AMOTION_EVENT_ACTION_POINTER_UP:
 
                 try {
-                    auto& oldState = pEngine->input.get(InputKey::Pointer);
+                    auto& oldState = pEngine->input.get(Input::Key::Pointer);
 
-                    if (oldState != InputState::Released) {
-                        oldState = InputState::Released;
+                    if (oldState != Input::State::Released) {
+                        oldState = Input::State::Released;
                     }
 
                 } catch (std::out_of_range& e) {
@@ -88,67 +88,34 @@ int32_t Input::android_handle_input(struct android_app* app, AInputEvent* event)
             return 0;
         }
 
-        InputState newState;
+        Input::State newState;
         switch (keyAction) {
-            case AKEY_EVENT_ACTION_DOWN: newState = InputState::Pressed; break;
-            case AKEY_EVENT_ACTION_UP: newState = InputState::Released; break;
+            case AKEY_EVENT_ACTION_DOWN: newState = Input::State::Pressed; break;
+            case AKEY_EVENT_ACTION_UP: newState = Input::State::Released; break;
             default: return 0;
         }
 
-        static const std::unordered_map<int, InputKey> matchKey {
-            {AKEYCODE_DPAD_UP, InputKey::Up},
-            {AKEYCODE_DPAD_DOWN, InputKey::Down},
-            {AKEYCODE_DPAD_LEFT, InputKey::Left},
-            {AKEYCODE_DPAD_RIGHT, InputKey::Right},
-            {AKEYCODE_ENTER, InputKey::Select},
-            {AKEYCODE_BACK, InputKey::Back},
-            {AKEYCODE_MENU, InputKey::Back},
+        static const std::unordered_map<int, Input::Key> matchKey {
+            {AKEYCODE_DPAD_UP, Input::Key::Up},
+            {AKEYCODE_DPAD_DOWN, Input::Key::Down},
+            {AKEYCODE_DPAD_LEFT, Input::Key::Left},
+            {AKEYCODE_DPAD_RIGHT, Input::Key::Right},
+            {AKEYCODE_ENTER, Input::Key::Select},
+            {AKEYCODE_BACK, Input::Key::Back},
+            {AKEYCODE_MENU, Input::Key::Back},
         };
 
         try {
             auto keyFound = matchKey.at(keyCode);
             auto& oldState = pEngine->input.get(keyFound);
 
-//            if (oldState == newState || (oldState == InputState::Hold && newState == InputState::Pressed)) {
-//            } else {
-//                oldState = newState;
-//            }
-
-            if (oldState != newState || (oldState != InputState::Hold && newState != InputState::Pressed)) {
+            if (oldState != newState || (oldState != Input::State::Hold && newState != Input::State::Pressed)) {
                 oldState = newState;
             }
 
         } catch (std::out_of_range& e) {
             LOGE("Input: %s", e.what());
         }
-
-//        if (keyAction == AKEY_EVENT_ACTION_DOWN) {
-//
-//            switch (keyCode) {
-//                case AKEYCODE_BACK:
-//                case AKEYCODE_MENU:
-//                    if (!pEngine->currentScene->onEventBack()) {
-//                    }
-//
-//                    break;
-//                case AKEYCODE_DPAD_LEFT:
-//                    pEngine->currentScene->onEventLeft();
-//                    break;
-//                case AKEYCODE_DPAD_UP:
-//                    pEngine->currentScene->onEventUp();
-//                    break;
-//                case AKEYCODE_DPAD_RIGHT:
-//                    pEngine->currentScene->onEventRight();
-//                    break;
-//                case AKEYCODE_DPAD_DOWN:
-//                    pEngine->currentScene->onEventDown();
-//                    break;
-//                case AKEYCODE_ENTER:
-//                    pEngine->currentScene->onEventSelect();
-//                    break;
-//                default: break;
-//            }
-//        }
 
         return 1;
     }

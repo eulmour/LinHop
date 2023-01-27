@@ -15,7 +15,7 @@ struct File {
     static std::string cwd();
     static bool exists(const char* path);
     static void remove(const char* path);
-    static File asset(const char* path);
+    static File asset(const std::string& path);
     static void save(const char* path, void* data, std::size_t size);
 
     void save() const;

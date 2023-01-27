@@ -1,15 +1,15 @@
-#ifndef ENGINE_EMPTYSCENE_H
-#define ENGINE_EMPTYSCENE_H
+#ifndef ENGINE_DUMMYACTIVITY_H
+#define ENGINE_DUMMYACTIVITY_H
 
 #include "Engine.h"
 
 namespace wuh {
 
-class EmptyScene : public Scene {
+class DummyActivity : public Activity {
 
 public:
-    EmptyScene() = default;
-    ~EmptyScene() override = default;
+    DummyActivity() = default;
+    ~DummyActivity() override = default;
     void resume(Engine& engine) override {
         (void)engine;
     };
@@ -24,4 +24,4 @@ public:
 
 } // end of namespace wuh
 
-#endif //ENGINE_EMPTYSCENE_H
+#endif //ENGINE_DUMMYACTIVITY_H

@@ -32,23 +32,23 @@
 #   define LOGI_PRINT(fmt, ...) ((void)printf("[INFO] " fmt "\n", ##__VA_ARGS__))
 #   define LOGW_PRINT(fmt, ...) ((void)printf("[WARNING] " fmt "\n", ##__VA_ARGS__))
 #   define LOGE_PRINT(fmt, ...) ((void)fprintf(stderr, "[ERROR] " fmt "\n", ##__VA_ARGS__))
-#   define LOGV_WRITE(fmt, ...) engine_log_message("[VERBOSE] " fmt "\n", ##__VA_ARGS__)
-#   define LOGI_WRITE(fmt, ...) engine_log_message("[INFO] " fmt "\n", ##__VA_ARGS__)
+#   define LOGV_WRITE(fmt, ...) wuh::engine_log_message("[VERBOSE] " fmt "\n", ##__VA_ARGS__)
+#   define LOGI_WRITE(fmt, ...) wuh::engine_log_message("[INFO] " fmt "\n", ##__VA_ARGS__)
 #   define LOGW_WRITE(fmt, ...)\
-        engine_log_message("[WARNING] " fmt "\n[INFO] Reason: %s\n", ##__VA_ARGS__, errno != 0 ? strerror(errno) : "unknown")
+        wuh::engine_log_message("[WARNING] " fmt "\n[INFO] Reason: %s\n", ##__VA_ARGS__, errno != 0 ? strerror(errno) : "unknown")
 #   define LOGE_WRITE(fmt, ...)\
-        engine_log_message("[ERROR] " fmt "\n[INFO] Reason: %s, file %s, line %d\n", ##__VA_ARGS__, errno != 0 ? strerror(errno) : "unknown", __FILE__, __LINE__)
+        wuh::engine_log_message("[ERROR] " fmt "\n[INFO] Reason: %s, file %s, line %d\n", ##__VA_ARGS__, errno != 0 ? strerror(errno) : "unknown", __FILE__, __LINE__)
 #else
 #   define LOGV_PRINT(fmt, ...) ((void)printf("[VERBOSE] " fmt "\n", ##__VA_ARGS__))
 #   define LOGI_PRINT(fmt, ...) ((void)printf("[INFO] " fmt "\n", ##__VA_ARGS__))
 #   define LOGW_PRINT(fmt, ...) ((void)printf("[WARNING] " fmt "\n", ##__VA_ARGS__))
 #   define LOGE_PRINT(fmt, ...) ((void)fprintf(stderr, "[ERROR] " fmt "\n", ##__VA_ARGS__))
-#   define LOGV_WRITE(fmt, ...) engine_log_message("[VERBOSE] " fmt "\n", ##__VA_ARGS__)
-#   define LOGI_WRITE(fmt, ...) engine_log_message("[INFO] " fmt "\n", ##__VA_ARGS__)
+#   define LOGV_WRITE(fmt, ...) wuh::engine_log_message("[VERBOSE] " fmt "\n", ##__VA_ARGS__)
+#   define LOGI_WRITE(fmt, ...) wuh::engine_log_message("[INFO] " fmt "\n", ##__VA_ARGS__)
 #   define LOGW_WRITE(fmt, ...)\
-        engine_log_message("[WARNING] " fmt "\n[INFO] Reason: %s\n", ##__VA_ARGS__, errno != 0 ? strerror(errno) : "unknown")
+        wuh::engine_log_message("[WARNING] " fmt "\n[INFO] Reason: %s\n", ##__VA_ARGS__, errno != 0 ? strerror(errno) : "unknown")
 #   define LOGE_WRITE(fmt, ...)\
-        engine_log_message("[ERROR] " fmt "\n[INFO] Reason: %s, file %s, line %d\n", ##__VA_ARGS__, errno != 0 ? strerror(errno) : "unknown", __FILE__, __LINE__)
+        wuh::engine_log_message("[ERROR] " fmt "\n[INFO] Reason: %s, file %s, line %d\n", ##__VA_ARGS__, errno != 0 ? strerror(errno) : "unknown", __FILE__, __LINE__)
 #endif
 
 #ifdef ENGINE_WRITE_LOGS

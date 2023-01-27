@@ -23,11 +23,11 @@ namespace wuh {
 
 class Engine;
 
-struct Scene {
+struct Activity {
 
-    Scene() = default;
-    explicit Scene(Engine&) {};
-    virtual ~Scene() = default;
+    Activity() = default;
+    explicit Activity(Engine&) {};
+    virtual ~Activity() = default;
 
     virtual void resume(Engine&) = 0;
     virtual void suspend(Engine&) = 0;
@@ -59,8 +59,8 @@ public:
     void show_log();
     std::stringstream& log() { return log_stream_; }
 
-    void push_scene(std::unique_ptr<Scene> scene);
-    void pop_scene();
+    void push_activity(std::unique_ptr<Activity> activity);
+    void pop_activity();
 
     std::unique_ptr<Window> window;
     Graphics graphics;
@@ -70,25 +70,24 @@ private:
     bool paused_{ true };
     enum state state_{ STATE_OFF };
     Game& main_app_;
-    std::stack<std::unique_ptr<Scene>> scene_;
+    std::stack<std::unique_ptr<Activity>> activity_;
     std::stringstream log_stream_;
 
 #if defined(__ANDROID__) || defined(ANDROID)
     public:
-        Engine(Game& main_app, android_app* android_app_ptr);
+        Engine(Game& main_app, struct android_app* android_app_ptr);
 
-        android_app* android_app;
+        struct android_app* android_app;
 
         ASensorManager*     sensorManager{nullptr};
         const ASensor*      accelerometerSensor{nullptr};
         ASensorEventQueue*  sensorEventQueue{nullptr};
         struct SavedState {} savedState{};
         ASensorVector       acceleration;
-        AAssetManager*      asset_mgr;
 
     private:
-        static void androidHandleCmd(android_app* app, int32_t cmd);
-        static ASensorManager* acquireASensorManagerInstance(android_app* app);
+        static void androidHandleCmd(struct android_app* app, int32_t cmd);
+        static ASensorManager* acquireASensorManagerInstance(struct android_app* app);
         static void androidSetActivityDecor(struct android_app* app);
 #else
 public:

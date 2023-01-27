@@ -54,10 +54,10 @@ public:
 
 #if defined(__ANDROID__) || defined(ANDROID)
     public:
-        Config& android_app(android_app* android_app);
-        [[nodiscard]] android_app* android_app() const { return this->android_app_; }
+        Config& android_app_ptr(android_app* app_ptr);
+        [[nodiscard]] struct android_app* android_app_ptr() const { return this->android_app_; }
     private:
-        android_app* android_app_;
+        struct android_app* android_app_;
 #endif
     };
 
@@ -65,14 +65,13 @@ public:
     ~Window();
 
     void close();
-    bool should_close();
+    bool should_close() const;
     bool focused() const { return this->focused_; }
     void swap_buffers();
 
-    float delta_time();
+    float delta_time() const;
     [[nodiscard]] float delta_time_last() const;
     [[nodiscard]] IVec2 size() { return logical_size_; }
-    void size(IVec2 size);
     [[nodiscard]] IVec2 physical_size() const { return physical_size_; };
     void focused(bool flag) { this->focused_ = flag; }
 
@@ -88,7 +87,7 @@ protected:
     } frame_info_;
 
 #if defined(__ANDROID__) || defined(ANDROID)
-    android_app* android_app_ptr;
+    android_app* android_app_;
     EGLDisplay display = EGL_NO_DISPLAY;
     EGLSurface surface = EGL_NO_SURFACE;
     EGLContext context = EGL_NO_CONTEXT;

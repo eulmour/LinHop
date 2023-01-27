@@ -12,7 +12,7 @@
 #include "Lasers.hpp"
 #include "Label.hpp"
 
-class MainScene : public wuh::Scene {
+class MainScene : public wuh::Activity {
 public:
     MainScene() = delete;
     explicit MainScene(wuh::Engine& e);

@@ -1,4 +1,4 @@
-#include "SettingsScene.hpp"
+#include "SettingsActivity.hpp"
 
 // #define PROLOG(e) \
     // float screenW = static_cast<float>(e.window->physical_size()[0]); \
@@ -8,7 +8,7 @@
     float screenW = static_cast<float>(e.window->size()[0]); \
     float screenH = static_cast<float>(e.window->size()[1]);
 
-SettingsScene::SettingsScene(wuh::Engine& e) {
+SettingsActivity::SettingsActivity(wuh::Engine& e) {
 
     PROLOG(e)
 
@@ -40,22 +40,22 @@ SettingsScene::SettingsScene(wuh::Engine& e) {
     }
 }
 
-void SettingsScene::resume(wuh::Engine&) {
-    this->small_text = std::make_unique<wuh::Text>(nullptr, SettingsScene::small_text_size);
-    this->medium_text = std::make_unique<wuh::Text>(nullptr, SettingsScene::medium_text_size);
-    this->large_text = std::make_unique<wuh::Text>(nullptr, SettingsScene::large_text_size);
+void SettingsActivity::resume(wuh::Engine&) {
+    this->small_text = std::make_unique<wuh::Text>(nullptr, SettingsActivity::small_text_size);
+    this->medium_text = std::make_unique<wuh::Text>(nullptr, SettingsActivity::medium_text_size);
+    this->large_text = std::make_unique<wuh::Text>(nullptr, SettingsActivity::large_text_size);
 }
 
-void SettingsScene::suspend(wuh::Engine&) {
+void SettingsActivity::suspend(wuh::Engine&) {
     this->small_text.reset();
     this->medium_text.reset();
     this->large_text.reset();
 }
 
-void SettingsScene::update(wuh::Engine&) {
+void SettingsActivity::update(wuh::Engine&) {
 }
 
-void SettingsScene::render(wuh::Engine& e) {
+void SettingsActivity::render(wuh::Engine& e) {
 
     this->update(e);
 
@@ -80,17 +80,17 @@ void SettingsScene::render(wuh::Engine& e) {
         .draw(e.graphics, *this->medium_text);
 }
 
-void SettingsScene::onEventPointerMove() {
+void SettingsActivity::onEventPointerMove() {
 
 }
 
-void SettingsScene::onEventPointerDown() {
+void SettingsActivity::onEventPointerDown() {
 }
 
-void SettingsScene::onEventPointerUp() {
+void SettingsActivity::onEventPointerUp() {
 }
 
-void SettingsScene::onEventSelect() {
+void SettingsActivity::onEventSelect() {
     switch (settings_selected) {
         case SettingsSelected::FX_ENABLED:
             save_data.fx_enabled = save_data.fx_enabled == 0;
@@ -113,12 +113,12 @@ void SettingsScene::onEventSelect() {
     }
 
 }
-void SettingsScene::onEventUp() {
+void SettingsActivity::onEventUp() {
     --settings_selected;
 }
-void SettingsScene::onEventLeft() {}
-void SettingsScene::onEventDown() {
+void SettingsActivity::onEventLeft() {}
+void SettingsActivity::onEventDown() {
     ++settings_selected;
 }
-void SettingsScene::onEventRight() {}
-bool SettingsScene::onEventBack() { return false; }
+void SettingsActivity::onEventRight() {}
+bool SettingsActivity::onEventBack() { return false; }

@@ -18,7 +18,7 @@ public:
 
     void init(wuh::Engine& e) override {
         try {
-			e.push_scene(std::make_unique<MainScene>(e));
+			e.push_activity(std::make_unique<MainScene>(e));
         } catch (std::exception& exception) {
             e.log() << exception.what() << "\n";
             e.show_log();

@@ -10,6 +10,25 @@ namespace wuh {
 
 #if defined(__ANDROID__) || defined(ANDROID)
 
+extern struct android_app* android_app;
+
+int android_get_density() {
+
+    AConfiguration* config = AConfiguration_new();
+    AConfiguration_fromAssetManager(config, android_app->activity->assetManager);
+
+    int density = AConfiguration_getDensity(config);
+    if (density >= ACONFIGURATION_DENSITY_XXXHIGH) {
+        return 4;
+    } else if (density >= ACONFIGURATION_DENSITY_XXHIGH) {
+        return 3;
+    } else if (density >= ACONFIGURATION_DENSITY_XHIGH) {
+        return 2;
+    } else {
+        return 1;
+    }
+}
+
 /**
 * Initialize an EGL context for the current display.
 */
@@ -19,6 +38,8 @@ Window::Window(const Config& config) {
     * Below, we select an EGLConfig with at least 8 bits per color
     * component compatible with on-screen windows
     */
+    const int density = android_get_density();
+
     const EGLint attribs[] = {
         EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
         EGL_BLUE_SIZE, 8,
@@ -37,7 +58,7 @@ Window::Window(const Config& config) {
     EGLint numConfigs;
     EGLConfig eglConfig;
 
-    this->android_app_ptr = config.android_app();
+    this->android_app_ = config.android_app_ptr();
 
     this->display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
 
@@ -54,20 +75,22 @@ Window::Window(const Config& config) {
     * ANativeWindow buffers to match, using EGL_NATIVE_VISUAL_ID. */
     eglGetConfigAttrib(display, eglConfig, EGL_NATIVE_VISUAL_ID, &format);
 
-    ANativeWindow_setBuffersGeometry(this->android_app_ptr->window, 0, 0, format);
+    ANativeWindow_setBuffersGeometry(this->android_app_->window, 0, 0, format);
 
-    this->surface = eglCreateWindowSurface(this->display, eglConfig, this->android_app_ptr->window, nullptr);
+    this->surface = eglCreateWindowSurface(this->display, eglConfig, this->android_app_->window, nullptr);
     this->context = eglCreateContext(this->display, eglConfig, EGL_NO_CONTEXT, context_attribs);
 
     if (eglMakeCurrent(this->display, this->surface, this->surface, this->context) == EGL_FALSE) {
-        LOGW("Unable to eglMakeCurrent");
-        return;
+        throw std::runtime_error("eglMakeCurrent failed");
     }
 
     eglQuerySurface(this->display, this->surface, EGL_WIDTH, &w);
     eglQuerySurface(this->display, this->surface, EGL_HEIGHT, &h);
 
-    this->logical_size({w, h});
+    this->physical_size_ = {w, h};
+    this->logical_size_ = {w / density, h / density};
+
+    Graphics::catch_error();
 
     LOGI("GL Init: %d", GL_VERSION);
 }
@@ -92,10 +115,10 @@ Window::~Window() {
 
 void Window::close() {
     this->should_close_ = true;
-    ANativeActivity_finish(android_app_ptr->activity);
+    ANativeActivity_finish(android_app_->activity);
 }
 
-bool Window::should_close() {
+bool Window::should_close() const {
     return this->should_close_;
 }
 
@@ -103,12 +126,12 @@ void Window::swap_buffers() {
     eglSwapBuffers(this->display, this->surface);
 }
 
-float Window::delta_time() {
-    return this->frameInfo.delta_time;
+float Window::delta_time() const {
+    return frame_info_.delta_time;
 }
 
-Window::Config &Window::Config::android_app(android_app *android_app) {
-    this->android_app_ = android_app;
+Window::Config &Window::Config::android_app_ptr(struct android_app* app_ptr) {
+    this->android_app_ = app_ptr;
     return *this;
 }
 
@@ -231,7 +254,7 @@ void Window::close() {
     glfwSetWindowShouldClose(this->glfw_window, 1);
 }
 
-bool Window::should_close() {
+bool Window::should_close() const {
     return glfwWindowShouldClose(this->glfw_window);
 }
 
@@ -239,23 +262,12 @@ void Window::swap_buffers() {
     glfwSwapBuffers(this->glfw_window);
 }
 
-float Window::delta_time() {
+float Window::delta_time() const {
 //    auto currentFrame = static_cast<float>(glfwGetTime());
 //    this->frameInfo.deltaTime = currentFrame - this->frameInfo.lastFrameTime;
 //    this->frameInfo.lastFrameTime = currentFrame;
 //    this->frameInfo.deltaTime = this->frameInfo.lastFrameTime = 1.f / 60.f;
     return this->frame_info_.delta_time;
-}
-
-// IVec2 Window::size() {
-    // IVec2 size;
-    // glfwGetWindowSize(this->glfw_window, &size[0], &size[1]);
-    // return size;
-// }
-
-void Window::size(IVec2 size) {
-    glfwSetWindowSize(this->glfw_window, size[0], size[1]);
-    this->logical_size_ = size;
 }
 
 #endif

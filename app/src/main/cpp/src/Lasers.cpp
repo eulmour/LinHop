@@ -7,7 +7,7 @@
 #define LASERS_LINES_DEFAULT_COLOR wuh::Color{ 1.0f, 0.0f, 0.0f, 0.85f }
 #define LASERS_INNER_DEFAULT_COLOR wuh::Color{ 1.0f, 0.0f, 0.0f, 0.5f }
 
-Lasers::Lasers() {}
+Lasers::Lasers() = default;
 Lasers::~Lasers() = default;
 
 void Lasers::trigger(const wuh::Graphics& g, float position) {
@@ -30,7 +30,7 @@ void Lasers::trigger(const wuh::Graphics& g, float position) {
 
 void Lasers::draw(const wuh::Graphics& g, const wuh::Line& drawable)
 {
-    if (lasers.size() > 0) {
+    if (!lasers.empty()) {
         if (live_time < 1) {
             lasers.clear();
         } else {

@@ -1,16 +1,16 @@
-#ifndef LINHOP_SETTINGSSCENE_HPP
-#define LINHOP_SETTINGSSCENE_HPP
+#ifndef LINHOP_SETTINGSACTIVITY_HPP
+#define LINHOP_SETTINGSACTIVITY_HPP
 
 #include "engine/engine.h"
 #include <memory>
 #include "Util.hpp"
 #include "Label.hpp"
 
-class SettingsScene : public wuh::Scene {
+class SettingsActivity : public wuh::Activity {
 
 public:
-    explicit SettingsScene(wuh::Engine& e);
-    ~SettingsScene() override = default;
+    explicit SettingsActivity(wuh::Engine& e);
+    ~SettingsActivity() override = default;
     void resume(wuh::Engine& engine) override;
     void suspend(wuh::Engine& engine) override;
     void update(wuh::Engine& engine);
@@ -61,9 +61,9 @@ private:
 };
 
 template<>
-struct my_enum_is_unit_steppable<SettingsScene::SettingsSelected> {
+struct my_enum_is_unit_steppable<SettingsActivity::SettingsSelected> {
     enum {
         value = true
     };
 };
-#endif //LINHOP_SETTINGSSCENE_HPP
+#endif //LINHOP_SETTINGSACTIVITY_HPP

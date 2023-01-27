@@ -11,22 +11,25 @@ namespace wuh {
 
 struct Object {
 
-    Vec2& pos() { return this->pos_; }
-    float& width() { return this->width_; }
-    float& height() { return this->height_; }
+    const Vec2& pos() const { return this->pos_; }
+    const Vec2& size() const { return this->size_; }
+
+    Object& pos(Vec2 pos) { this->pos_ = std::move(pos); return *this; }
+    Object& size(Vec2 size) { this->size_ = std::move(size); return *this; }
+
+    static constexpr float padding = 10.f;
 
 	bool clicked(const Vec2& position) {
 		return
-			position[0] > pos()[0]
-			&& position[0] < pos()[0] + this->width()
-			&& position[1] > pos()[1]
-			&& position[1] < pos()[1] + this->height();
+			position[0] > pos()[0] - padding
+			&& position[0] < pos()[0] + size_[0] - padding
+			&& position[1] > pos()[1] - padding
+			&& position[1] < pos()[1] + size_[1] - padding;
 	}
 
-private:
-    float width_{ 0.f };
-    float height_{ 0.f };
+protected:
     Vec2 pos_{};
+    Vec2 size_{};
 };
 
 struct Drawable {

@@ -8,7 +8,7 @@ namespace {
 
 void save(const char* path, void* data, std::size_t size) {
 #if defined(ANDROID)
-    std::string new_path = "data/data/com.pachuch.linhop/files/" + path;
+    std::string new_path = "data/data/com.pachuch.linhop/files/" + std::string(path);
 #else
     std::string new_path = path;
 #endif
@@ -17,9 +17,9 @@ void save(const char* path, void* data, std::size_t size) {
         throw std::runtime_error("IO: Opening file \"" + new_path + "\" for write failed");
     }
 
-// #ifndef NDEBUG
-//     LOGI("IO: Writing to file \"%s\"", path);
-// #endif
+#ifndef NDEBUG
+    LOGI("IO: Writing to file \"%s\"", path);
+#endif
 
     fwrite(data, size, 1, f);
     fclose(f);
@@ -88,21 +88,23 @@ void File::load() {
     fread(data_.get(), size_, 1, f);
     fclose(f);
 
-// #ifndef NDEBUG
-    // LOGI("IO: File read \"%s\"", path);
-// #endif
+ #ifndef NDEBUG
+     LOGI("IO: File read \"%s\"", path_.c_str());
+ #endif
 }
 
 #if defined(__ANDROID__) || defined(ANDROID)
 #   include <unistd.h>
 
-File File::asset(const char* path) {
+extern struct android_app* android_app;
 
-    if (!engine_instance->asset_mgr) {
+File File::asset(const std::string& path) {
+
+    if (!android_app || !android_app->activity->assetManager) {
         throw std::runtime_error("Bad android asset manager pointer");
     }
 
-    AAsset* asset = AAssetManager_open(engine_instance->asset_mgr, path, AASSET_MODE_BUFFER);
+    AAsset* asset = AAssetManager_open(android_app->activity->assetManager, path.c_str(), AASSET_MODE_BUFFER);
 
     if (asset == nullptr) {
         throw std::runtime_error("Failed to read file to string, asset not found. (file: " + std::string(path) + ")");
@@ -111,11 +113,10 @@ File File::asset(const char* path) {
     std::size_t size = AAsset_getLength(asset);
 
     uint8_t* data = (uint8_t*)malloc(size);
-    // std::unique_ptr<uint8_t> data(new uint8_t[size]);
     memcpy(data, AAsset_getBuffer(asset), size);
     AAsset_close(asset);
 
-    return File(path, std::unique_ptr<uint8_t>(data), size);
+    return File(path.c_str(), std::unique_ptr<uint8_t>(data), size);
 }
 
 std::string File::cwd() {
@@ -128,11 +129,15 @@ std::string File::cwd() {
     }
 }
 
+bool File::exists(const char *path) {
+    return access(path, F_OK) == 0;
+}
+
 #elif defined (__unix__) || (defined (__APPLE__) && defined(__MACH__))
 #   include "unistd.h"
 
-File File::asset(const char* path) {
-    return File(path);
+File File::asset(const std::string& path) {
+    return File(path.c_str());
 }
 
 std::string File::cwd() {
@@ -152,8 +157,8 @@ bool File::exists(const char *path) {
 #elif defined (WIN32) || defined (_WIN32)
 #   include <Windows.h>
 
-File File::asset(const char* path) {
-    return File(path);
+File File::asset(const std::string& path) {
+    return File(path.c_str());
 }
 
 std::string File::cwd() {

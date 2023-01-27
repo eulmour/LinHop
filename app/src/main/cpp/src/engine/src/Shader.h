@@ -15,7 +15,7 @@ struct Shader {
     Shader(const Shader&) = delete;
     Shader& operator=(const Shader&) = delete;
 
-    Shader(Shader&& other);
+    Shader(Shader&& other) noexcept;
     Shader(unsigned vertex_id, unsigned fragment_id, unsigned geometry_id);
     ~Shader();
 

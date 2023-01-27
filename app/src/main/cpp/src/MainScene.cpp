@@ -40,7 +40,6 @@ MainScene::MainScene(wuh::Engine& e) {
         memcpy((void*)&this->save_data, save_data_file.data(), sizeof(SaveData));
     } catch (const std::exception& exception) {
         e.log() << exception.what() << "\n";
-        e.show_log();
     }
 
     // init clicks
@@ -238,7 +237,7 @@ bool MainScene::input(wuh::Engine& e) {
         if (e.input.key_down(wuh::Input::Key::A)) {
             this->suspend(e);
             this->resume(e);
-            e.log() << "Scene reloaded";
+            e.log() << "Activity reloaded";
         }
     } else {
 		if (e.input.key_down(wuh::Input::Key::Back)) {

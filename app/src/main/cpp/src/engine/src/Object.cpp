@@ -67,6 +67,8 @@ Line::Line(Shader shader)
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
+    Graphics::catch_error();
+
     this->state = STATE_READY;
 }
 
@@ -154,13 +156,14 @@ Tri::Tri() :
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(struct tri_vertex), (void*) offsetof(struct tri_vertex, rgba));
 
-    // note that this is allowed, the call to glVertexAttribPointer registered p_scene->vbo_main
-    // as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
     this->loc_projection = glGetUniformLocation(this->shader.id(), "projection");
     this->loc_model = glGetUniformLocation(this->shader.id(), "model");
+
+    Graphics::catch_error();
+
     this->state = STATE_READY;
 }
 
@@ -184,8 +187,8 @@ void Tri::draw(const Graphics& g, float pos[2], Color c) const {
     model = glm::rotate(model, glm::radians(this->rot), glm::vec3(0.0f, 0.0f, 0.0f));
     model = glm::scale(model, glm::vec3(this->scale[0], this->scale[1], 1.0f));
 
-    glUniformMatrix4fv(this->loc_projection, 1, GL_FALSE, (GLfloat *) &projection[0][0]);
-    glUniformMatrix4fv(this->loc_model, 1, GL_FALSE, (GLfloat *) &model[0][0]);
+    glUniformMatrix4fv(static_cast<GLint>(this->loc_projection), 1, GL_FALSE, (GLfloat *) &projection[0][0]);
+    glUniformMatrix4fv(static_cast<GLint>(this->loc_model), 1, GL_FALSE, (GLfloat *) &model[0][0]);
 
     glBindVertexArray(this->vao);
     glDrawArrays(GL_TRIANGLES, 0, this->vbc);
@@ -251,8 +254,6 @@ Rect::Rect() :
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(struct rect_vertex), (void*) offsetof(struct rect_vertex, tex));
 
-    // note that this is allowed, the call to glVertexAttribPointer registered p_scene->vbo_main
-    // as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
@@ -262,6 +263,7 @@ Rect::Rect() :
     this->loc_projection = glGetUniformLocation(this->shader.id(), "projection");
     this->loc_model = glGetUniformLocation(this->shader.id(), "model");
     this->loc_color = glGetUniformLocation(this->shader.id(), "color");
+    Graphics::catch_error();
     this->state = STATE_READY;
 }
 
@@ -286,8 +288,8 @@ void Rect::draw(const Graphics& g, float pos[2], Color c) const {
 
     Shader::uniform_vec4(this->shader.u_color, c);
 
-    glUniformMatrix4fv(this->loc_projection, 1, GL_FALSE, (GLfloat *) &projection[0][0]);
-    glUniformMatrix4fv(this->loc_model, 1, GL_FALSE, (GLfloat *) &model[0][0]);
+    glUniformMatrix4fv(static_cast<GLint>(this->loc_projection), 1, GL_FALSE, (GLfloat *) &projection[0][0]);
+    glUniformMatrix4fv(static_cast<GLint>(this->loc_model), 1, GL_FALSE, (GLfloat *) &model[0][0]);
 
     glBindVertexArray(this->vao);
 	glBindTexture(GL_TEXTURE_2D, this->texture);
@@ -364,16 +366,15 @@ Text::Text(const char* font, float size) :
 
 #if defined(__ANDROID__) || defined(ANDROID)
 
-    struct file file;
-    if (!file_load_asset(&file, font)) {
-        LOGE("Cannot open file %s", font);
-        FT_Done_FreeType(ft); return;
+    if (font == nullptr) {
+        FT_New_Memory_Face(ft, static_cast<const FT_Byte*>(BIN_OCRAEXT_TTF_), (FT_Long)sizeof(BIN_OCRAEXT_TTF_), 0, &face);
+    } else {
+        File file = File::asset(font);
+        if (FT_New_Memory_Face(ft, static_cast<const FT_Byte*>(file.data()), (FT_Long)file.size(), 0, &face)) {
+            FT_Done_FreeType(ft);
+            throw std::runtime_error("FreeType: Failed to load font");
+        }
     }
-
-    if (FT_New_Memory_Face(ft, static_cast<const FT_Byte*>(file.data), (FT_Long)file.size, 0, &face)))
-        LOGE("FreeType: Failed to load font");
-
-    file_unload(&file);
 
 #else
 
@@ -434,8 +435,6 @@ Text::Text(const char* font, float size) :
             face->glyph->bitmap.buffer
         );
 
-        Graphics::catch_error();
-
         // set texture options
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -451,10 +450,10 @@ Text::Text(const char* font, float size) :
         };
 
         this->width += (float)(face->glyph->advance.x >> 6) * this->scale; // TODO find text width and height
-        float height = (float)(face->glyph->advance.y >> 6) * this->scale;
+        float loc_height = (float)(face->glyph->advance.y >> 6) * this->scale;
 
-        if (height > this->height)
-            this->height = height;
+        if (loc_height > this->height)
+            this->height = loc_height;
     }
 
     glBindTexture(GL_TEXTURE_2D, 0);
@@ -463,6 +462,9 @@ Text::Text(const char* font, float size) :
 
     this->loc_projection = glGetUniformLocation(this->shader.id(), "projection");
     this->loc_color = glGetUniformLocation(this->shader.id(), "color");
+
+    Graphics::catch_error();
+
     this->state = STATE_READY;
 }
 

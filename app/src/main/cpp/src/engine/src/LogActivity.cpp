@@ -13,39 +13,6 @@ LogActivity::LogActivity(Engine& e, std::string content)
 void LogActivity::resume(Engine& e) {
 	this->res = std::make_unique<LogActivity::Resources>(e.graphics);
 	this->res->area.ml_text.set_text(this->content, 28);
-	 //this->res->area.ml_text.set_text(
-	 //	"Lorem Ipsum is simply dummy text of the "
-	 //	"printing and typesetting industry. Lorem "
-	 //	"Ipsum has been the industry's standard "
-	 //	"dummy text ever since the 1500s, when "
-	 //	"an unknown printer took a galley of "
-	 //	"type and scrambled it to make a type "
-	 //	"specimen book. It has survived not only "
-	 //	"five centuries, but also the leap into "
-	 //	"electronic typesetting, remaining essentially "
-	 //	"unchanged. It was popularised in the 1960s "
-	 //	"with the release of Letraset sheets "
-	 //	"containing Lorem Ipsum passages, and more "
-	 //	"recently with desktop publishing software "
-	 //	"like Aldus PageMaker including versions of "
-	 //	"Lorem Ipsum. Lorem Ipsum is simply dummy "
-	 //	"text of the printing and typesetting "
-	 //	"industry. Lorem Ipsum has been the "
-	 //	"industry's standard dummy text ever since "
-	 //	"the 1500s, when an unknown printer took a "
-	 //	"galley of type and scrambled it to make a "
-	 //	"type specimen book. It has survived not "
-	 //	"only five centuries, but also the leap "
-	 //	"into electronic typesetting, remaining "
-	 //	"essentially unchanged. It was popularised "
-	 //	"in the 1960s with the release of Letraset "
-	 //	"sheets containing Lorem Ipsum passages, "
-	 //	"and more recently with desktop publishing "
-	 //	"software like Aldus PageMaker including "
-	 //	"versions of Lorem Ipsum.", 28);
-
-	//this->res->ml_text.set_text("Lorem Ipsum is simply dummy text of the printing and typesetting industry.", 28);
-	//this->res->ml_text.set_text("LoremIpsumissimplydummytextofthe printingandtypesettingindustry.", 28);
 }
 
 void LogActivity::suspend(Engine& e) {
@@ -56,11 +23,8 @@ void LogActivity::suspend(Engine& e) {
 void LogActivity::render(Engine& e) {
 
 	// update
-	if (res->back_btn.clicked(e.input.pointers()[0])) { // TODO collision
-		e.window->close();
-	}
 	if (e.input.key_up(Input::Key::Back)) {
-		e.pop_scene();
+		e.pop_activity();
 		return;
 	}
 
@@ -71,6 +35,15 @@ void LogActivity::render(Engine& e) {
 		this->res->area.on_hold(e.input);
 	}
 	if (e.input.key_up(Input::Key::Pointer)) {
+		if (res->back_btn.clicked(e.input.pointers()[0])) {
+			e.pop_activity();
+			return;
+		}
+		if (res->clear_btn.clicked(e.input.pointers()[0])) {
+			e.log().str(std::string());
+			this->res->area.ml_text.set_text("", 0);
+			this->content.clear(); // TODO
+		}
 		this->res->area.on_release(e.input);
 	}
 
@@ -87,7 +60,11 @@ void LogActivity::render(Engine& e) {
 		0.f, 60.f, static_cast<float>(e.graphics.size()[0]), 60.f
 		}[0], Color{0.f, 0.f, 0.f, 1.f}, 2.f);
 
-	res->back_btn.draw(e.graphics, Vec2{20.f, 20.f});
+	res->back_btn.pos(Vec2{ 20.f, 20.f });
+	res->back_btn.draw(e.graphics);
+
+	res->clear_btn.pos(Vec2{ e.graphics.size()[0] - 100.f, 20.f });
+	res->clear_btn.draw(e.graphics);
 }
 
 } // end of namespace wuh

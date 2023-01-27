@@ -10,7 +10,7 @@
 
 namespace wuh {
 
-struct LogActivity : public Scene {
+struct LogActivity : public Activity {
 
     explicit LogActivity(Engine& e, std::string content);
     ~LogActivity() override = default;
@@ -29,6 +29,7 @@ protected:
         void set_text(std::string text, std::size_t max) {
 
             if (text.empty()) {
+                this->lines.clear();
                 return;
             }
 
@@ -82,16 +83,20 @@ protected:
     };
 
 	struct Button : public Object {
-        Button(std::shared_ptr<Text> d, std::shared_ptr<Rect> d_rect, std::string label)
+        Button(std::shared_ptr<Text> d, std::shared_ptr<Rect> d_rect, std::string label, Vec2 size)
             : d(d)
             , d_rect(d_rect)
             , text(label)
-        {}
-        void draw(const Graphics& g, Vec2 pos) {
+        {
+            size_ = size;
+        }
+
+        void draw(const Graphics& g) {
+            // TODO text width, text height
             this->d_rect->use();
-            this->d_rect->scale = Vec2{120.f, 40.f};
-            this->d_rect->draw(g, &Vec2{pos[0] - 10.f, pos[1] - 10.f} [0] , Color{1.f, 1.f, 1.f, 0.5f});
-			this->d->draw(g, this->text.c_str(), &pos[0] , Color{0.f, 0.f, 0.f, 1.f});
+            this->d_rect->scale = size_;
+            this->d_rect->draw(g, &Vec2{pos_[0] - this->padding, pos_[1] - this->padding} [0] , Color{1.f, 1.f, 1.f, 0.5f});
+			this->d->draw(g, this->text.c_str(), &pos_[0] , Color{0.f, 0.f, 0.f, 1.f});
         }
     private:
         std::shared_ptr<Text> d;
@@ -170,9 +175,9 @@ protected:
         Line separator;
         Rect header_rect;
         std::shared_ptr<Rect> button_rect{std::make_shared<Rect>()};
-        // TODO use embedded default font and font shader
 		std::shared_ptr<Text> d_default_text{ std::make_shared<Text>(nullptr, LogActivity::text_size) };
-        Button back_btn{ d_default_text, button_rect, "<- Back" };
+        Button back_btn{ d_default_text, button_rect, "<- Back", Vec2{ 120.f, 40.f } };
+        Button clear_btn{ d_default_text, button_rect, "Clear", Vec2{ 95.f, 40.f } };
         ScrollArea area;
     };
 

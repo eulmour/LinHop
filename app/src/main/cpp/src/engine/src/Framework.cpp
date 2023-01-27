@@ -149,10 +149,6 @@ unsigned int texture_create(int width, int height, const void* data) {
 
 unsigned int texture_load_from_file(const char* path) {
 
-    if (!File::exists(path)) {
-        throw std::runtime_error("File " + std::string(path) + " does not exist");
-    }
-
 #ifdef ENGINE_FLIP_VERTICALLY
     stbi_set_flip_vertically_on_load(1);
 #endif
@@ -160,14 +156,15 @@ unsigned int texture_load_from_file(const char* path) {
     int width, height, bpp;
 #if defined(__ANDROID__) || defined(ANDROID)
 
-    struct file texture_file;
-    file_load_asset(&texture_file, path);
-    stbi_uc* buffer = stbi_load_from_memory(
-        static_cast<const stbi_uc*>(texture_file.data),
-        (int)texture_file.size, &width, &height, &bpp, 4);
+    File texture_file = File::asset(path);
 
-    file_unload(&texture_file);
+    stbi_uc* buffer = stbi_load_from_memory(
+        static_cast<const stbi_uc*>(texture_file.data()),
+        (int)texture_file.size(), &width, &height, &bpp, 4);
 #else
+    if (!File::exists(path)) {
+        throw std::runtime_error("File " + std::string(path) + " does not exist");
+    }
     stbi_uc* buffer = stbi_load(path, &width, &height, &bpp, 4);
 #endif
 
@@ -176,9 +173,7 @@ unsigned int texture_load_from_file(const char* path) {
     }
 
     unsigned texture = texture_create(width, height, buffer);
-
-    if (buffer)
-        stbi_image_free(buffer);
+    stbi_image_free(buffer);
 
     return texture;
 }

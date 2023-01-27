@@ -5,6 +5,7 @@
 #include <fstream>
 #include <sstream>
 #include <exception>
+#include "File.h"
 #include "Framework.h"
 
 #ifdef __APPLE__
@@ -59,7 +60,7 @@ Shader::Shader(
     glGetProgramiv(this->program_id, GL_LINK_STATUS, &success);
     if (!success) {
         char infoLog[512];
-        glGetProgramInfoLog(this->program_id, sizeof(infoLog), NULL, infoLog);
+        glGetProgramInfoLog(this->program_id, sizeof(infoLog), nullptr, infoLog);
         fprintf(stderr, "Could not link program: %s\n", infoLog);
     }
 
@@ -79,13 +80,13 @@ Shader::Shader(
     this->u_color = Shader::uniform_location(this->id(), "u_color");
 }
 
-Shader::Shader(Shader&& other)
-    : u_res(std::move(other.u_res))
-    , u_color(std::move(other.u_color))
+Shader::Shader(Shader&& other) noexcept
+    : u_res(other.u_res)
+    , u_color(other.u_color)
     , program_id(other.id())
-    , vertex_shader_id(std::move(other.vertex_shader_id))
-    , fragment_shader_id(std::move(other.fragment_shader_id))
-    , geometry_shader_id(std::move(other.geometry_shader_id))
+    , vertex_shader_id(other.vertex_shader_id)
+    , fragment_shader_id(other.fragment_shader_id)
+    , geometry_shader_id(other.geometry_shader_id)
 {
     other.program_id = (unsigned)-1;
 }
@@ -99,37 +100,35 @@ Shader::~Shader() {
 unsigned Shader::compile(unsigned shader_type, const char* src) {
 
     GLuint shader = glCreateShader(shader_type);
-    Graphics::catch_error();
-    glShaderSource(shader, 1, &src, NULL);
+    glShaderSource(shader, 1, &src, nullptr);
     glCompileShader(shader);
 
     // check for shader compile errors
     int success;
-    char infoLog[512];
+    char infoLog[1024];
     glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
 
     if (!success) {
-        glGetShaderInfoLog(shader, sizeof(infoLog), NULL, infoLog);
-        fprintf(stderr,
-        "Could not compile %s shader: %s\n",
-        shader_type == GL_VERTEX_SHADER
+        glGetShaderInfoLog(shader, sizeof(infoLog), nullptr, infoLog);
+        glDeleteShader(shader);
+
+        throw std::runtime_error(std::string("Could not compile ")
+            + (shader_type == GL_VERTEX_SHADER
                 ? "vertex"
                 : (shader_type == GL_FRAGMENT_SHADER
                     ? "fragment"
                     : "UNKNOWN"
-                ),
-        infoLog);
-        glDeleteShader(shader);
-        return (unsigned)-1;
+                ))
+           + " shader: "+ std::string(infoLog));
     }
 
     return shader;
 }
 
-void Shader::uniform_vec2(unsigned id, const Vec2& value) { glUniform2f(id, value[0], value[1]); }
-void Shader::uniform_vec3(unsigned id, const Vec3& value) { glUniform3f(id, value[0], value[1], value[2]); }
-void Shader::uniform_vec4(unsigned id, const Vec4& value) { glUniform4f(id, value[0], value[1], value[2], value[3]); }
-void Shader::uniform_mat4(unsigned id, const Mat4& value) { glUniformMatrix4fv(id, 1, GL_FALSE, (GLfloat*) &value[0][0]); }
+void Shader::uniform_vec2(unsigned id, const Vec2& value) { glUniform2f(static_cast<GLint>(id), value[0], value[1]); }
+void Shader::uniform_vec3(unsigned id, const Vec3& value) { glUniform3f(static_cast<GLint>(id), value[0], value[1], value[2]); }
+void Shader::uniform_vec4(unsigned id, const Vec4& value) { glUniform4f(static_cast<GLint>(id), value[0], value[1], value[2], value[3]); }
+void Shader::uniform_mat4(unsigned id, const Mat4& value) { glUniformMatrix4fv(static_cast<GLint>(id), 1, GL_FALSE, (GLfloat*) &value[0][0]); }
 unsigned Shader::uniform_location(unsigned shader_id, const std::string& name) { return glGetUniformLocation(shader_id, name.c_str()); }
 void Shader::use() const { glUseProgram(this->id()); }
 void Shader::res(const Vec2& value) const { Shader::uniform_vec2(this->u_res, value); }
@@ -137,9 +136,11 @@ void Shader::color(const Vec4& value) const { Shader::uniform_vec4(this->u_color
 
 Shader Shader::Builder::from_file(const std::string& path) {
 
-    std::fstream stream(path); if (!stream) {
-        throw std::runtime_error("Cannot open file");
-    }
+    std::stringstream stream;
+
+    File file = File::asset(path);
+    std::string content(file.data(), file.data() + file.size());
+    stream << content;
 
     Builder::Type type;
 
@@ -224,7 +225,10 @@ Shader::Builder& Shader::Builder::geometry(const std::string& shader_src) {
 		"#endif\n"
         + shader_src;
 
-	this->shader_id[static_cast<int>(Shader::Builder::Type::GEOMETRY)] = Shader::compile(GL_GEOMETRY_SHADER, src.c_str());
+#if !defined(__ANDROID__) && !defined(ANDROID)
+    this->shader_id[static_cast<int>(Shader::Builder::Type::GEOMETRY)] = Shader::compile(GL_GEOMETRY_SHADER, src.c_str());
+#endif
+
     return *this;
 }
 
