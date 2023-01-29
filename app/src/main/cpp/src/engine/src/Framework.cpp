@@ -102,7 +102,6 @@ unsigned int create_shader(unsigned int shader_type, const char* src) {
         abort();
     }
 
-    Graphics::catch_error();
     return shader;
 }
 

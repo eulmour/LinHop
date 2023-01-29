@@ -260,14 +260,14 @@ bool Window::should_close() const {
 
 void Window::swap_buffers() {
     glfwSwapBuffers(this->glfw_window);
+    auto current = static_cast<float>(glfwGetTime());
+    frame_info_.delta_time = current - frame_info_.last_frame_time;
+    frame_info_.last_frame_time = current;
+//    frame_info_.delta_time = frame_info_.last_frame_time = 1.f / 60.f;
 }
 
 float Window::delta_time() const {
-//    auto currentFrame = static_cast<float>(glfwGetTime());
-//    this->frameInfo.deltaTime = currentFrame - this->frameInfo.lastFrameTime;
-//    this->frameInfo.lastFrameTime = currentFrame;
-//    this->frameInfo.deltaTime = this->frameInfo.lastFrameTime = 1.f / 60.f;
-    return this->frame_info_.delta_time;
+    return frame_info_.delta_time;
 }
 
 #endif

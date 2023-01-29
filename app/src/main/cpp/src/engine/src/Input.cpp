@@ -128,12 +128,8 @@ void Input::glfwCursorCallback_(GLFWwindow *window, double xpos, double ypos)
 {
 	auto* e = reinterpret_cast<Engine*>(glfwGetWindowUserPointer(window));
 
-    // TODO temporary solution, needs HiDPI support
-    float x_multiplier = e->window->physical_size()[0] / e->window->size()[0];
-    float y_multiplier = e->window->physical_size()[1] / e->window->size()[1];
-
-    e->input.pointers()[0][0] = static_cast<float>(xpos) * x_multiplier;
-    e->input.pointers()[0][1] = static_cast<float>(ypos) * y_multiplier;
+    e->input.pointers()[0][0] = static_cast<float>(xpos);
+    e->input.pointers()[0][1] = static_cast<float>(ypos);
     e->input.get(Key::PointerMove) = State::Hold;
 }
 

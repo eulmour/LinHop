@@ -22,6 +22,10 @@ void Lines::draw(const wuh::Graphics& g) {
             continue;
 
         auto pos = wuh::Vec4{line.a_pos[0], line.a_pos[1] - scroll, line.b_pos[0], line.b_pos[1] - scroll };
+        // pos[0] *= g.scale();
+        // pos[1] *= g.scale();
+        // pos[2] *= g.scale();
+        // pos[3] *= g.scale();
 
         this->d_segment->use();
         this->d_segment->position(pos);

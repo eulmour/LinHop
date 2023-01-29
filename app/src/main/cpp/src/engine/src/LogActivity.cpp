@@ -13,6 +13,11 @@ LogActivity::LogActivity(Engine& e, std::string content)
 void LogActivity::resume(Engine& e) {
 	this->res = std::make_unique<LogActivity::Resources>(e.graphics);
 	this->res->area.ml_text.set_text(this->content, 28);
+	
+	// try {
+	// } catch (const std::exception& exception) {
+	// 	LOGE("%s", exception.what());
+	// }
 }
 
 void LogActivity::suspend(Engine& e) {

@@ -1,7 +1,7 @@
 #include "File.h"
 #include "Framework.h"
-#include <malloc.h>
 #include <cstdio>
+#include <cstdlib>
 #include <stdexcept>
 
 namespace {
@@ -52,7 +52,7 @@ void File::remove() const {
 
 void File::remove(const char* path) {
     if (std::remove(path) != 0) {
-        throw std::runtime_error(std::string(strerror(errno)));
+        // throw std::runtime_error(std::string(strerror(errno)));
     }
 }
 

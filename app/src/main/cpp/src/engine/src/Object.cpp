@@ -67,7 +67,9 @@ Line::Line(Shader shader)
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
+#ifndef NDEBUG
     Graphics::catch_error();
+#endif
 
     this->state = STATE_READY;
 }
@@ -162,7 +164,9 @@ Tri::Tri() :
     this->loc_projection = glGetUniformLocation(this->shader.id(), "projection");
     this->loc_model = glGetUniformLocation(this->shader.id(), "model");
 
+#ifndef NDEBUG
     Graphics::catch_error();
+#endif
 
     this->state = STATE_READY;
 }
@@ -263,7 +267,11 @@ Rect::Rect() :
     this->loc_projection = glGetUniformLocation(this->shader.id(), "projection");
     this->loc_model = glGetUniformLocation(this->shader.id(), "model");
     this->loc_color = glGetUniformLocation(this->shader.id(), "color");
+    
+#ifndef NDEBUG
     Graphics::catch_error();
+#endif
+
     this->state = STATE_READY;
 }
 
@@ -283,7 +291,6 @@ void Rect::draw(const Graphics& g, float pos[2], Color c) const {
     glm::mat4 model(1.0f);
 
     model = glm::translate(model, glm::vec3(pos[0], pos[1], 0.0f));
-    // model = glm::rotate(model, glm::radians(this->rot), glm::vec3(0.0f, 0.0f, 0.0f));
     model = glm::scale(model, glm::vec3(this->scale[0], this->scale[1], 1.0f));
 
     Shader::uniform_vec4(this->shader.u_color, c);
@@ -463,7 +470,9 @@ Text::Text(const char* font, float size) :
     this->loc_projection = glGetUniformLocation(this->shader.id(), "projection");
     this->loc_color = glGetUniformLocation(this->shader.id(), "color");
 
+#ifndef NDEBUG
     Graphics::catch_error();
+#endif
 
     this->state = STATE_READY;
 }

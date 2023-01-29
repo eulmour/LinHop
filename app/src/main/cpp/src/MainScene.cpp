@@ -127,8 +127,8 @@ MainScene::MainScene(wuh::Engine& e) {
         0.f, 5.f
     });
 
-    this->label_game_fps = std::make_unique<Label>(" fps", glm::vec2 {
-        screenW - 80.f, 5.f
+    this->label_game_fps = std::make_unique<Label>("", glm::vec2 {
+        screenW - 40.f, 5.f
     });
 
     //try {
@@ -230,8 +230,11 @@ bool MainScene::input(wuh::Engine& e) {
         this->onEventLeft();
     if (e.input.key_down(wuh::Input::Key::Right))
         this->onEventRight();
-    if (e.input.key_down(wuh::Input::Key::Select))
-        this->onEventSelect(e);
+    if (e.input.key_down(wuh::Input::Key::Select)) {
+        if (!this->onEventSelect(e)) {
+            return false;
+        }
+    }
 
     if (e.input.key_hold(wuh::Input::Key::Ctrl)) {
         if (e.input.key_down(wuh::Input::Key::A)) {
@@ -396,11 +399,12 @@ void MainScene::render(wuh::Engine& e) {
     }
 
     PROLOG(e)
+    float scale = e.graphics.scale();
 
     e.graphics.clear(background_color);
 
     lasers->draw(e.graphics, *this->line);
-
+ 
     if (lasers->live_time == 0 && !lasers->lasers.empty()) {
 
         // laser destroys ball
@@ -429,7 +433,7 @@ void MainScene::render(wuh::Engine& e) {
         sparks->draw(e.graphics);
 		ball_tail->draw(e.graphics, *this->line);
     }
-
+ 
     if (game_mode == GameMode::CLASSIC)
         lines->draw(e.graphics);
 
@@ -578,11 +582,10 @@ void MainScene::render(wuh::Engine& e) {
 
 #ifndef NDEBUG
 
-//            this->labelGameFps
-//                ->setText(std::to_string(static_cast<int>(1 / engine.window->delta_time())) + std::string(" fps"))
-//                .setColor(gameMode == GameMode::CLASSIC ? COLOR_SELECTED : COLOR_HIDDEN)
-//                .draw();
-
+           this->label_game_fps
+               ->setText(std::to_string(static_cast<int>(1 / e.window->delta_time())))
+               .setColor(wuh::Color{1.f, .5f, .5f, 1.f})
+               .draw(e.graphics, *this->small_text);
 #endif
 
             this->label_game_score

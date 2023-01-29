@@ -392,8 +392,8 @@ void Engine::run() {
         activity_.push(std::make_unique<DummyActivity>());
     }
 
-    activity_.top()->resume(*this);
-    this->log() << activity_.top()->title() << " resumed\n";
+    // activity_.top()->resume(*this);
+    // this->log() << activity_.top()->title() << " resumed\n";
 
     registered_loop = [&]() {
         // Poll for and process events

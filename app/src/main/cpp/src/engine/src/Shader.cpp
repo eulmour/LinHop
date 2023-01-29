@@ -54,6 +54,10 @@ Shader::Shader(
 
     glLinkProgram(this->program_id);
 
+#ifndef NDEBUG
+    Graphics::catch_error();
+#endif
+
     int success;
 
     // check for linking errors
@@ -61,7 +65,7 @@ Shader::Shader(
     if (!success) {
         char infoLog[512];
         glGetProgramInfoLog(this->program_id, sizeof(infoLog), nullptr, infoLog);
-        fprintf(stderr, "Could not link program: %s\n", infoLog);
+        throw std::runtime_error("Could not link program: " + std::string(infoLog));
     }
 
     if (this->vertex_shader_id.has_value()) {
@@ -78,6 +82,9 @@ Shader::Shader(
 
     this->u_res = Shader::uniform_location(this->id(), "u_res");
     this->u_color = Shader::uniform_location(this->id(), "u_color");
+#ifndef NDEBUG
+    Graphics::catch_error();
+#endif
 }
 
 Shader::Shader(Shader&& other) noexcept
@@ -188,9 +195,9 @@ Shader::Builder& Shader::Builder::vertex(const std::string& shader_src) {
 
     const std::string src =
         SHADER_GL_VERSION
-		"#ifdef GL_ES\n"
+		// "#ifdef GL_ES\n"
         "precision mediump float;\n"
-		"#endif\n"
+		// "#endif\n"
         "uniform vec2 u_res;\n"
         SHADER_FN_ORTHO + shader_src;
 
@@ -203,9 +210,9 @@ Shader::Builder& Shader::Builder::fragment(const std::string& shader_src) {
     const std::string src =
         SHADER_GL_VERSION
 
-		"#ifdef GL_ES\n"
+		// "#ifdef GL_ES\n"
         "precision mediump float;\n"
-		"#endif\n"
+		// "#endif\n"
 
         "uniform vec2 u_res;\n"
         "uniform vec4 u_color;\n"
@@ -220,9 +227,9 @@ Shader::Builder& Shader::Builder::geometry(const std::string& shader_src) {
 
     const std::string src =
         SHADER_GL_VERSION
-		"#ifdef GL_ES\n"
+		// "#ifdef GL_ES\n"
         "precision mediump float;\n"
-		"#endif\n"
+		// "#endif\n"
         + shader_src;
 
 #if !defined(__ANDROID__) && !defined(ANDROID)
