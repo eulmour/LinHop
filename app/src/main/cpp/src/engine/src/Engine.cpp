@@ -71,7 +71,7 @@ void Engine::load()
 #ifdef __EMSCRIPTEN__
     int w = EM_ASM_INT( return window.innerWidth; );
     int h = EM_ASM_INT( return window.innerHeight; );
-    window->size({w, h});
+    window->emscripten_force_size({w, h});
 #endif
 
     graphics

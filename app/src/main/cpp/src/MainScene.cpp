@@ -35,12 +35,14 @@ MainScene::MainScene(wuh::Engine& e) {
     //    e.log() << "Failed to load audio sources: " << exception.what();
     //}
 
+#ifndef __EMSCRIPTEN__
     try {
         wuh::File save_data_file("savedata.dat");
         memcpy((void*)&this->save_data, save_data_file.data(), sizeof(SaveData));
     } catch (const std::exception& exception) {
         e.log() << exception.what() << "\n";
     }
+#endif
 
     // init clicks
     pointerX = last_click[0] = screenW / 2.f;
@@ -201,6 +203,7 @@ void MainScene::resume(wuh::Engine& e) {
     this->min_x = static_cast<float>(e.graphics.size()[0]) / 2.f - area_width / 2.f;
     this->max_x = static_cast<float>(e.graphics.size()[0]) / 2.f + area_width / 2.f;
 
+    printf("width: %d, height: %d\n", e.graphics.size()[0], e.graphics.size()[1]);
     //this->audio_engine->playAll();
 }
 

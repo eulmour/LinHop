@@ -424,7 +424,7 @@ Text::Text(const char* font, float size) :
             GL_TEXTURE_2D,
             0,
 
-#if defined(__ANDROID__) || defined(ANDROID)
+#if defined(__ANDROID__) || defined(ANDROID) || defined(__EMSCRIPTEN__)
             GL_LUMINANCE,
 #else
             GL_RED,
@@ -433,7 +433,7 @@ Text::Text(const char* font, float size) :
             (GLsizei)face->glyph->bitmap.rows,
             0,
 
-#if defined(__ANDROID__) || defined(ANDROID)
+#if defined(__ANDROID__) || defined(ANDROID) || defined(__EMSCRIPTEN__)
             GL_LUMINANCE,
 #else
             GL_RED,

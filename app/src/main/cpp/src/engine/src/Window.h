@@ -75,6 +75,10 @@ public:
     [[nodiscard]] IVec2 physical_size() const { return physical_size_; };
     void focused(bool flag) { this->focused_ = flag; }
 
+#ifdef __EMSCRIPTEN__
+    void emscripten_force_size(IVec2 size);
+#endif
+
 protected:
     IVec2 logical_size_{};
     IVec2 physical_size_{};

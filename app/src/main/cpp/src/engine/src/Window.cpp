@@ -272,6 +272,13 @@ float Window::delta_time() const {
 
 #endif
 
+#ifdef __EMSCRIPTEN__
+void Window::emscripten_force_size(IVec2 size) {
+    glfwSetWindowSize(this->glfw_window, size[0], size[1]);
+    logical_size_ = physical_size_ = size;
+}
+#endif
+
 float Window::delta_time_last() const { return this->frame_info_.last_frame_time; }
 
 Window::Config &Window::Config::title(std::string title) {
