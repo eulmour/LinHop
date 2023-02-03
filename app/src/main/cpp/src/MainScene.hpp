@@ -31,12 +31,12 @@ public:
     std::unique_ptr<Resources> res;
 
     std::unique_ptr<wuh::Audio> audio_engine;
-    std::unique_ptr<wuh::AudioSource> audio_main;
-    std::unique_ptr<wuh::AudioSource> audio_alt;
-    std::unique_ptr<wuh::AudioSource> audio_bounce;
-    std::unique_ptr<wuh::AudioSource> audio_fail_a;
-    std::unique_ptr<wuh::AudioSource> audio_fail_b;
-    std::unique_ptr<wuh::AudioSource> audio_warning;
+    // std::unique_ptr<wuh::Audio::Source> audio_main;
+    // std::unique_ptr<wuh::Audio::Source> audio_alt;
+    std::unique_ptr<wuh::Audio::Source> audio_bounce;
+    // std::unique_ptr<wuh::Audio::Source> audio_fail_a;
+    // std::unique_ptr<wuh::Audio::Source> audio_fail_b;
+    // std::unique_ptr<wuh::Audio::Source> audio_warning;
 
     // drawables
     std::unique_ptr<wuh::Line> line;
@@ -57,7 +57,7 @@ public:
     std::unique_ptr<Label> label_menu_start;
     std::unique_ptr<Label> label_menu_settings;
     std::unique_ptr<Label> label_menu_exit;
-    std::unique_ptr<Label> label_menu_hint;
+    // std::unique_ptr<Label> label_menu_hint;
     std::unique_ptr<Label> label_menu_mode;
 
     std::unique_ptr<Label> label_endgame_restart;

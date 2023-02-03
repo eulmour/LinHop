@@ -24,16 +24,16 @@ MainScene::MainScene(wuh::Engine& e) {
 
     srand((unsigned)time(nullptr) + 228);
 
-    //try {
-    //    this->audio_main = std::make_unique<AudioSource>("audio/a.wav", .5f);
-    //    this->audio_alt = std::make_unique<AudioSource>("audio/b.wav", .5f);
-    //    this->audio_bounce = std::make_unique<AudioSource>("audio/bounce.wav", 1.f);
-    //    this->audio_fail_a = std::make_unique<AudioSource>("audio/fail.wav", 1.f);
-    //    this->audio_fail_b = std::make_unique<AudioSource>("audio/fail2.wav", 1.f);
-    //    this->audio_warning = std::make_unique<AudioSource>("audio/warning.wav", 1.f);
-    //} catch (std::exception& exception) {
-    //    e.log() << "Failed to load audio sources: " << exception.what();
-    //}
+    try {
+    //    this->audio_main = std::make_unique<wuh::Audio::Source>("audio/a.wav", .5f);
+    //    this->audio_alt = std::make_unique<wuh::Audio::Source>("audio/b.wav", .5f);
+       this->audio_bounce = std::make_unique<wuh::Audio::Source>("audio/bounce.wav", 1.f);
+    //    this->audio_fail_a = std::make_unique<wuh::Audio::Source>("audio/fail.wav", 1.f);
+    //    this->audio_fail_b = std::make_unique<wuh::Audio::Source>("audio/fail2.wav", 1.f);
+    //    this->audio_warning = std::make_unique<wuh::Audio::Source>("audio/warning.wav", 1.f);
+    } catch (std::exception& exception) {
+       e.log() << exception.what() << "\n";
+    }
 
 #ifndef __EMSCRIPTEN__
     try {
@@ -49,9 +49,13 @@ MainScene::MainScene(wuh::Engine& e) {
     pointerY = last_click[1] = screenH;
     this->prev_mouse_pos = {pointerX, pointerY};
 
-    // class
-    lines       = std::make_unique<Lines>();
-    lines->Reset(e.graphics);
+    lines = std::make_unique<Lines>();
+    lines->lines.emplace_back( // First line
+        glm::vec2{ 0.f, static_cast<float>(e.graphics.size()[1]) },
+        glm::vec2{static_cast<float>(e.graphics.size()[0]), static_cast<float>(e.graphics.size()[1]) },
+        wuh::Color{ 1.0f, 1.0f, 1.0f, 1.0f },
+        false
+    );
 
     rand_lines  = std::make_unique<Lines>();
     sparks      = std::make_unique<Sparks>();
@@ -83,11 +87,11 @@ MainScene::MainScene(wuh::Engine& e) {
         screenW / 2.f - 78.f, screenH / 2.f + 140.f
     });
 
-    this->label_menu_hint = std::make_unique<Label>("Left or right to change mode", glm::vec2 {
-        screenW / 2.f - 238.f, screenH - 40.f
-    });
+    // this->label_menu_hint = std::make_unique<Label>("Left or right to change mode", glm::vec2 {
+    //     screenW / 2.f - 238.f, screenH - 40.f
+    // });
 
-    this->label_menu_hint->setColor({0.4f, 0.55f, 0.6f, 1.f});
+    // this->label_menu_hint->setColor({0.4f, 0.55f, 0.6f, 1.f});
 
     this->label_menu_mode = std::make_unique<Label>("Classic", glm::vec2 {
         screenW / 2.f - 74.f, screenH / 2.f - 110.f
@@ -133,16 +137,15 @@ MainScene::MainScene(wuh::Engine& e) {
         screenW - 40.f, 5.f
     });
 
-    //try {
-    //    this->audio_engine = std::make_unique<Audio>();
-    //} catch (const std::exception& exception) {
-    //    e.log() << "Failed to initialize audio engine: " << exception.what();
-    //}
+    try {
+       this->audio_engine = std::make_unique<wuh::Audio>();
+    } catch (const std::exception& exception) {
+       e.log() << "Failed to initialize audio engine: " << exception.what();
+    }
 }
 
 MainScene::~MainScene() {
 
-    // wuh::file_save("savedata.dat", (void*)&this->save_data, sizeof(SaveData));
     wuh::File::save("savedata.dat", (void*)&this->save_data, sizeof(SaveData));
     //audio_destroy(&this->audio_engine);
     //audio_source_unload(&this->audio_main);
@@ -203,8 +206,7 @@ void MainScene::resume(wuh::Engine& e) {
     this->min_x = static_cast<float>(e.graphics.size()[0]) / 2.f - area_width / 2.f;
     this->max_x = static_cast<float>(e.graphics.size()[0]) / 2.f + area_width / 2.f;
 
-    printf("width: %d, height: %d\n", e.graphics.size()[0], e.graphics.size()[1]);
-    //this->audio_engine->playAll();
+    this->audio_engine->resume();
 }
 
 bool MainScene::input(wuh::Engine& e) {
@@ -288,6 +290,7 @@ bool MainScene::update(wuh::Engine& engine) {
             if (ball->collision(*lines, ball->prev_pos)) {
                 sparks->push(ball->pos);
                 //this->audio_engine->play(*this->audio_bounce);
+                this->audio_engine->play(*this->audio_bounce);
             }
 
             if (ball->collision(*rand_lines, ball->prev_pos)) {
@@ -296,7 +299,7 @@ bool MainScene::update(wuh::Engine& engine) {
             }
 
             // If ball reaches half of the screen then update scroll
-            if (ball->pos[1] - screenH / 2.f - 10.f < scroll) {
+            if (game_state == GameState::INGAME && (ball->pos[1] - screenH / 2.f - 10.f < scroll)) {
                 scroll += (ball->pos[1] - screenH / 2.f - 10.f - scroll) / 10.f;
             }
 
@@ -324,13 +327,14 @@ bool MainScene::update(wuh::Engine& engine) {
                 if (util::rand(0, 1) <= 1) {
                     auto base_y = scroll - 80.0f;
                     auto base_x = util::rand(-(screenW/3.f), screenW);
+                    float width_x = max_x - min_x;
 
                     struct line {
                         glm::vec2 first;
                         glm::vec2 second;
                     } new_line {
                         {base_x, base_y},
-                        {base_x + (util::rand(0.f, screenW) / 2.f) - (screenW/2.f) / 4.f,
+                        {base_x + (util::rand(0.f, width_x) / 2.f) + min_x - (width_x/2.f) / 4.f,
 							base_y + util::rand(0.f, screenH) / 6.f}
                     };
 
@@ -402,7 +406,6 @@ void MainScene::render(wuh::Engine& e) {
     }
 
     PROLOG(e)
-    float scale = e.graphics.scale();
 
     e.graphics.clear(background_color);
 
@@ -466,7 +469,7 @@ void MainScene::render(wuh::Engine& e) {
                 ->setColor(menu_selected == MenuSelected::EXIT ? COLOR_SELECTED : COLOR_IDLE)
                 .draw(e.graphics, *this->medium_text);
 
-            this->label_menu_hint->draw(e.graphics, *this->small_text);
+            // this->label_menu_hint->draw(e.graphics, *this->small_text);
 
             switch (game_mode) {
                 case GameMode::CLASSIC:
@@ -713,13 +716,13 @@ bool MainScene::onEventPointerMove(wuh::Engine& engine) {
                 }
             }
 
-            if (this->label_menu_hint->isCollide(*this->small_text, glm::make_vec2(pointerPos.data()))) {
-                if (this->pressed_once) {
-                    this->label_menu_hint->setColor({
-                        util::rand(.0f, 1.f), util::rand(.0f, 1.f), util::rand(.0f, 1.f), 1.f
-                    });
-                }
-            }
+            // if (this->label_menu_hint->isCollide(*this->small_text, glm::make_vec2(pointerPos.data()))) {
+            //     if (this->pressed_once) {
+            //         this->label_menu_hint->setColor({
+            //             util::rand(.0f, 1.f), util::rand(.0f, 1.f), util::rand(.0f, 1.f), 1.f
+            //         });
+            //     }
+            // }
 
             if (this->label_menu_mode->isCollide(*this->small_text, glm::make_vec2(pointerPos.data()))) {
                 if (this->pressed_once) {

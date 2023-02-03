@@ -1,9 +1,5 @@
 #include "SettingsActivity.hpp"
 
-// #define PROLOG(e) \
-    // float screenW = static_cast<float>(e.window->physical_size()[0]); \
-    // float screenH = static_cast<float>(e.window->physical_size()[1]);
-
 #define PROLOG(e) \
     float screenW = static_cast<float>(e.window->size()[0]); \
     float screenH = static_cast<float>(e.window->size()[1]);

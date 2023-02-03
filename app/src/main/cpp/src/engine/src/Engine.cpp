@@ -91,6 +91,8 @@ void Engine::load()
         }
     }
 
+    this->log() << "Window: " << window->physical_size()[0] << "x" << window->physical_size()[1] << "\n\n";
+
     try {
         std::string current_dir = File::cwd();
         LOGI("Current working directory: %s", current_dir.c_str());
