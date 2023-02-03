@@ -7,6 +7,11 @@
 
 #define ENGINE_POINTER_COUNT_MAX 16
 
+#ifdef _MSC_VER
+#   define NOMINMAX
+#   define strncasecmp(s1, s2, n) _strnicmp(s1, s2, n)
+#endif
+
 #if defined(__ANDROID__) || defined(ANDROID)
 #   include <GLES3/gl31.h>
 #   include <android/log.h>
@@ -27,7 +32,6 @@
 #   define LOGW_WRITE LOGW_PRINT
 #   define LOGE_WRITE LOGE_PRINT
 #elif defined (WIN32) || defined (_WIN32)
-#   define strncasecmp(s1, s2, n) _strnicmp(s1, s2, n)
 #   define LOGV_PRINT(fmt, ...) ((void)printf("[VERBOSE] " fmt "\n", ##__VA_ARGS__))
 #   define LOGI_PRINT(fmt, ...) ((void)printf("[INFO] " fmt "\n", ##__VA_ARGS__))
 #   define LOGW_PRINT(fmt, ...) ((void)printf("[WARNING] " fmt "\n", ##__VA_ARGS__))

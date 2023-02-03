@@ -12,7 +12,6 @@
 #endif
 
 #if defined(WIN32) || defined(_WIN32)
-#   define NOMINMAX
 #   include <Windows.h>
 #   define ENGINE_ENTRY(MainApplication) \
         int APIENTRY WinMain(_In_ HINSTANCE hInstance, \

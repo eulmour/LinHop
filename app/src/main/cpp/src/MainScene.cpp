@@ -1,5 +1,6 @@
 #include "MainScene.hpp"
 #include <memory>
+#include <ctime>
 
 // colors --- I used macros because cglm don't deal with consts
 #define COLOR_SELECTED wuh::Color{ 0.6f, 0.9f, 1.0f, 1.f }
@@ -22,7 +23,7 @@ MainScene::MainScene(wuh::Engine& e) {
 
     PROLOG(e)
 
-    srand((unsigned)time(nullptr) + 228);
+    srand((unsigned)std::time(nullptr) + 228);
 
     try {
     //    this->audio_main = std::make_unique<wuh::Audio::Source>("audio/a.wav", .5f);
