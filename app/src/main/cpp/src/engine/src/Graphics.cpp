@@ -190,7 +190,7 @@ void Graphics::catch_error() {
     while (error != GL_NO_ERROR) {
 
         try {
-            ss << "GL error: " << errors.at(error) << "\n";
+            ss << "GL error: " << errors.at(error) << "\nReload is required";
         } catch (...) {
             throw std::runtime_error("Unknown GL error");
         }

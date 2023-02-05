@@ -31,12 +31,12 @@ public:
     std::unique_ptr<Resources> res;
 
     std::unique_ptr<wuh::Audio> audio_engine;
-    // std::unique_ptr<wuh::Audio::Source> audio_main;
-    // std::unique_ptr<wuh::Audio::Source> audio_alt;
+    std::unique_ptr<wuh::Audio::Source> audio_main;
+    std::unique_ptr<wuh::Audio::Source> audio_alt;
     std::unique_ptr<wuh::Audio::Source> audio_bounce;
-    // std::unique_ptr<wuh::Audio::Source> audio_fail_a;
-    // std::unique_ptr<wuh::Audio::Source> audio_fail_b;
-    // std::unique_ptr<wuh::Audio::Source> audio_warning;
+    std::unique_ptr<wuh::Audio::Source> audio_fail_a;
+    std::unique_ptr<wuh::Audio::Source> audio_fail_b;
+    std::unique_ptr<wuh::Audio::Source> audio_warning;
 
     // drawables
     std::unique_ptr<wuh::Line> line;

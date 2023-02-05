@@ -25,16 +25,12 @@ MainScene::MainScene(wuh::Engine& e) {
 
     srand((unsigned)std::time(nullptr) + 228);
 
-    try {
-    //    this->audio_main = std::make_unique<wuh::Audio::Source>("audio/a.wav", .5f);
-    //    this->audio_alt = std::make_unique<wuh::Audio::Source>("audio/b.wav", .5f);
-       this->audio_bounce = std::make_unique<wuh::Audio::Source>("audio/bounce.wav", 1.f);
-    //    this->audio_fail_a = std::make_unique<wuh::Audio::Source>("audio/fail.wav", 1.f);
-    //    this->audio_fail_b = std::make_unique<wuh::Audio::Source>("audio/fail2.wav", 1.f);
-    //    this->audio_warning = std::make_unique<wuh::Audio::Source>("audio/warning.wav", 1.f);
-    } catch (std::exception& exception) {
-       e.log() << exception.what() << "\n";
-    }
+    this->audio_main = std::make_unique<wuh::Audio::Source>("audio/a.wav", .3f);
+    this->audio_alt = std::make_unique<wuh::Audio::Source>("audio/b.wav", .3f);
+    this->audio_bounce = std::make_unique<wuh::Audio::Source>("audio/bounce.wav", 0.75f);
+    this->audio_fail_a = std::make_unique<wuh::Audio::Source>("audio/fail.wav", 0.75f);
+    this->audio_fail_b = std::make_unique<wuh::Audio::Source>("audio/fail2.wav", 0.75f);
+    this->audio_warning = std::make_unique<wuh::Audio::Source>("audio/warning.wav", 0.75f);
 
 #ifndef __EMSCRIPTEN__
     try {
@@ -146,15 +142,7 @@ MainScene::MainScene(wuh::Engine& e) {
 }
 
 MainScene::~MainScene() {
-
     wuh::File::save("savedata.dat", (void*)&this->save_data, sizeof(SaveData));
-    //audio_destroy(&this->audio_engine);
-    //audio_source_unload(&this->audio_main);
-    //audio_source_unload(&this->audio_alt);
-    //audio_source_unload(&this->audio_bounce);
-    //audio_source_unload(&this->audio_fail_a);
-    //audio_source_unload(&this->audio_fail_b);
-    //audio_source_unload(&this->audio_warning);
 }
 
 void MainScene::suspend(wuh::Engine& e) {
@@ -170,26 +158,21 @@ void MainScene::suspend(wuh::Engine& e) {
     this->medium_text.reset();
     this->large_text.reset();
 
-    //this->audio_engine->pauseAll();
+    this->audio_engine->paused(true);
 }
 
 void MainScene::resume(wuh::Engine& e) {
 
     this->line = std::make_unique<wuh::Line>();
 
-    try {
-        this->small_text = std::make_unique<wuh::Text>(nullptr, MainScene::small_text_size);
-        this->medium_text = std::make_unique<wuh::Text>(nullptr, MainScene::medium_text_size);
-        this->large_text = std::make_unique<wuh::Text>(nullptr, MainScene::large_text_size);
+    this->small_text = std::make_unique<wuh::Text>(nullptr, MainScene::small_text_size);
+    this->medium_text = std::make_unique<wuh::Text>(nullptr, MainScene::medium_text_size);
+    this->large_text = std::make_unique<wuh::Text>(nullptr, MainScene::large_text_size);
 
-        this->ball->activate();
-        this->lines->activate();
-        this->lasers->activate();
-        this->sparks->activate();
-    } catch (const std::exception& exception) {
-        e.log() << exception.what() << "\nShader error. Please reload screen";
-        e.show_log();
-    }
+    this->ball->activate();
+    this->lines->activate();
+    this->lasers->activate();
+    this->sparks->activate();
 
     this->pressed = false;
     this->pressed_once = false;
@@ -314,10 +297,10 @@ bool MainScene::update(wuh::Engine& engine) {
                 ball->pos[1] - scroll > screenH + ball->radius)
             {
                 if (game_state == GameState::INGAME) {
-                    //if (util::rand(0, 1) == 0)
-                        //this->audio_engine->play(*this->audio_fail_a);
-                    //else
-                        //this->audio_engine->play(*this->audio_fail_b);
+                    if (util::rand(0, 1) == 0)
+                        this->audio_engine->play(*this->audio_fail_a);
+                    else
+                        this->audio_engine->play(*this->audio_fail_b);
 
                     game_state = GameState::ENDGAME;
                 }
@@ -370,14 +353,14 @@ bool MainScene::update(wuh::Engine& engine) {
             // lasers
             if (game_score > 1000L) {
                 if (util::rand(0, 600) == 1) {
-                    //this->audio_engine->play(*this->audio_warning);
+                    this->audio_engine->play(*this->audio_warning);
 
                     lasers->trigger(engine.graphics,
                             util::rand(0.0f, screenW - (screenW/3.0f)));
                 }
 
-                //if (lasers->live_time == 59)
-                    //this->audio_engine->play(*this->audio_warning);
+                if (lasers->live_time == 59)
+                    this->audio_engine->play(*this->audio_warning);
             }
 
             break;
@@ -387,15 +370,15 @@ bool MainScene::update(wuh::Engine& engine) {
     }
 
     // play random music
-    //if (this->audio_main
-    //    && this->audio_main->state != STATE_BUSY
-    //    && this->audio_alt->state != STATE_BUSY)
-    //{
-    //   if (rand() % 2 == 0)
-    //        this->audio_engine->play(*this->audio_main);
-    //   else
-    //        this->audio_engine->play(*this->audio_alt);
-    //}
+    if (this->audio_main
+       && this->audio_main->seek() == 0
+       && this->audio_alt->seek() == 0)
+    {
+      if (rand() % 2 == 0)
+           this->audio_engine->play(*this->audio_main);
+      else
+           this->audio_engine->play(*this->audio_alt);
+    }
 
     return true;
 }
@@ -421,10 +404,10 @@ void MainScene::render(wuh::Engine& e) {
             if (game_state == GameState::INGAME)
                 game_state = GameState::ENDGAME;
 
-            //if (util::rand(0, 1) == 0)
-            //    this->audio_engine->play(*this->audio_fail_a);
-            //else
-            //    this->audio_engine->play(*this->audio_fail_b);
+            if (util::rand(0, 1) == 0)
+               this->audio_engine->play(*this->audio_fail_a);
+            else
+               this->audio_engine->play(*this->audio_fail_b);
         }
 
         sparks->push(glm::vec2{0.0f, 0.0f});
@@ -933,7 +916,7 @@ void MainScene::onEventLeft() {
                 save_data.music_volume_float = 1.f;
             }
 
-            // this->audio_engine->master_vol = std::min(save_data.music_volume_float, 1.f);
+            this->audio_engine->volume(std::min(save_data.music_volume_float, 1.f));
         }
     }
 }
@@ -965,7 +948,7 @@ void MainScene::onEventRight() {
                 save_data.music_volume_float = 0.f;
             }
 
-            //this->audio_engine.master_vol = std::min(save_data.music_volume_float, 1.f);
+            this->audio_engine->volume(std::min(save_data.music_volume_float, 1.f));
         }
     }
 }

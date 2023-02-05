@@ -24,16 +24,27 @@ Engine::~Engine()
 }
 
 void Engine::push_activity(std::unique_ptr<Activity> activity) {
-
-    if (activity) {
-        if (!activity_.empty()) {
-            activity_.top()->suspend(*this);
-            this->log() << activity_.top()->title() << " suspended\n";
-        }
-        activity_.push(std::move(activity));
-        activity_.top()->resume(*this);
-        this->log() << activity_.top()->title() << " resumed\n";
+    
+    if (activity == nullptr) {
+        return;
     }
+
+    if (!activity_.empty()) {
+        activity_.top()->suspend(*this);
+        this->log() << activity_.top()->title() << " suspended\n";
+    }
+
+    activity_.push(std::move(activity));
+
+    try {
+        activity_.top()->resume(*this);
+    } catch (const std::exception& exception) {
+        activity_.pop();
+        this->log() << exception.what();
+        this->show_log();
+    }
+
+    this->log() << activity_.top()->title() << " resumed\n";
 }
 
 void Engine::pop_activity() {
