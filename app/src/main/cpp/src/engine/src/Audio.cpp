@@ -30,7 +30,7 @@ struct Audio::Source::Internal {
 void Audio::Internal::ma_data_callback_(ma_device* pDevice, void* output_ptr, const void* pInput, ma_uint32 frames_count) {
 
     Audio* self = (Audio*)pDevice->pUserData;
-    if (self == NULL || self->playlist_.empty()) {
+    if (self == NULL || self->paused_ || self->playlist_.empty()) {
         return;
     }
     
@@ -126,21 +126,24 @@ void Audio::play(Source& source) {
 }
 
 void Audio::resume() {
+
     if (ma_device_init(NULL, &internal_->config, &internal_->device) != MA_SUCCESS) {
         throw std::runtime_error("Failed to open playback device, ma_device_init failed");
     }
     if (ma_device_start(&internal_->device) != MA_SUCCESS) {
         throw std::runtime_error("Failed to start playback device, ma_device_start failed");
     }
+
     this->paused(false);
 }
+
 void Audio::paused(bool flag) {
     paused_ = flag;
 }
 
 void Audio::suspend() {
-    ma_device_uninit(&internal_->device);
     this->paused(true);
+    ma_device_uninit(&internal_->device);
     playlist_.clear();
 }
 

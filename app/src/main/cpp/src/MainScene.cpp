@@ -239,6 +239,7 @@ bool MainScene::input(wuh::Engine& e) {
     
     if (e.window->focused() == false) {
 		this->game_state = GameState::PAUSED;
+        this->audio_engine->paused(true);
     }
 
     return true;
@@ -825,16 +826,20 @@ bool MainScene::onEventSelect(wuh::Engine& engine) {
             switch (menu_selected) {
                 case MenuSelected::START:
                     game_state = GameState::INGAME;
+                    this->audio_engine->paused(false);
                     reset(engine);
                     break;
 
                 case MenuSelected::CONTINUE:
                     if (game_state == GameState::PAUSED)
                         game_state = GameState::INGAME;
+
+                    this->audio_engine->paused(false);
                     break;
 
                 case MenuSelected::SETTINGS:
                     game_state = GameState::SETTINGS;
+                    this->audio_engine->paused(false);
                     break;
 
                 case MenuSelected::EXIT: {
