@@ -18,7 +18,7 @@
 
 namespace wuh {
 
-#ifndef ANDROID
+#if !defined(__ANDROID__) && !defined(ANDROID) && !defined(__EMSCRIPTEN__) && !defined(__APPLE__)
 static void GLAPIENTRY errorOccurredGL(
         GLenum source, GLenum type, GLuint id, GLenum severity,
         GLsizei length, const GLchar *message, const void *userParam)

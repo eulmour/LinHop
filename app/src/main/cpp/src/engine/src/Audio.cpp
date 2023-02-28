@@ -42,12 +42,12 @@ void Audio::Internal::ma_data_callback_(ma_device* pDevice, void* output_ptr, co
         }
 
         ma_int16 buffer[buffer_size * channels];
-        ma_uint32 total_frames_read = 0;
+        ma_uint64 total_frames_read = 0;
 
         while (total_frames_read < frames_count) {
 
             ma_uint64 frames_read;
-            ma_uint32 frames_remaining = frames_count - total_frames_read;
+            ma_uint64 frames_remaining = frames_count - total_frames_read;
             ma_uint64 frames_to_read = buffer_size;
 
             if (frames_to_read > frames_remaining) {
@@ -57,7 +57,7 @@ void Audio::Internal::ma_data_callback_(ma_device* pDevice, void* output_ptr, co
             ma_decoder_read_pcm_frames(source->internal_->decoder.get(), buffer, frames_to_read, &frames_read);
 
             for (ma_uint64 i = 0; i < frames_read * channels; ++i) {
-                ((ma_int16*)output_ptr)[total_frames_read * channels + i] += buffer[i] * self->volume_ * source->volume_;
+                ((ma_int16*)output_ptr)[total_frames_read * channels + i] += buffer[i] * (self->volume_ * source->volume_); // TODO float * i16
             }
 
             total_frames_read += frames_read;
@@ -71,7 +71,7 @@ void Audio::Internal::ma_data_callback_(ma_device* pDevice, void* output_ptr, co
     (void)pInput;
 }
 
-Audio::Audio() {
+Audio::Audio() : paused_(true) {
     internal_ = new Internal();
     internal_->config = ma_device_config_init(ma_device_type_playback);
     internal_->config.playback.format   = format;
@@ -79,8 +79,6 @@ Audio::Audio() {
     internal_->config.sampleRate        = sample_rate;
     internal_->config.dataCallback      = Internal::ma_data_callback_;
     internal_->config.pUserData         = this;
-
-    this->resume();
 }
 
 Audio::~Audio() {
