@@ -18,8 +18,8 @@ static constexpr ma_uint32 sample_rate = 48000;
 static constexpr ma_uint32 buffer_size = 512;
 
 struct Audio::Internal {
-    ma_device device;
-    ma_device_config config;
+    ma_device device{};
+    ma_device_config config{};
     static void ma_data_callback_(ma_device* pDevice, void* output_ptr, const void* pInput, ma_uint32 frames_count);
 };
 
