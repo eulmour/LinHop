@@ -6,8 +6,8 @@ using namespace linhop::util;
 extern float scroll;
 
 Lines::Lines()
-    : d_segment(std::make_unique<MyLine>())
-    , d_circle_segment(std::make_unique<wuh::Line>())
+   : d_segment(std::make_unique<wuh::Line>())
+   , d_circle_segment(std::make_unique<wuh::Line>())
 {}
 
 void Lines::Push(glm::vec2 second, glm::vec2 first, bool isCol) {
@@ -24,7 +24,7 @@ void Lines::draw(const wuh::Graphics& g) {
         auto pos = wuh::Vec4{line.a_pos[0], line.a_pos[1] - scroll, line.b_pos[0], line.b_pos[1] - scroll };
 
         this->d_segment->use();
-        this->d_segment->position(pos);
+//        this->d_segment->position(pos);
         this->d_segment->draw(g, &pos[0], line.color, this->width);
 
         if (!line.collinear)
@@ -40,7 +40,8 @@ void Lines::Reset(const wuh::Graphics& g) {
 }
 
 void Lines::activate() {
-    this->d_segment = std::make_unique<MyLine>();
+//    this->d_segment = std::make_unique<MyLine>();
+    this->d_segment = std::make_unique<wuh::Line>();
 }
 
 void Lines::deactivate() {

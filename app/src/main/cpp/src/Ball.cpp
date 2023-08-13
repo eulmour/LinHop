@@ -30,8 +30,12 @@ bool Ball::collision(const Lines& line_array, const glm::vec2 prev_position) {
 
         int side = util::checkLineSides(line.a_pos, line.b_pos, pos);
 
-        if (util::intersect(
-                prev_position, pos, line.a_pos, line.b_pos) && util::sign(side) == 1 && bounce_cool_down == 0) {
+        bool b = util::dis_to_line(line.a_pos, line.b_pos, pos) < this->radius;
+                
+        if (b && util::sign(side) == 1 && bounce_cool_down == 0) {
+
+//        if (util::intersect(
+//                prev_position, pos, line.a_pos, line.b_pos) && util::sign(side) == 1 && bounce_cool_down == 0) {
 
             float angle = std::atan2(line.b_pos[1] - line.a_pos[1], line.b_pos[0] - line.a_pos[0]);
             float normal = angle - 3.1415926f * 0.5f;

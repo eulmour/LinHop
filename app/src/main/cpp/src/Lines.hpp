@@ -7,42 +7,6 @@
 #include "glm/vec2.hpp"
 #include "glm/vec4.hpp"
 
-struct MyLine : public wuh::Line {
-    MyLine()
-        : wuh::Line(wuh::Shader::Builder()
-/*            .vertex(
-                "layout(location = 0) in vec2 position;\n"
-
-                "void main() {\n"
-                    "mat4 projection = ortho(0.0, u_res.x, u_res.y, 0.0, -1.0, 1.0);"
-                    "gl_Position = projection * vec4(position, 0.0, 1.0);\n"
-                "}\n")
-            .fragment(
-                "uniform vec4 u_position;\n"
-
-                "void main() {\n"
-                    "vec2 fragCoord = vec2(gl_FragCoord.x, u_res.y - gl_FragCoord.y);\n"
-                    "float lineLength = distance(u_position.xy, u_position.zw);\n"
-                    "vec2 vCenter = vec2((u_position.x + u_position.z) / 2.0, (u_position.y + u_position.w) / 2.0);\n"
-
-                    "if (distance(vCenter, fragCoord) > (lineLength/2.0) - 26.0) {\n"
-                        "out_color = vec4(0.0, 0.0, 0.0, 0.0);\n"
-                    "} else {\n"
-                        "out_color = u_color;\n"
-                    "}\n"
-                "}")
-            .build())*/
-            .from_file("shaders/line_segment.glsl"))
-        , u_position(wuh::Shader::uniform_location(this->shader.id(), "u_position"))
-    {}
-
-    void position(wuh::Vec4 pos) {
-        wuh::Shader::uniform_vec4(u_position, pos);
-    }
-
-    unsigned u_position;
-};
-
 struct Circle {
     glm::vec2 pos{};
     wuh::Color color{};
@@ -79,7 +43,7 @@ struct Lines {
 
 private:
     static constexpr float width = 5.f;
-    std::unique_ptr<MyLine> d_segment;
+    std::unique_ptr<wuh::Line> d_segment;
     std::unique_ptr<wuh::Line> d_circle_segment;
 };
 
